@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sort Đơn Hàng - Hannal Store 97 (Final)</title>
+    <title>Sort Đơn Hàng - Hannal Store 97 (Final Pro)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -15,105 +15,184 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
         .hidden-area { display: none; }
-        .fade-in { animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* Radio Button Custom */
-        .radio-group input:checked + div {
-            border-color: #000;
-            background-color: #f3f4f6;
-            color: #000;
+        /* Hiệu ứng nổi bật khi Hover */
+        .hover-pop {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .radio-group div { transition: all 0.2s; }
+        .hover-pop:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border-color: #000;
+        }
+
+        /* Radio Button Custom Logic */
+        .radio-card {
+            transition: all 0.3s;
+            border: 2px solid #e5e7eb;
+            opacity: 0.7;
+        }
+        .radio-card:hover {
+            opacity: 1;
+            border-color: #9ca3af;
+        }
+        /* Khi được chọn */
+        input:checked + .radio-card {
+            opacity: 1;
+            transform: scale(1.05);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border-width: 2px;
+        }
+        /* Màu riêng cho từng loại */
+        input[value="nb01"]:checked + .radio-card {
+            border-color: #16a34a; /* Green */
+            background-color: #f0fdf4;
+            color: #15803d;
+        }
+        input[value="nbd"]:checked + .radio-card {
+            border-color: #2563eb; /* Blue */
+            background-color: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        /* Upload Zone Active State */
+        .upload-zone:hover {
+            border-style: solid;
+            background-color: #fff;
+            transform: scale(1.01);
+        }
     </style>
 </head>
 <body class="bg-gray-50 h-screen flex overflow-hidden">
 
-    <aside class="w-72 bg-white border-r border-gray-200 flex flex-col p-6 justify-between flex-shrink-0">
+    <aside class="w-72 bg-white border-r border-gray-200 flex flex-col p-6 justify-between flex-shrink-0 z-10 shadow-lg">
         <div>
             <div class="mb-10">
-                <h1 class="text-xl font-bold text-gray-900">Sort Đơn Hàng</h1>
-                <p class="text-sm text-gray-500 mt-1">Hannal Store 97</p>
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="bg-black text-white text-xs font-bold px-2 py-1 rounded">V2.0</span>
+                    <h1 class="text-xl font-bold text-gray-900">Sort Đơn Hàng</h1>
+                </div>
+                <p class="text-sm text-gray-500 font-medium">Hannal Store 97</p>
             </div>
 
-            <nav class="space-y-3">
+            <nav class="space-y-4">
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Chọn Nền Tảng</p>
+                
                 <button id="btn-shopee" onclick="switchTab('shopee')" 
-                    class="w-full flex items-center px-4 py-3 text-gray-900 bg-white border-2 border-black rounded-xl transition-all hover:bg-gray-50 group shadow-sm font-semibold">
-                    <i class="fa-solid fa-box-open text-lg mr-3 w-6 text-center"></i>
-                    <span>Shopee</span>
+                    class="w-full flex items-center px-4 py-4 text-left rounded-xl border-2 transition-all hover-pop group relative overflow-hidden">
+                    <div class="absolute inset-0 bg-orange-50 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <i class="fa-solid fa-box-open text-2xl mr-4 w-8 text-center relative z-10 transition-colors"></i>
+                    <div class="relative z-10">
+                        <span class="block font-bold text-lg">Shopee</span>
+                        <span class="text-xs text-gray-500">Xử lý đơn Shopee</span>
+                    </div>
                 </button>
 
                 <button id="btn-tiktok" onclick="switchTab('tiktok')" 
-                    class="w-full flex items-center px-4 py-3 text-gray-500 bg-transparent border-2 border-transparent rounded-xl hover:bg-gray-100 hover:text-gray-900 transition-all font-medium">
-                    <i class="fa-brands fa-tiktok text-lg mr-3 w-6 text-center"></i>
-                    <span>TikTok Shop</span>
+                    class="w-full flex items-center px-4 py-4 text-left rounded-xl border-2 transition-all hover-pop group relative overflow-hidden">
+                    <div class="absolute inset-0 bg-gray-50 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <i class="fa-brands fa-tiktok text-2xl mr-4 w-8 text-center relative z-10 transition-colors"></i>
+                    <div class="relative z-10">
+                        <span class="block font-bold text-lg">TikTok Shop</span>
+                        <span class="text-xs text-gray-500">Xử lý đơn TikTok</span>
+                    </div>
                 </button>
             </nav>
         </div>
-        <div class="text-xs text-gray-400">
-            <p>Upload PDF &rarr; Sort &rarr; Download</p>
-            <p class="mt-1 text-green-600 font-bold" id="version-text">Mode: Shopee V7</p>
+        <div class="text-xs text-gray-400 border-t pt-4">
+            <p class="font-semibold">Trạng thái hệ thống:</p>
+            <p class="mt-1 text-lg" id="version-text">...</p>
         </div>
     </aside>
 
-    <main class="flex-1 flex flex-col items-center justify-center p-4 relative">
+    <main class="flex-1 flex flex-col items-center justify-center p-4 relative bg-gray-50">
         
-        <div class="bg-white rounded-3xl shadow-sm border border-gray-100 w-full max-w-3xl p-10 text-center">
+        <div class="bg-white rounded-[2rem] shadow-xl border border-gray-100 w-full max-w-4xl p-12 text-center transition-all">
             
-            <h2 class="text-3xl font-bold text-gray-900 mb-2">Sắp xếp đơn hàng Hannalstore97</h2>
-            <p class="text-gray-500 mb-8 text-sm">Công cụ xử lý đơn hàng tự động (Tích hợp NB01 & NBD)</p>
+            <h2 class="text-3xl font-black text-gray-900 mb-2 tracking-tight">XỬ LÝ ĐƠN HÀNG</h2>
+            <p class="text-gray-500 mb-10 text-base">Vui lòng chọn đúng File PDF tương ứng với nền tảng</p>
 
             <div id="area-shopee" class="fade-in">
-                <label for="file-shopee" class="flex flex-col items-center justify-center w-full h-48 border-2 border-orange-300 border-dashed rounded-2xl cursor-pointer bg-orange-50 hover:bg-orange-100 transition-all">
-                    <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                        <i class="fa-solid fa-file-invoice text-4xl text-orange-500 mb-3"></i>
-                        <p class="mb-2 text-lg text-gray-700 font-bold">Chọn file PDF (Shopee)</p>
-                        <p class="text-xs text-gray-400">Logic V7: Tự động phân loại NBD, NB01, 2XL...</p>
+                <div class="p-4 bg-orange-50 rounded-2xl border border-orange-100 mb-6 inline-block">
+                    <span class="text-orange-700 font-bold"><i class="fa-solid fa-triangle-exclamation mr-2"></i>Chế độ: Shopee V7 (Tự động lọc NBD, NB01...)</span>
+                </div>
+
+                <label for="file-shopee" class="upload-zone flex flex-col items-center justify-center w-full h-64 border-4 border-orange-300 border-dashed rounded-3xl cursor-pointer bg-orange-50/50 hover:bg-white hover:border-orange-500 hover:shadow-orange-200 hover:shadow-xl transition-all group relative">
+                    <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-100 rounded-3xl transition-opacity -z-10"></div>
+                    <div class="flex flex-col items-center justify-center pt-5 pb-6 z-10">
+                        <div class="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-file-arrow-up text-4xl text-orange-600"></i>
+                        </div>
+                        <p class="mb-2 text-xl text-gray-700 font-bold group-hover:text-orange-600">Bấm vào đây để chọn File Shopee</p>
+                        <p class="text-sm text-gray-400">Chỉ chấp nhận file .PDF</p>
                     </div>
                     <input id="file-shopee" type="file" class="hidden" accept=".pdf" onchange="showFileName(this, 'name-shopee')" />
                 </label>
-                <div id="name-shopee" class="hidden mt-3 text-orange-600 font-medium bg-white border border-orange-200 px-4 py-2 rounded-lg text-sm">
-                    <i class="fa-solid fa-check mr-2"></i> <span class="content"></span>
+                
+                <div id="name-shopee" class="hidden mt-4 animate-bounce">
+                    <span class="inline-flex items-center px-4 py-2 rounded-full border border-orange-200 bg-orange-50 text-orange-700 font-bold shadow-sm">
+                        <i class="fa-solid fa-check-circle mr-2"></i> <span class="content">Filename.pdf</span>
+                    </span>
                 </div>
             </div>
 
             <div id="area-tiktok" class="hidden-area fade-in">
-                <div class="flex justify-center gap-4 mb-6 w-full radio-group">
-                    <label class="cursor-pointer w-1/2">
-                        <input type="radio" name="tk-mode" value="nb01" checked class="hidden" onchange="updateTkMode()">
-                        <div class="border border-gray-200 rounded-xl p-3 flex items-center justify-center gap-2 hover:bg-gray-50">
-                            <i class="fa-solid fa-filter text-green-600"></i>
-                            <span class="font-bold text-sm">Đơn NB Lót (NB01) và SP khác</span>
+                <div class="grid grid-cols-2 gap-6 mb-8 w-full px-10">
+                    <label class="cursor-pointer group relative">
+                        <input type="radio" name="tk-mode" value="nb01" checked class="hidden peer" onchange="updateTkMode()">
+                        <div class="radio-card h-full rounded-2xl p-6 flex flex-col items-center justify-center gap-3 bg-white shadow-sm hover:shadow-md">
+                            <div class="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+                                <i class="fa-solid fa-filter text-2xl"></i>
+                            </div>
+                            <span class="font-bold text-lg">Đơn NB Lót (NB01)</span>
+                            <span class="text-xs text-gray-500 text-center">Ưu tiên đơn NB01 & Đơn Lạ</span>
+                            <div class="absolute top-4 right-4 text-green-500 opacity-0 peer-checked:opacity-100 transform scale-0 peer-checked:scale-100 transition-all">
+                                <i class="fa-solid fa-circle-check text-2xl"></i>
+                            </div>
                         </div>
                     </label>
-                    <label class="cursor-pointer w-1/2">
-                        <input type="radio" name="tk-mode" value="nbd" class="hidden" onchange="updateTkMode()">
-                        <div class="border border-gray-200 rounded-xl p-3 flex items-center justify-center gap-2 hover:bg-gray-50">
-                            <i class="fa-solid fa-layer-group text-blue-600"></i>
-                            <span class="font-bold text-sm">Đơn NB Dài (NBD)</span>
+
+                    <label class="cursor-pointer group relative">
+                        <input type="radio" name="tk-mode" value="nbd" class="hidden peer" onchange="updateTkMode()">
+                        <div class="radio-card h-full rounded-2xl p-6 flex flex-col items-center justify-center gap-3 bg-white shadow-sm hover:shadow-md">
+                            <div class="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                                <i class="fa-solid fa-layer-group text-2xl"></i>
+                            </div>
+                            <span class="font-bold text-lg">Đơn NB Dài (NBD)</span>
+                            <span class="text-xs text-gray-500 text-center">Lọc theo Màu & Size cơ bản</span>
+                            <div class="absolute top-4 right-4 text-blue-500 opacity-0 peer-checked:opacity-100 transform scale-0 peer-checked:scale-100 transition-all">
+                                <i class="fa-solid fa-circle-check text-2xl"></i>
+                            </div>
                         </div>
                     </label>
                 </div>
 
-                <label for="file-tiktok" class="flex flex-col items-center justify-center w-full h-40 border-2 border-gray-900 border-dashed rounded-2xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-all">
+                <label for="file-tiktok" class="upload-zone flex flex-col items-center justify-center w-full h-56 border-4 border-gray-300 border-dashed rounded-3xl cursor-pointer bg-gray-50 hover:bg-white hover:border-black hover:shadow-xl transition-all group">
                     <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                        <i class="fa-brands fa-tiktok text-4xl text-black mb-3"></i>
-                        <p class="mb-1 text-lg text-gray-700 font-bold">Chọn file PDF (TikTok)</p>
-                        <p class="text-xs text-gray-500" id="tk-desc">Đang dùng logic: Ưu tiên NB01</p>
+                        <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 group-hover:bg-black group-hover:text-white transition-all">
+                            <i class="fa-brands fa-tiktok text-3xl"></i>
+                        </div>
+                        <p class="mb-1 text-xl text-gray-900 font-bold group-hover:text-black">Chọn File TikTok PDF</p>
+                        <p class="text-sm font-medium text-blue-600" id="tk-desc-preview">Đang chọn: NB01</p>
                     </div>
                     <input id="file-tiktok" type="file" class="hidden" accept=".pdf" onchange="showFileName(this, 'name-tiktok')" />
                 </label>
-                 <div id="name-tiktok" class="hidden mt-3 text-black font-medium bg-gray-100 border border-gray-200 px-4 py-2 rounded-lg text-sm">
-                    <i class="fa-solid fa-check mr-2"></i> <span class="content"></span>
+                
+                 <div id="name-tiktok" class="hidden mt-4 animate-bounce">
+                    <span class="inline-flex items-center px-4 py-2 rounded-full border border-gray-300 bg-gray-100 text-black font-bold shadow-sm">
+                        <i class="fa-solid fa-check-circle mr-2"></i> <span class="content">Filename.pdf</span>
+                    </span>
                 </div>
             </div>
 
-            <button id="btn-process" onclick="processOrder()" class="mt-8 w-full bg-gray-900 hover:bg-black text-white font-bold py-4 px-6 rounded-xl shadow-lg transform active:scale-95 transition-all flex items-center justify-center gap-2">
-                <span id="btn-text">BẮT ĐẦU XỬ LÝ</span>
-                <i id="btn-icon" class="fa-solid fa-bolt"></i>
+            <button id="btn-process" onclick="processOrder()" class="mt-10 w-full bg-gray-900 hover:bg-black text-white text-xl font-bold py-5 px-8 rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all flex items-center justify-center gap-3">
+                <span id="btn-text">BẮT ĐẦU XỬ LÝ NGAY</span>
+                <i id="btn-icon" class="fa-solid fa-bolt animate-pulse"></i>
             </button>
             
-            <div id="error-log" class="mt-4 text-red-500 text-sm hidden bg-red-50 p-3 rounded-lg border border-red-100 text-left overflow-auto max-h-32"></div>
+            <div id="error-log" class="mt-6 text-red-600 font-medium text-sm hidden bg-red-50 p-4 rounded-xl border border-red-200 text-left overflow-auto max-h-32 shadow-inner"></div>
         </div>
 
     </main>
@@ -130,38 +209,56 @@
             const btnShopee = document.getElementById('btn-shopee');
             const btnTiktok = document.getElementById('btn-tiktok');
             
-            // Reset Styles
-            const activeClass = "text-gray-900 bg-white border-black font-semibold shadow-sm";
-            const inactiveClass = "text-gray-500 bg-transparent border-transparent font-medium hover:bg-gray-100 hover:text-gray-900";
-            btnShopee.className = `w-full flex items-center px-4 py-3 rounded-xl border-2 transition-all ${platform === 'shopee' ? activeClass : inactiveClass}`;
-            btnTiktok.className = `w-full flex items-center px-4 py-3 rounded-xl border-2 transition-all ${platform === 'tiktok' ? activeClass : inactiveClass}`;
+            // Style Classes
+            const activeClass = "bg-white border-black text-black shadow-lg ring-1 ring-black/5 transform scale-[1.02]";
+            const inactiveClass = "bg-transparent border-transparent text-gray-400 hover:bg-gray-50 opacity-60 hover:opacity-100";
+            
+            // Icon Colors
+            const shopeeIcon = btnShopee.querySelector('i');
+            const tiktokIcon = btnTiktok.querySelector('i');
 
-            // Toggle Areas
             if (platform === 'shopee') {
+                btnShopee.className = `w-full flex items-center px-4 py-4 text-left rounded-xl border-2 transition-all hover-pop relative overflow-hidden ${activeClass}`;
+                btnTiktok.className = `w-full flex items-center px-4 py-4 text-left rounded-xl border-2 transition-all hover-pop relative overflow-hidden ${inactiveClass}`;
+                
+                shopeeIcon.classList.add('text-orange-500');
+                tiktokIcon.classList.remove('text-black');
+
                 document.getElementById('area-shopee').classList.remove('hidden-area');
                 document.getElementById('area-tiktok').classList.add('hidden-area');
-                document.getElementById('version-text').innerText = "Mode: Shopee V7";
-                document.getElementById('version-text').className = "mt-1 text-orange-600 font-bold";
+                
+                updateVersionText("Shopee V7", "text-orange-600");
             } else {
+                btnShopee.className = `w-full flex items-center px-4 py-4 text-left rounded-xl border-2 transition-all hover-pop relative overflow-hidden ${inactiveClass}`;
+                btnTiktok.className = `w-full flex items-center px-4 py-4 text-left rounded-xl border-2 transition-all hover-pop relative overflow-hidden ${activeClass}`;
+                
+                shopeeIcon.classList.remove('text-orange-500');
+                tiktokIcon.classList.add('text-black');
+
                 document.getElementById('area-shopee').classList.add('hidden-area');
                 document.getElementById('area-tiktok').classList.remove('hidden-area');
-                updateTkMode(); // Cập nhật text trạng thái
+                updateTkMode(); 
             }
+        }
+
+        function updateVersionText(text, colorClass) {
+            const v = document.getElementById('version-text');
+            v.innerText = text;
+            v.className = `mt-1 text-2xl font-black tracking-tight ${colorClass}`;
         }
 
         function updateTkMode() {
             const mode = document.querySelector('input[name="tk-mode"]:checked').value;
-            const desc = document.getElementById('tk-desc');
-            const version = document.getElementById('version-text');
+            const preview = document.getElementById('tk-desc-preview');
             
             if (mode === 'nb01') {
-                desc.innerText = "Logic: Ưu tiên NB01, tách đơn lạ, fix gộp đơn";
-                version.innerText = "Mode: NB Lót (NB01)";
-                version.className = "mt-1 text-green-600 font-bold";
+                updateVersionText("TIKTOK: NB01", "text-green-600");
+                preview.innerText = "Đang chọn logic: NB01 (Lót)";
+                preview.className = "text-sm font-bold text-green-600 mt-2";
             } else {
-                desc.innerText = "Logic: Quét màu/size cơ bản (Dùng cho NBD)";
-                version.innerText = "Mode: NB Dài (NBD)";
-                version.className = "mt-1 text-blue-600 font-bold";
+                updateVersionText("TIKTOK: NBD", "text-blue-600");
+                preview.innerText = "Đang chọn logic: NBD (Dài)";
+                preview.className = "text-sm font-bold text-blue-600 mt-2";
             }
         }
 
@@ -169,12 +266,15 @@
             const displayDiv = document.getElementById(displayId);
             if (input.files && input.files[0]) {
                 displayDiv.classList.remove('hidden');
-                displayDiv.querySelector('.content').innerText = input.files[0].name;
+                displayDiv.querySelector('.content').innerText = "Đã chọn: " + input.files[0].name;
                 document.getElementById('error-log').classList.add('hidden');
             }
         }
 
-        // ================= MAIN CONTROLLER =================
+        // Initialize UI
+        switchTab('shopee');
+
+        // ================= MAIN CONTROLLER (LOGIC GIỮ NGUYÊN) =================
         async function processOrder() {
             const btn = document.getElementById('btn-process');
             const btnText = document.getElementById('btn-text');
@@ -191,7 +291,7 @@
             }
 
             if (!fileInput.files || !fileInput.files[0]) {
-                alert(`⚠️ Vui lòng chọn file PDF!`);
+                alert(`⚠️ CHƯA CHỌN FILE PDF! Vui lòng chọn file trước khi bấm xử lý.`);
                 return;
             }
             file = fileInput.files[0];
@@ -199,6 +299,7 @@
             // UI Loading
             btn.disabled = true;
             btnText.innerText = "ĐANG XỬ LÝ...";
+            btn.classList.add('opacity-75', 'cursor-not-allowed');
             
             try {
                 const arrayBuffer = await file.arrayBuffer();
@@ -223,21 +324,32 @@
                 link.download = outName;
                 link.click();
                 
-                btnText.innerText = "HOÀN TẤT!";
-                setTimeout(() => { btnText.innerText = "BẮT ĐẦU XỬ LÝ"; btn.disabled = false; }, 2000);
+                btnText.innerText = "THÀNH CÔNG! ĐANG TẢI VỀ";
+                btn.classList.remove('bg-gray-900', 'hover:bg-black');
+                btn.classList.add('bg-green-600', 'hover:bg-green-700');
+                
+                setTimeout(() => { 
+                    btnText.innerText = "BẮT ĐẦU XỬ LÝ NGAY"; 
+                    btn.disabled = false; 
+                    btn.classList.remove('opacity-75', 'cursor-not-allowed', 'bg-green-600', 'hover:bg-green-700');
+                    btn.classList.add('bg-gray-900', 'hover:bg-black');
+                }, 3000);
 
             } catch (e) {
                 console.error(e);
-                errorLog.innerText = e.message;
+                errorLog.innerText = "LỖI: " + e.message;
                 errorLog.classList.remove('hidden');
-                btnText.innerText = "LỖI!";
+                btnText.innerText = "GẶP LỖI!";
                 btn.disabled = false;
+                btn.classList.remove('opacity-75', 'cursor-not-allowed');
             }
         }
 
-        // ===============================================
-        // 1. LOGIC SHOPEE V7
-        // ===============================================
+        // ================= LOGIC GIỮ NGUYÊN NHƯ CŨ =================
+        // (Copy lại toàn bộ hàm logic từ code cũ của bạn vào đây: 
+        // runShopeeLogic, classifyPagesShopee, extractItemsShopee, normalizeColorShopee, 
+        // addUnique, getPrintOrderShopee, runTikTokNB01Logic, runTikTokGeneralLogic, removeAccents)
+        
         async function runShopeeLogic(arrayBuffer) {
             const loadingTask = pdfjsLib.getDocument(arrayBuffer);
             const pdf = await loadingTask.promise;
@@ -328,9 +440,6 @@
             return res;
         }
 
-        // ===============================================
-        // 2. LOGIC TIKTOK NB01 (Từ file loclot.html)
-        // ===============================================
         async function runTikTokNB01Logic(arrayBuffer) {
             const pdfDoc = await pdfjsLib.getDocument(arrayBuffer).promise;
             const pdfWriter = await PDFLib.PDFDocument.load(arrayBuffer);
@@ -348,9 +457,7 @@
                 const text = (await page.getTextContent()).items.map(s => s.str).join(' ');
                 const cleanText = removeAccents(text);
 
-                // Check Header để tách trang
                 if (cleanText.includes('order id') || cleanText.includes('ma don hang') || cleanText.includes('hannal store') || cleanText.includes('recipient')) {
-                    // Phân tích NB01
                     let isNB01 = false, colorRank = 99, sizeRank = 99;
                     if (cleanText.includes('nb01')) {
                          const reverseSizes = [...SIZE_ORDER].reverse();
@@ -371,11 +478,10 @@
                     groups.push(currentGroup);
                 } else {
                     if (currentGroup) currentGroup.tailIndices.push(i - 1);
-                    else groups.push({ headIndex: i - 1, tailIndices: [], colorRank: 99, sizeRank: 99 }); // Orphan page
+                    else groups.push({ headIndex: i - 1, tailIndices: [], colorRank: 99, sizeRank: 99 });
                 }
             }
             
-            // Sort: NB01 (Rank bé) lên đầu, Khác (Rank 99) xuống cuối
             groups.sort((a, b) => {
                 if (a.colorRank !== b.colorRank) return a.colorRank - b.colorRank;
                 return a.sizeRank - b.sizeRank;
@@ -390,9 +496,6 @@
             return await newPdf.save();
         }
 
-        // ===============================================
-        // 3. LOGIC TIKTOK NBD/GENERAL (Đơn giản hơn)
-        // ===============================================
         async function runTikTokGeneralLogic(arrayBuffer) {
             const pdfDoc = await pdfjsLib.getDocument(arrayBuffer).promise;
             const pdfWriter = await PDFLib.PDFDocument.load(arrayBuffer);
@@ -405,10 +508,8 @@
                 const text = (await page.getTextContent()).items.map(s => s.str).join(' ');
                 const cleanText = removeAccents(text);
 
-                // Logic nhận diện đơn giản: Tìm Màu + Size
                 let found = false, cRank = 99, sRank = 99;
                 
-                // Nếu là trang đầu (có Header)
                 if (cleanText.includes('order id') || cleanText.includes('ma don hang') || cleanText.includes('hannal store')) {
                     const reverseSizes = [...TK_SIZE].reverse();
                     for (const size of reverseSizes) {
