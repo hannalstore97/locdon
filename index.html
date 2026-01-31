@@ -83,14 +83,14 @@
                         <input type="radio" name="tk-mode" value="nb01" checked class="hidden" onchange="updateTkMode()">
                         <div class="border border-gray-200 rounded-xl p-3 flex items-center justify-center gap-2 hover:bg-gray-50">
                             <i class="fa-solid fa-filter text-green-600"></i>
-                            <span class="font-bold text-sm">Đơn NB01 (Lọc Kỹ)</span>
+                            <span class="font-bold text-sm">Đơn NB Lót (NB01) và SP khác</span>
                         </div>
                     </label>
                     <label class="cursor-pointer w-1/2">
                         <input type="radio" name="tk-mode" value="nbd" class="hidden" onchange="updateTkMode()">
                         <div class="border border-gray-200 rounded-xl p-3 flex items-center justify-center gap-2 hover:bg-gray-50">
                             <i class="fa-solid fa-layer-group text-blue-600"></i>
-                            <span class="font-bold text-sm">NBD / Đơn Khác</span>
+                            <span class="font-bold text-sm">Đơn NB Dài (NBD)</span>
                         </div>
                     </label>
                 </div>
@@ -99,7 +99,7 @@
                     <div class="flex flex-col items-center justify-center pt-5 pb-6">
                         <i class="fa-brands fa-tiktok text-4xl text-black mb-3"></i>
                         <p class="mb-1 text-lg text-gray-700 font-bold">Chọn file PDF (TikTok)</p>
-                        <p class="text-xs text-gray-500" id="tk-desc">Đang dùng logic: NB01 Chặn Đơn Lạ</p>
+                        <p class="text-xs text-gray-500" id="tk-desc">Đang dùng logic: Ưu tiên NB01</p>
                     </div>
                     <input id="file-tiktok" type="file" class="hidden" accept=".pdf" onchange="showFileName(this, 'name-tiktok')" />
                 </label>
@@ -156,11 +156,11 @@
             
             if (mode === 'nb01') {
                 desc.innerText = "Logic: Ưu tiên NB01, tách đơn lạ, fix gộp đơn";
-                version.innerText = "Mode: TikTok NB01 Strict";
+                version.innerText = "Mode: NB Lót (NB01)";
                 version.className = "mt-1 text-green-600 font-bold";
             } else {
-                desc.innerText = "Logic: Quét màu/size cơ bản (Dùng cho NBD/Khác)";
-                version.innerText = "Mode: TikTok General";
+                desc.innerText = "Logic: Quét màu/size cơ bản (Dùng cho NBD)";
+                version.innerText = "Mode: NB Dài (NBD)";
                 version.className = "mt-1 text-blue-600 font-bold";
             }
         }
@@ -212,7 +212,7 @@
                     outName = "NB01_Clean_" + file.name;
                     pdfBytes = await runTikTokNB01Logic(arrayBuffer);
                 } else {
-                    outName = "TIKTOK_NBD_" + file.name;
+                    outName = "NBD_Sort_" + file.name;
                     pdfBytes = await runTikTokGeneralLogic(arrayBuffer);
                 }
 
@@ -236,7 +236,7 @@
         }
 
         // ===============================================
-        // 1. LOGIC SHOPEE V7 (Giữ nguyên từ bản cũ)
+        // 1. LOGIC SHOPEE V7
         // ===============================================
         async function runShopeeLogic(arrayBuffer) {
             const loadingTask = pdfjsLib.getDocument(arrayBuffer);
@@ -409,7 +409,7 @@
                 let found = false, cRank = 99, sRank = 99;
                 
                 // Nếu là trang đầu (có Header)
-                if (cleanText.includes('order id') || cleanText.includes('ma don hang')) {
+                if (cleanText.includes('order id') || cleanText.includes('ma don hang') || cleanText.includes('hannal store')) {
                     const reverseSizes = [...TK_SIZE].reverse();
                     for (const size of reverseSizes) {
                         const m = cleanText.match(new RegExp(`(den|black|nude|da|kem)\\s*,\\s*(${size})\\b`, 'i'));
