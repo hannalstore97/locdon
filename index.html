@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sort Đơn Hàng - Hannal Store 97</title>
+    <title>Sort Đơn Hàng - Hannal Store 97 (Final)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -17,6 +17,14 @@
         .hidden-area { display: none; }
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Radio Button Custom */
+        .radio-group input:checked + div {
+            border-color: #000;
+            background-color: #f3f4f6;
+            color: #000;
+        }
+        .radio-group div { transition: all 0.2s; }
     </style>
 </head>
 <body class="bg-gray-50 h-screen flex overflow-hidden">
@@ -44,23 +52,23 @@
         </div>
         <div class="text-xs text-gray-400">
             <p>Upload PDF &rarr; Sort &rarr; Download</p>
-            <p class="mt-1 text-blue-600 font-bold" id="version-text">All in One Version</p>
+            <p class="mt-1 text-green-600 font-bold" id="version-text">Mode: Shopee V7</p>
         </div>
     </aside>
 
     <main class="flex-1 flex flex-col items-center justify-center p-4 relative">
         
-        <div class="bg-white rounded-3xl shadow-sm border border-gray-100 w-full max-w-3xl p-12 text-center">
+        <div class="bg-white rounded-3xl shadow-sm border border-gray-100 w-full max-w-3xl p-10 text-center">
             
             <h2 class="text-3xl font-bold text-gray-900 mb-2">Sắp xếp đơn hàng Hannalstore97</h2>
-            <p class="text-gray-500 mb-10 text-sm">Công cụ xử lý đơn hàng tự động</p>
+            <p class="text-gray-500 mb-8 text-sm">Công cụ xử lý đơn hàng tự động (Tích hợp NB01 & NBD)</p>
 
             <div id="area-shopee" class="fade-in">
                 <label for="file-shopee" class="flex flex-col items-center justify-center w-full h-48 border-2 border-orange-300 border-dashed rounded-2xl cursor-pointer bg-orange-50 hover:bg-orange-100 transition-all">
                     <div class="flex flex-col items-center justify-center pt-5 pb-6">
                         <i class="fa-solid fa-file-invoice text-4xl text-orange-500 mb-3"></i>
                         <p class="mb-2 text-lg text-gray-700 font-bold">Chọn file PDF (Shopee)</p>
-                        <p class="text-xs text-gray-400">Logic V7: Fix 2XL, NBD, NB01</p>
+                        <p class="text-xs text-gray-400">Logic V7: Tự động phân loại NBD, NB01, 2XL...</p>
                     </div>
                     <input id="file-shopee" type="file" class="hidden" accept=".pdf" onchange="showFileName(this, 'name-shopee')" />
                 </label>
@@ -70,11 +78,28 @@
             </div>
 
             <div id="area-tiktok" class="hidden-area fade-in">
-                <label for="file-tiktok" class="flex flex-col items-center justify-center w-full h-48 border-2 border-gray-900 border-dashed rounded-2xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-all">
+                <div class="flex justify-center gap-4 mb-6 w-full radio-group">
+                    <label class="cursor-pointer w-1/2">
+                        <input type="radio" name="tk-mode" value="nb01" checked class="hidden" onchange="updateTkMode()">
+                        <div class="border border-gray-200 rounded-xl p-3 flex items-center justify-center gap-2 hover:bg-gray-50">
+                            <i class="fa-solid fa-filter text-green-600"></i>
+                            <span class="font-bold text-sm">Đơn NB01 (Lọc Kỹ)</span>
+                        </div>
+                    </label>
+                    <label class="cursor-pointer w-1/2">
+                        <input type="radio" name="tk-mode" value="nbd" class="hidden" onchange="updateTkMode()">
+                        <div class="border border-gray-200 rounded-xl p-3 flex items-center justify-center gap-2 hover:bg-gray-50">
+                            <i class="fa-solid fa-layer-group text-blue-600"></i>
+                            <span class="font-bold text-sm">NBD / Đơn Khác</span>
+                        </div>
+                    </label>
+                </div>
+
+                <label for="file-tiktok" class="flex flex-col items-center justify-center w-full h-40 border-2 border-gray-900 border-dashed rounded-2xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-all">
                     <div class="flex flex-col items-center justify-center pt-5 pb-6">
                         <i class="fa-brands fa-tiktok text-4xl text-black mb-3"></i>
-                        <p class="mb-2 text-lg text-gray-700 font-bold">Chọn file PDF (TikTok)</p>
-                        <p class="text-xs text-gray-400">Logic: Ưu tiên Màu &rarr; Size (Gom trang con)</p>
+                        <p class="mb-1 text-lg text-gray-700 font-bold">Chọn file PDF (TikTok)</p>
+                        <p class="text-xs text-gray-500" id="tk-desc">Đang dùng logic: NB01 Chặn Đơn Lạ</p>
                     </div>
                     <input id="file-tiktok" type="file" class="hidden" accept=".pdf" onchange="showFileName(this, 'name-tiktok')" />
                 </label>
@@ -88,7 +113,7 @@
                 <i id="btn-icon" class="fa-solid fa-bolt"></i>
             </button>
             
-            <div id="error-log" class="mt-4 text-red-500 text-sm hidden"></div>
+            <div id="error-log" class="mt-4 text-red-500 text-sm hidden bg-red-50 p-3 rounded-lg border border-red-100 text-left overflow-auto max-h-32"></div>
         </div>
 
     </main>
@@ -99,25 +124,44 @@
 
         let currentTab = 'shopee';
 
+        // ================= UI FUNCTIONS =================
         function switchTab(platform) {
             currentTab = platform;
             const btnShopee = document.getElementById('btn-shopee');
             const btnTiktok = document.getElementById('btn-tiktok');
-            const activeStyle = "text-gray-900 bg-white border-black font-semibold shadow-sm";
-            const inactiveStyle = "text-gray-500 bg-transparent border-transparent font-medium hover:bg-gray-100 hover:text-gray-900";
+            
+            // Reset Styles
+            const activeClass = "text-gray-900 bg-white border-black font-semibold shadow-sm";
+            const inactiveClass = "text-gray-500 bg-transparent border-transparent font-medium hover:bg-gray-100 hover:text-gray-900";
+            btnShopee.className = `w-full flex items-center px-4 py-3 rounded-xl border-2 transition-all ${platform === 'shopee' ? activeClass : inactiveClass}`;
+            btnTiktok.className = `w-full flex items-center px-4 py-3 rounded-xl border-2 transition-all ${platform === 'tiktok' ? activeClass : inactiveClass}`;
 
+            // Toggle Areas
             if (platform === 'shopee') {
-                btnShopee.className = `w-full flex items-center px-4 py-3 rounded-xl border-2 transition-all ${activeStyle}`;
-                btnTiktok.className = `w-full flex items-center px-4 py-3 rounded-xl border-2 transition-all ${inactiveStyle}`;
                 document.getElementById('area-shopee').classList.remove('hidden-area');
                 document.getElementById('area-tiktok').classList.add('hidden-area');
-                document.getElementById('version-text').innerText = "Logic Shopee V7";
+                document.getElementById('version-text').innerText = "Mode: Shopee V7";
+                document.getElementById('version-text').className = "mt-1 text-orange-600 font-bold";
             } else {
-                btnShopee.className = `w-full flex items-center px-4 py-3 rounded-xl border-2 transition-all ${inactiveStyle}`;
-                btnTiktok.className = `w-full flex items-center px-4 py-3 rounded-xl border-2 transition-all ${activeStyle}`;
                 document.getElementById('area-shopee').classList.add('hidden-area');
                 document.getElementById('area-tiktok').classList.remove('hidden-area');
-                document.getElementById('version-text').innerText = "Logic TikTok Strict";
+                updateTkMode(); // Cập nhật text trạng thái
+            }
+        }
+
+        function updateTkMode() {
+            const mode = document.querySelector('input[name="tk-mode"]:checked').value;
+            const desc = document.getElementById('tk-desc');
+            const version = document.getElementById('version-text');
+            
+            if (mode === 'nb01') {
+                desc.innerText = "Logic: Ưu tiên NB01, tách đơn lạ, fix gộp đơn";
+                version.innerText = "Mode: TikTok NB01 Strict";
+                version.className = "mt-1 text-green-600 font-bold";
+            } else {
+                desc.innerText = "Logic: Quét màu/size cơ bản (Dùng cho NBD/Khác)";
+                version.innerText = "Mode: TikTok General";
+                version.className = "mt-1 text-blue-600 font-bold";
             }
         }
 
@@ -130,182 +174,126 @@
             }
         }
 
-        // ==========================================
-        // MAIN CONTROLLER
-        // ==========================================
+        // ================= MAIN CONTROLLER =================
         async function processOrder() {
             const btn = document.getElementById('btn-process');
             const btnText = document.getElementById('btn-text');
-            const btnIcon = document.getElementById('btn-icon');
             const errorLog = document.getElementById('error-log');
+            
+            let fileInput, file, mode;
 
-            let fileInput = currentTab === 'shopee' ? document.getElementById('file-shopee') : document.getElementById('file-tiktok');
-            let platformName = currentTab === 'shopee' ? "Shopee" : "TikTok Shop";
-
-            if (!fileInput.files || !fileInput.files[0]) {
-                alert(`⚠️ Bạn chưa chọn file PDF cho ${platformName}!`);
-                return;
+            if (currentTab === 'shopee') {
+                fileInput = document.getElementById('file-shopee');
+                mode = 'SHOPEE';
+            } else {
+                fileInput = document.getElementById('file-tiktok');
+                mode = document.querySelector('input[name="tk-mode"]:checked').value === 'nb01' ? 'TIKTOK_NB01' : 'TIKTOK_NBD';
             }
 
-            // --- LOADING EFFECT ---
+            if (!fileInput.files || !fileInput.files[0]) {
+                alert(`⚠️ Vui lòng chọn file PDF!`);
+                return;
+            }
+            file = fileInput.files[0];
+
+            // UI Loading
             btn.disabled = true;
-            btn.classList.add('opacity-75', 'cursor-not-allowed');
-            const originalText = btnText.innerText;
-            const originalIcon = btnIcon.className;
-
-            const updateStatus = (msg) => {
-                btnText.innerText = msg;
-                btnIcon.className = "fa-solid fa-spinner fa-spin";
-            };
-
+            btnText.innerText = "ĐANG XỬ LÝ...";
+            
             try {
-                const file = fileInput.files[0];
                 const arrayBuffer = await file.arrayBuffer();
-                
                 let pdfBytes = null;
-                let outFileName = "";
+                let outName = "";
 
-                if (currentTab === 'shopee') {
-                    // === LOGIC SHOPEE ===
-                    outFileName = "SHOPEE_V7_" + file.name;
-                    updateStatus("Đang xử lý Shopee...");
-                    pdfBytes = await runShopeeLogic(arrayBuffer, updateStatus);
+                if (mode === 'SHOPEE') {
+                    outName = "SHOPEE_SORT_" + file.name;
+                    pdfBytes = await runShopeeLogic(arrayBuffer);
+                } else if (mode === 'TIKTOK_NB01') {
+                    outName = "NB01_Clean_" + file.name;
+                    pdfBytes = await runTikTokNB01Logic(arrayBuffer);
                 } else {
-                    // === LOGIC TIKTOK ===
-                    outFileName = "TIKTOK_SORT_" + file.name;
-                    updateStatus("Đang xử lý TikTok...");
-                    pdfBytes = await runTikTokLogic(arrayBuffer, updateStatus);
+                    outName = "TIKTOK_NBD_" + file.name;
+                    pdfBytes = await runTikTokGeneralLogic(arrayBuffer);
                 }
 
-                // --- DOWNLOAD ---
-                updateStatus("Đang tải xuống...");
+                // Download
                 const blob = new Blob([pdfBytes], { type: 'application/pdf' });
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
-                link.download = outFileName;
+                link.download = outName;
                 link.click();
-
-                // --- FINISH ---
-                btnText.innerText = "THÀNH CÔNG!";
-                btnIcon.className = "fa-solid fa-check";
-                alert(`✅ Đã xử lý xong đơn hàng ${platformName}!`);
+                
+                btnText.innerText = "HOÀN TẤT!";
+                setTimeout(() => { btnText.innerText = "BẮT ĐẦU XỬ LÝ"; btn.disabled = false; }, 2000);
 
             } catch (e) {
                 console.error(e);
-                errorLog.innerText = "Lỗi: " + e.message;
+                errorLog.innerText = e.message;
                 errorLog.classList.remove('hidden');
-                alert("❌ Lỗi: " + e.message);
-            } finally {
-                setTimeout(() => {
-                    btn.disabled = false;
-                    btn.classList.remove('opacity-75', 'cursor-not-allowed');
-                    btnText.innerText = originalText;
-                    btnIcon.className = originalIcon;
-                }, 2000);
+                btnText.innerText = "LỖI!";
+                btn.disabled = false;
             }
         }
 
-        // ==========================================
-        // 1. LOGIC SHOPEE (V7)
-        // ==========================================
-        async function runShopeeLogic(arrayBuffer, statusCallback) {
-            statusCallback("Đang đọc file Shopee...");
+        // ===============================================
+        // 1. LOGIC SHOPEE V7 (Giữ nguyên từ bản cũ)
+        // ===============================================
+        async function runShopeeLogic(arrayBuffer) {
             const loadingTask = pdfjsLib.getDocument(arrayBuffer);
             const pdf = await loadingTask.promise;
-            const totalPages = pdf.numPages;
-            
             let pagesData = [];
-            for (let i = 1; i <= totalPages; i++) {
+            for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
                 const textContent = await page.getTextContent();
                 const text = textContent.items.map(s => s.str).join(' ');
-                pagesData.push({ index: i - 1, text: text, pageNo: i });
-                if(i % 50 === 0) statusCallback(`Đọc trang ${i}/${totalPages}...`);
+                pagesData.push({ index: i - 1, text: text });
             }
-
-            statusCallback("Đang phân loại đơn...");
-            const buckets = classifyPagesV5(pagesData);
-
-            statusCallback("Đang sắp xếp...");
-            const sortedIndices = getPrintOrder(buckets);
-
-            statusCallback("Đang tạo file PDF...");
+            const buckets = classifyPagesShopee(pagesData);
+            const sortedIndices = getPrintOrderShopee(buckets);
+            
             const { PDFDocument } = PDFLib;
             const srcDoc = await PDFDocument.load(arrayBuffer);
             const newDoc = await PDFDocument.create();
-
             const copiedPages = await newDoc.copyPages(srcDoc, sortedIndices);
             copiedPages.forEach(p => newDoc.addPage(p));
-
             return await newDoc.save();
         }
 
-        // --- Helper Shopee ---
-        function classifyPagesV5(pages) {
+        function classifyPagesShopee(pages) {
             const buckets = { NBD: { BLACK: [], NUDE: [], COMBO: [] }, NB01: { BLACK: [], NUDE: [], COMBO: [] }, CB01: [], MULTI: [], OTHER: [] };
             const processedSet = new Set();
             pages.forEach(p => {
-                const items = extractItems_(p.text);
-                const totalQtyText = extractTotalQty_(p.text);
-                const pIdx = p.index;
-                if (items.length === 0) return;
+                const items = extractItemsShopee(p.text);
+                const totalQtyText = (p.text.match(/Tổng\s*SL\s*sản\s*phẩm\s*:\s*(\d+)/i) || [])[1];
+                
+                const isMulti = (totalQtyText && parseInt(totalQtyText) >= 2) || items.length >= 2 || items.some(it => it.qty >= 2);
 
-                const isTextMulti = (totalQtyText && totalQtyText >= 2);
-                const isListMulti = (items.length >= 2);
-                const isQtyMulti  = items.some(it => it.qty >= 2);
-                const rawSLCount = (p.text.match(/SL\s*:\s*\d+/gi) || []).length;
-                const isRawMulti = (rawSLCount >= 2);
-
-                if (isTextMulti || isListMulti || isQtyMulti || isRawMulti) {
-                    addUnique(buckets.MULTI, items[0].size, pIdx, processedSet);
-                    return; 
+                if (isMulti) {
+                    addUnique(buckets.MULTI, items[0]?.size || '?', p.index, processedSet);
+                    return;
                 }
-                const it = items[0]; 
+                const it = items[0];
+                if (!it) return;
+
                 if (it.code.includes('NBD')) {
-                    const c = normalizeColor(it.color);
-                    if (c) addUnique(buckets.NBD[c], it.size, pIdx, processedSet); else addUnique(buckets.OTHER, it.size, pIdx, processedSet);
-                } else if (it.code.includes('NB01')) { 
-                    const c = normalizeColor(it.color);
-                    if (c) addUnique(buckets.NB01[c], it.size, pIdx, processedSet); else addUnique(buckets.OTHER, it.size, pIdx, processedSet);
+                    const c = normalizeColorShopee(it.color);
+                    if (c) addUnique(buckets.NBD[c], it.size, p.index, processedSet); 
+                    else addUnique(buckets.OTHER, it.size, p.index, processedSet);
+                } else if (it.code.includes('NB01')) {
+                    const c = normalizeColorShopee(it.color);
+                    if (c) addUnique(buckets.NB01[c], it.size, p.index, processedSet);
+                    else addUnique(buckets.OTHER, it.size, p.index, processedSet);
                 } else if (it.code.includes('CB01')) {
-                    addUnique(buckets.CB01, it.size, pIdx, processedSet);
+                    addUnique(buckets.CB01, it.size, p.index, processedSet);
                 } else {
-                    addUnique(buckets.OTHER, it.size, pIdx, processedSet);
+                    addUnique(buckets.OTHER, it.size, p.index, processedSet);
                 }
             });
             pages.forEach(p => { if (!processedSet.has(p.index)) buckets.OTHER.push({ size: 'MISSING', index: p.index }); });
             return buckets;
         }
 
-        function addUnique(bucketArr, size, index, set) {
-            if (set.has(index)) return;
-            bucketArr.push({ size: size, index: index });
-            set.add(index);
-        }
-
-        function getPrintOrder(buckets) {
-            const groupOrder = [ buckets.NBD.BLACK, buckets.NBD.NUDE, buckets.NBD.COMBO, buckets.NB01.BLACK, buckets.NB01.NUDE, buckets.NB01.COMBO, buckets.CB01, buckets.MULTI, buckets.OTHER ];
-            let finalIndices = [];
-            groupOrder.forEach(groupList => {
-                groupList.sort((a, b) => sizeOrder_(a.size) - sizeOrder_(b.size));
-                groupList.forEach(item => finalIndices.push(item.index));
-            });
-            return finalIndices;
-        }
-        function normalizeColor(c) {
-            c = (c || '').toLowerCase();
-            if (c.includes('combo')) return 'COMBO';
-            if (c.includes('đen') || c.includes('black')) return 'BLACK';
-            if (c.includes('nude') || c.includes('da') || c.includes('be') || c.includes('skin')) return 'NUDE';
-            return null;
-        }
-        function sizeOrder_(size) {
-            const order = ['XS/S','XS','S','M/L','M','L','XL/XXL','XL','XXL','2XL','3XL','4XL','5XL','6XL'];
-            const idx = order.indexOf(size);
-            return idx === -1 ? 999 : idx;
-        }
-        function extractTotalQty_(text) { const m = text.match(/Tổng\s*SL\s*sản\s*phẩm\s*:\s*(\d+)/i); return m ? parseInt(m[1]) : null; }
-        function extractItems_(text) {
+        function extractItemsShopee(text) {
             let t = text.replace(/\u00A0/g, ' ').replace(/\s+/g, ' ').trim();
             t = t.replace(/Comb\s+o/gi, 'Combo').replace(/(\d)\s+(XL)/gi, '$1$2');
             const sizePattern = '(XS\\/S|M\\/L|XL\\/XXL|XS|S|M|L|XL|XXL|2XL|3XL|4XL|5XL|6XL)';
@@ -314,120 +302,145 @@
             let m;
             while ((m = re.exec(t)) !== null) {
                 const code = (m[1]||'').toUpperCase().replace(/\s+/g, '');
-                const color = (m[2]||'').trim();
-                let size = (m[3]||'').toUpperCase().replace(/\s+/g, '');
-                const qty = parseInt(m[4]);
-                if (size === 'XSS') size = 'XS/S'; if (size === 'ML') size = 'M/L'; if (size === 'XLXXL') size = 'XL/XXL';
-                if (code && size && qty > 0) results.push({ code, color, size, qty });
+                results.push({ code, color: (m[2]||'').trim(), size: (m[3]||'').toUpperCase().replace(/\s+/g, ''), qty: parseInt(m[4]) });
             }
             return results;
         }
+        function normalizeColorShopee(c) {
+            c = (c || '').toLowerCase();
+            if (c.includes('combo')) return 'COMBO';
+            if (c.includes('đen') || c.includes('black')) return 'BLACK';
+            if (c.includes('nude') || c.includes('da') || c.includes('be')) return 'NUDE';
+            return null;
+        }
+        function addUnique(arr, size, idx, set) { if(!set.has(idx)){ arr.push({size, index: idx}); set.add(idx); } }
+        function getPrintOrderShopee(b) {
+            const list = [b.NBD.BLACK, b.NBD.NUDE, b.NBD.COMBO, b.NB01.BLACK, b.NB01.NUDE, b.NB01.COMBO, b.CB01, b.MULTI, b.OTHER];
+            const order = ['XS/S','XS','S','M/L','M','L','XL/XXL','XL','XXL','2XL','3XL','4XL','5XL','6XL'];
+            let res = [];
+            list.forEach(g => {
+                g.sort((x,y) => {
+                   let iX = order.indexOf(x.size); let iY = order.indexOf(y.size);
+                   return (iX === -1 ? 999 : iX) - (iY === -1 ? 999 : iY);
+                });
+                g.forEach(i => res.push(i.index));
+            });
+            return res;
+        }
 
-        // ==========================================
-        // 2. LOGIC TIKTOK (MỚI)
-        // ==========================================
-        const TK_SIZE_ORDER = ['XS', 'S', 'M', 'L', 'XL', '2XL', 'XXL', '3XL', 'XXXL', '4XL', '5XL', '6XL'];
-
-        async function runTikTokLogic(arrayBuffer, statusCallback) {
-            statusCallback("Đang đọc file TikTok...");
+        // ===============================================
+        // 2. LOGIC TIKTOK NB01 (Từ file loclot.html)
+        // ===============================================
+        async function runTikTokNB01Logic(arrayBuffer) {
             const pdfDoc = await pdfjsLib.getDocument(arrayBuffer).promise;
             const pdfWriter = await PDFLib.PDFDocument.load(arrayBuffer);
-            const totalPages = pdfDoc.numPages;
-
             let groups = [];
             let currentGroup = null;
+            
+            const SIZE_ORDER = ['xs/s', 'm/l', 'xl/2xl', '3xl', '4xl', '5xl', '6xl'];
+            const COLOR_CONFIG = [
+                { key: '1c den', rank: 1 }, { key: '1c da', rank: 2 },
+                { key: 'combo da + den', rank: 3 }, { key: 'combo 2c den', rank: 4 }, { key: 'combo 2c da', rank: 5 }
+            ];
 
-            for (let i = 1; i <= totalPages; i++) {
+            for (let i = 1; i <= pdfDoc.numPages; i++) {
                 const page = await pdfDoc.getPage(i);
-                const textContent = await page.getTextContent();
-                const text = textContent.items.map(item => item.str).join(' ');
+                const text = (await page.getTextContent()).items.map(s => s.str).join(' ');
                 const cleanText = removeAccents(text);
 
-                // Phân tích dữ liệu (Strict Mode)
-                const data = analyzeTextTikTok(cleanText);
-
-                if (data.found) {
-                    currentGroup = {
-                        headIndex: i - 1, 
-                        tailIndices: [],   
-                        color: data.color,
-                        size: data.size,
-                        colorRank: data.colorRank,
-                        sizeRank: data.sizeRank,
-                        originalPage: i
-                    };
+                // Check Header để tách trang
+                if (cleanText.includes('order id') || cleanText.includes('ma don hang') || cleanText.includes('hannal store') || cleanText.includes('recipient')) {
+                    // Phân tích NB01
+                    let isNB01 = false, colorRank = 99, sizeRank = 99;
+                    if (cleanText.includes('nb01')) {
+                         const reverseSizes = [...SIZE_ORDER].reverse();
+                         for (const size of reverseSizes) {
+                            const colorPattern = COLOR_CONFIG.map(c => c.key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+                            const regex = new RegExp(`(${colorPattern})\\s*,\\s*(${size})\\b`, 'i');
+                            const match = cleanText.match(regex);
+                            if (match) {
+                                isNB01 = true;
+                                const conf = COLOR_CONFIG.find(c => c.key === match[1]);
+                                colorRank = conf ? conf.rank : 99;
+                                sizeRank = SIZE_ORDER.indexOf(size);
+                                break;
+                            }
+                         }
+                    }
+                    currentGroup = { headIndex: i - 1, tailIndices: [], colorRank, sizeRank };
                     groups.push(currentGroup);
                 } else {
-                    if (currentGroup) {
-                        currentGroup.tailIndices.push(i - 1);
-                    } else {
-                        groups.push({
-                            headIndex: i - 1, tailIndices: [],
-                            color: 'Không rõ', size: '?', colorRank: 99, sizeRank: 99, originalPage: i
-                        });
-                    }
+                    if (currentGroup) currentGroup.tailIndices.push(i - 1);
+                    else groups.push({ headIndex: i - 1, tailIndices: [], colorRank: 99, sizeRank: 99 }); // Orphan page
                 }
-                if(i % 50 === 0) statusCallback(`Đang quét trang ${i}/${totalPages}...`);
             }
-
-            // SẮP XẾP
-            statusCallback("Đang sắp xếp đơn...");
+            
+            // Sort: NB01 (Rank bé) lên đầu, Khác (Rank 99) xuống cuối
             groups.sort((a, b) => {
-                // Ưu tiên 1: Màu (Đen trước -> Nude sau)
                 if (a.colorRank !== b.colorRank) return a.colorRank - b.colorRank;
-                // Ưu tiên 2: Size
                 return a.sizeRank - b.sizeRank;
             });
 
-            // TẠO PDF
-            statusCallback("Đang tạo file sắp xếp...");
             const newPdf = await PDFLib.PDFDocument.create();
-            
-            for (const group of groups) {
-                const [headPage] = await newPdf.copyPages(pdfWriter, [group.headIndex]);
-                newPdf.addPage(headPage);
-                if (group.tailIndices.length > 0) {
-                    const tailPages = await newPdf.copyPages(pdfWriter, group.tailIndices);
-                    tailPages.forEach(p => newPdf.addPage(p));
-                }
+            for (const g of groups) {
+                const [p] = await newPdf.copyPages(pdfWriter, [g.headIndex]);
+                newPdf.addPage(p);
+                if (g.tailIndices.length) (await newPdf.copyPages(pdfWriter, g.tailIndices)).forEach(tp => newPdf.addPage(tp));
             }
-
             return await newPdf.save();
         }
 
-        // Helper TikTok
+        // ===============================================
+        // 3. LOGIC TIKTOK NBD/GENERAL (Đơn giản hơn)
+        // ===============================================
+        async function runTikTokGeneralLogic(arrayBuffer) {
+            const pdfDoc = await pdfjsLib.getDocument(arrayBuffer).promise;
+            const pdfWriter = await PDFLib.PDFDocument.load(arrayBuffer);
+            let groups = [];
+            let currentGroup = null;
+            const TK_SIZE = ['XS', 'S', 'M', 'L', 'XL', '2XL', 'XXL', '3XL', '4XL', '5XL', '6XL'];
+
+            for (let i = 1; i <= pdfDoc.numPages; i++) {
+                const page = await pdfDoc.getPage(i);
+                const text = (await page.getTextContent()).items.map(s => s.str).join(' ');
+                const cleanText = removeAccents(text);
+
+                // Logic nhận diện đơn giản: Tìm Màu + Size
+                let found = false, cRank = 99, sRank = 99;
+                
+                // Nếu là trang đầu (có Header)
+                if (cleanText.includes('order id') || cleanText.includes('ma don hang')) {
+                    const reverseSizes = [...TK_SIZE].reverse();
+                    for (const size of reverseSizes) {
+                        const m = cleanText.match(new RegExp(`(den|black|nude|da|kem)\\s*,\\s*(${size})\\b`, 'i'));
+                        if (m) {
+                            found = true;
+                            cRank = (m[1].includes('den') || m[1].includes('black')) ? 1 : 2;
+                            sRank = TK_SIZE.indexOf(size);
+                            break;
+                        }
+                    }
+                    currentGroup = { headIndex: i - 1, tailIndices: [], cRank, sRank };
+                    groups.push(currentGroup);
+                } else {
+                    if (currentGroup) currentGroup.tailIndices.push(i - 1);
+                }
+            }
+
+            groups.sort((a, b) => (a.cRank - b.cRank) || (a.sRank - b.sRank));
+
+            const newPdf = await PDFLib.PDFDocument.create();
+            for (const g of groups) {
+                const [p] = await newPdf.copyPages(pdfWriter, [g.headIndex]);
+                newPdf.addPage(p);
+                if (g.tailIndices.length) (await newPdf.copyPages(pdfWriter, g.tailIndices)).forEach(tp => newPdf.addPage(tp));
+            }
+            return await newPdf.save();
+        }
+
         function removeAccents(str) {
             return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase();
         }
-
-        function analyzeTextTikTok(text) {
-            let result = { found: false, color: '?', size: '?', colorRank: 99, sizeRank: 99 };
-            const reverseSizes = [...TK_SIZE_ORDER].reverse();
-            
-            for (const size of reverseSizes) {
-                // Regex tìm cặp "Màu + Dấu phẩy + Size"
-                const regex = new RegExp(`(den|black|nude|da|kem)\\s*,\\s*(${size})\\b`, 'i');
-                const match = text.match(regex);
-
-                if (match) {
-                    const colorKey = match[1].toLowerCase();
-                    result.found = true;
-                    result.size = size;
-                    result.sizeRank = TK_SIZE_ORDER.indexOf(size);
-                    
-                    if (colorKey === 'den' || colorKey === 'black') {
-                        result.color = 'ĐEN';
-                        result.colorRank = 1;
-                    } else {
-                        result.color = 'NUDE';
-                        result.colorRank = 2;
-                    }
-                    break;
-                }
-            }
-            return result;
-        }
-
     </script>
 </body>
 </html>
