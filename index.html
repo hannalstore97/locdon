@@ -42,10 +42,9 @@ html,body{height:100%;font-family:var(--f-body);-webkit-font-smoothing:antialias
 .sb-brand{display:flex;align-items:center;gap:12px;margin-bottom:28px;}
 .sb-monogram{
   width:44px;height:44px;border-radius:10px;flex-shrink:0;
-  background:var(--terra);
+  background:var(--cream);
   display:flex;align-items:center;justify-content:center;
-  font-family:var(--f-head);font-size:14px;font-weight:900;
-  color:var(--white);letter-spacing:-.02em;
+  padding:6px;
 }
 .sb-brand-name{font-family:var(--f-head);font-size:12px;font-weight:800;color:var(--white);letter-spacing:.1em;text-transform:uppercase;}
 .sb-brand-tag{font-size:9px;color:rgba(255,255,255,.35);letter-spacing:.12em;text-transform:uppercase;margin-top:1px;}
@@ -175,7 +174,16 @@ html,body{height:100%;font-family:var(--f-body);-webkit-font-smoothing:antialias
   <aside class="sb">
     <div class="sb-top">
       <div class="sb-brand">
-        <div class="sb-monogram">H<span style="font-size:10px;opacity:.7">97</span></div>
+        <div class="sb-monogram">
+          <svg viewBox="0 0 80 72" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+            <!-- Left char: arch + two legs (Ч shape) -->
+            <path d="M4 72 L4 28 Q4 4 24 4 Q44 4 44 28 L44 44 L36 44 L36 28 Q36 12 24 12 Q12 12 12 28 L12 72 Z" fill="#2A1A0E"/>
+            <rect x="36" y="44" width="8" height="28" rx="3" fill="#2A1A0E"/>
+            <!-- Double forward-slash // -->
+            <rect x="54" y="0" width="8" height="68" rx="4" fill="#2A1A0E" transform="rotate(12 58 34)"/>
+            <rect x="70" y="0" width="8" height="68" rx="4" fill="#2A1A0E" transform="rotate(12 74 34)"/>
+          </svg>
+        </div>
         <div>
           <div class="sb-brand-name">Hannalstore97</div>
           <div class="sb-brand-tag">Confidence in Motion</div>
@@ -290,8 +298,8 @@ let F = null, RPDF = null, RFNAME = '', PLAT = 'shopee';
 // ─────────────────────────────────────────────────────────────────
 // SHARED CONSTANTS & UTILS
 // ─────────────────────────────────────────────────────────────────
-const SZ  = ['XS/S','XS','S','M/L','M','L','XL/XXL','XL','XXL','2XL','3XL','4XL','5XL','6XL'];
-const SZP = '(XS\\/S|M\\/L|XL\\/XXL|XS|S|M|L|XL|XXL|2XL|3XL|4XL|5XL|6XL)';
+const SZ  = ['XS/S','XS','S','M/L','M','L','XL/2XL','XL/XXL','XL','XXL','2XL','3XL','4XL','5XL','6XL'];
+const SZP = '(XS\\/S|M\\/L|XL\\/2XL|XL\\/XXL|XS|S|M|L|XL|XXL|2XL|3XL|4XL|5XL|6XL)';
 
 function nColor(c) {
   c = (c || '').toLowerCase().trim();
@@ -304,9 +312,10 @@ function nColor(c) {
 
 function nSize(s) {
   s = (s || '').toUpperCase().replace(/\s+/g, '');
-  if (s === 'XSS')   return 'XS/S';
-  if (s === 'ML')    return 'M/L';
-  if (s === 'XLXXL') return 'XL/XXL';
+  if (s === 'XSS')    return 'XS/S';
+  if (s === 'ML')     return 'M/L';
+  if (s === 'XL2XL')  return 'XL/2XL';
+  if (s === 'XLXXL')  return 'XL/XXL';
   return s;
 }
 
