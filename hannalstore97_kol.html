@@ -98,6 +98,20 @@ body{font-family:'Poppins',sans-serif;background:#FAF8F4;color:#2A211C;line-heig
 
 /* product rows (dashboard) */
 .prodwrap{background:#fff;border:1px solid #E8D9C8;border-radius:14px;overflow:hidden}
+/* Bảng bậc hoa hồng */
+.tiertbl{background:#fff;border:1px solid #E8D9C8;border-radius:14px;overflow:hidden;margin-top:2px}
+.tier-row{display:grid;grid-template-columns:1fr 118px;align-items:center;border-bottom:1px solid #F0EBE3}
+.tier-row:last-child{border-bottom:none}
+.tier-row>div{padding:11px 15px;font-size:13px;color:#2A211C}
+.tier-row .r{text-align:right;font-family:'Montserrat';font-weight:800;color:#BE735E}
+.tier-head{background:#2A211C}
+.tier-head>div{color:#DCC6AA;font-family:'Montserrat';font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.tier-head .r{color:#DCC6AA}
+.tier-row.on{background:rgba(190,115,94,.13)}
+.tier-row.on>div{font-weight:700}
+.tier-row.on .r{color:#a35f4d}
+.tier-row.on>div:first-child::after{content:'\2190 th\00e1ng n\00e0y';font-family:'Montserrat';font-size:9px;font-weight:700;color:#BE735E;margin-left:8px;letter-spacing:.3px}
+.tier-note{font-size:11.5px;color:#8a6f56;margin:9px 2px 0;line-height:1.6}
 .phead,.prow{display:grid;grid-template-columns:1.5fr .55fr .7fr 1fr 1fr;gap:8px;align-items:center;padding:11px 14px}
 .phead>*,.prow>*,.ptot>*{min-width:0}
 .ptot{display:grid;grid-template-columns:1.5fr .55fr .7fr 1fr 1fr;gap:8px;align-items:center;padding:11px 14px;background:#2A211C;font-family:'Montserrat';font-weight:800;font-size:12px;color:#DCC6AA}
@@ -331,6 +345,15 @@ td.act{text-align:right;width:36px}.del{border:none;background:none;color:#c9b8a
       <div class="card light"><div class="lab">Số KOL có đơn</div><div class="val" id="dKol">—</div></div>
       <div class="card terra"><div class="lab" id="dComLab">Hoa hồng Linh</div><div class="val" id="dLinh">—</div></div>
     </div>
+    <div class="sect">Bậc hoa hồng nhân viên</div>
+    <div class="tiertbl">
+      <div class="tier-row tier-head"><div>Tổng hoa hồng KOL trong tháng</div><div class="r">% bạn nhận</div></div>
+      <div class="tier-row" data-rate="0"><div>Dưới 20 triệu</div><div class="r">0%</div></div>
+      <div class="tier-row" data-rate="0.01"><div>Từ 20 – 50 triệu</div><div class="r">1%</div></div>
+      <div class="tier-row" data-rate="0.015"><div>Từ 50 – 100 triệu</div><div class="r">1,5%</div></div>
+      <div class="tier-row" data-rate="0.02"><div>Trên 100 triệu</div><div class="r">2%</div></div>
+    </div>
+    <div class="tier-note">Hoa hồng của bạn = <b>% bậc</b> × <b>tổng hoa hồng KOL</b> trong tháng. Bậc xét theo tổng hoa hồng KOL của tháng đang xem.</div>
     <div class="sect">Doanh số &amp; số đơn theo sản phẩm</div>
     <div class="prodwrap">
       <div class="phead"><div>Sản phẩm</div><div class="r pcol-kol">KOL</div><div class="r">Số đơn</div><div class="r">Doanh số</div><div class="r">Hoa hồng KOL</div></div>
@@ -490,6 +513,7 @@ function renderDash(){
     ? `Hoa hồng Linh ${ALLM.length} tháng`
     : `Hoa hồng Linh T${curMD} · bậc ${tierLabel(lc.rate)}`;
   $('dLinh').textContent=vnd(lc.com);
+  highlightTier(lc.rate);
   $('prodRows').innerHTML=PRODUCTS.map(p=>{
     const d=t[p.k];const share=tGmv>0?d.gmv/tGmv*100:0;const z=d.gmv===0;
     return `<div class="prow">
@@ -508,6 +532,11 @@ function renderDash(){
   $('dashNote').innerHTML= assigned===0
     ? '⚠️ Hiện <b>tất cả KOL đang tạm gán Quần Nịt Bụng</b> nên 3 sản phẩm kia = 0. Qua tab <b>➕ Nhập KOL mới</b> đổi sản phẩm cho từng KOL (cột "Sản phẩm") thì Dashboard tự cập nhật.'
     : `✓ Đã có <b>${assigned} KOL</b> gán sang sản phẩm khác. Dashboard cập nhật theo phân bổ thực tế.`;
+}
+function highlightTier(rate){
+  document.querySelectorAll('.tier-row[data-rate]').forEach(function(el){
+    el.classList.toggle('on', rate!==null && rate!==undefined && String(el.getAttribute('data-rate'))===String(rate));
+  });
 }
 function monthOptions(cur){
   const desc=ALLM.slice().sort((a,b)=>b-a);
