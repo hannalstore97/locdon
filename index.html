@@ -90,6 +90,37 @@ html,body{height:100%;font-family:var(--f-body);-webkit-font-smoothing:antialias
 .btn-terra{background:var(--terra);color:var(--white)}
 .btn-terra:hover{background:var(--brown)}
 .btn-row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center}
+/* ── NHÂN VIÊN ── */
+.staff-yearbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.staff-yearbar select{font-family:var(--f-head);font-weight:700;font-size:13px;padding:7px 12px;border-radius:8px;border:1.5px solid var(--tan);background:var(--white);color:var(--dark);cursor:pointer;outline:none}
+.staff-wrap{display:flex;flex-direction:column;gap:18px}
+.st-card{background:var(--white);border-radius:16px;border:1px solid rgba(220,198,170,.6);box-shadow:0 4px 24px rgba(42,33,28,.08);overflow:hidden}
+.st-hd{background:var(--dark);padding:15px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.st-hd-l{display:flex;align-items:center;gap:12px}
+.st-ava{width:44px;height:44px;border-radius:12px;background:var(--terra);display:flex;align-items:center;justify-content:center;font-family:var(--f-head);font-weight:900;font-size:20px;color:#fff;flex-shrink:0}
+.st-name{font-family:var(--f-head);font-size:18px;font-weight:900;color:#fff;letter-spacing:-.01em}
+.st-meta{font-size:11px;color:rgba(255,255,255,.5);margin-top:2px}
+.st-body{padding:18px 22px 20px}
+.st-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.st-stat{padding:11px 13px;border-radius:11px;border:1px solid rgba(220,198,170,.5);background:var(--cream)}
+.st-stat .v{font-family:var(--f-head);font-size:23px;font-weight:900;color:var(--dark);line-height:1}
+.st-stat .l{font-size:10px;color:#9A8070;margin-top:3px;font-weight:600}
+.st-stat.rem{background:rgba(190,115,94,.08);border-color:rgba(190,115,94,.3)}
+.st-stat.rem .v{color:var(--terra)}
+.st-over{color:var(--red-fg)!important}
+.st-formula{font-size:11.5px;color:#7A6555;background:var(--yel-bg);border:1px solid rgba(183,149,11,.25);border-radius:9px;padding:9px 12px;margin-bottom:15px;line-height:1.55}
+.st-sec-t{font-family:var(--f-head);font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--brown);margin-bottom:9px}
+.lv-list{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:11px}
+.lv-chip{display:inline-flex;align-items:center;gap:7px;background:var(--cream);border:1px solid var(--tan);border-radius:20px;padding:5px 8px 5px 13px;font-size:12.5px;color:var(--dark);font-weight:600}
+.lv-chip .note{color:#9A8070;font-size:11px;font-weight:400}
+.lv-chip .x{cursor:pointer;width:17px;height:17px;border-radius:50%;background:rgba(192,57,43,.12);color:var(--red-fg);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
+.lv-chip .x:hover{background:rgba(192,57,43,.25)}
+.lv-empty{font-size:12.5px;color:#B8A491;font-style:italic;margin-bottom:11px}
+.lv-add{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.lv-add input{padding:8px 10px;border-radius:8px;border:1.5px solid var(--tan);font-family:var(--f-body);font-size:12.5px;color:var(--dark);outline:none;background:#fff}
+.lv-add input:focus{border-color:var(--terra)}
+.lv-add input.note{flex:1;min-width:140px}
+.st-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px dashed rgba(220,198,170,.8)}
 .prog-wrap{margin:0 0 14px}
 .prog-bg{height:3px;background:var(--tan);border-radius:2px;overflow:hidden}
 .prog-fill{height:100%;background:var(--terra);border-radius:2px;animation:slide 1.3s ease-in-out infinite;width:45%}
@@ -422,6 +453,9 @@ select:focus,input[type=text]:focus,input[type=date]:focus{border-color:var(--te
     </a>
     <a class="nav-item" onclick="goPage('dash')" href="#">
       <div class="nav-ico">📊</div><div><div class="nav-name">Dashboard</div><div class="nav-desc">Dự báo & cảnh báo</div></div>
+    </a>
+    <a class="nav-item" onclick="goPage('staff')" href="#">
+      <div class="nav-ico">👥</div><div><div class="nav-name">Nhân viên</div><div class="nav-desc">Phép năm · ngày nghỉ · KOL</div></div>
     </a>
     <a class="nav-item" onclick="openKolPage();return false;" href="#" title="Shift+bấm để đổi link">
       <div class="nav-ico">🤝</div><div><div class="nav-name">KOL · Hoa hồng NV</div><div class="nav-desc">Mở trang tính hoa hồng KOL ↗</div></div>
@@ -792,6 +826,21 @@ select:focus,input[type=text]:focus,input[type=date]:focus{border-color:var(--te
 </div>
 </div>
 
+<!-- PAGE: NHÂN VIÊN ─────────────────────────────────── -->
+<div class="page" id="page-staff">
+<div class="page-inner">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px">
+    <div><div class="page-title">Nhân Viên</div><div class="page-sub">Ngày vào làm · phép năm (tự tính thâm niên) · ngày nghỉ có phép trong năm · trang KOL riêng</div></div>
+    <div class="staff-yearbar">
+      <span style="font-size:12px;color:#9A8070">Xem năm</span>
+      <select id="staffYear" onchange="renderStaff()"></select>
+      <button class="btn btn-terra" onclick="addStaff()">＋ Thêm nhân viên</button>
+    </div>
+  </div>
+  <div class="staff-wrap" id="staffList"></div>
+</div>
+</div>
+
 </main>
 </div>
 <script>
@@ -876,6 +925,7 @@ function goPage(p){
   if(p==='ord'&&!ORD_DATA.length) loadOrdLots();
   if(p==='inventory'){loadInventoryNew();}
   if(p==='sales'){initSalesPage();}
+  if(p==='staff'){renderStaff();}
 }
 
 // ═══ SUPABASE CLIENT ═════════════════════════════════════════════
@@ -3333,6 +3383,105 @@ function initSalesPage(){
   if(sc&&!sc._editBound){sc._editBound=true;sc.addEventListener('click',e=>{if(!EDIT_MODE)return;const td=e.target.closest('.edcell');if(td)editCell(td);});}
   loadSales();
 }
+</script>
+<script>
+// ═══ NHÂN VIÊN — phép năm + ngày nghỉ có phép ════════════════════
+const STAFF_KEY='hannal_staff_v1';
+function staffDefault(){return [
+  {id:'linh',name:'Linh',start:'2025-04-01',base:7,kol:'hannalstore97_kol.html',leaves:{}},
+  {id:'nhi', name:'Nhi', start:'2026-05-01',base:6,kol:'hannalstore97_kol_nhi.html',leaves:{}}
+];}
+let STAFF=(function(){try{const s=JSON.parse(localStorage.getItem(STAFF_KEY));if(Array.isArray(s)&&s.length)return s.map(x=>Object.assign({leaves:{}},x));}catch(_){}
+  return staffDefault();})();
+function saveStaff(){try{localStorage.setItem(STAFF_KEY,JSON.stringify(STAFF));}catch(_){}}
+
+function _pd(iso){const a=(iso||'').split('-').map(Number);return{y:a[0],m:a[1],d:a[2]};}
+function _today(){const t=new Date();return{y:t.getFullYear(),m:t.getMonth()+1,d:t.getDate()};}
+function _dmy(iso){const p=_pd(iso);if(!p.y)return '—';return String(p.d).padStart(2,'0')+'/'+String(p.m).padStart(2,'0')+'/'+p.y;}
+function _toISO(dmy){const m=(dmy||'').match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/);if(!m)return '';const d=+m[1],mo=+m[2],y=+m[3];if(mo<1||mo>12||d<1||d>31)return '';return y+'-'+String(mo).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
+
+// Phép của MỘT năm dương lịch:
+//  • Năm vào làm : theo tỉ lệ tháng — base × (số tháng từ tháng vào đến T12) ÷ 12, làm tròn
+//  • Năm sau     : base + thâm niên (+1 mỗi năm, bắt đầu từ năm dương lịch KẾ TIẾP sau mốc đủ 1 năm)
+function leaveForYear(emp,year){
+  const s=_pd(emp.start); if(!s.y||year<s.y) return 0;
+  if(year===s.y){const months=12-s.m+1; return Math.round(emp.base*months/12);}
+  return emp.base + Math.max(0, year-s.y-1);
+}
+// Số tháng đã làm tròn tính từ ngày vào đến hôm nay
+function completedMonthsWorked(emp){const s=_pd(emp.start),t=_today();if(!s.y)return 0;let m=(t.y-s.y)*12+(t.m-s.m);if(t.d<s.d)m--;return Math.max(0,m);}
+// Phép ĐÃ TÍCH đến hôm nay (năm vào làm: tích dần theo tháng; năm cũ đã qua: đủ; NV cũ trong năm hiện tại: đủ từ đầu năm)
+function accruedToDate(emp,year){
+  const jy=_pd(emp.start).y, ty=_today().y, full=leaveForYear(emp,year);
+  if(!jy||year<jy) return 0;
+  if(year<ty) return full;          // năm đã qua → đã tích đủ
+  if(year>ty) return 0;             // năm tương lai → chưa tích
+  if(year>jy) return full;          // NV đã qua năm đầu → có đủ từ đầu năm
+  return Math.min(full, Math.floor(emp.base*completedMonthsWorked(emp)/12)); // năm vào làm → tích dần
+}
+function completedYears(emp){const s=_pd(emp.start),t=_today();if(!s.y)return 0;let y=t.y-s.y;if(t.m<s.m||(t.m===s.m&&t.d<s.d))y--;return Math.max(0,y);}
+function serviceText(emp){const s=_pd(emp.start),t=_today();if(!s.y)return '—';let mo=(t.y-s.y)*12+(t.m-s.m);if(t.d<s.d)mo--;if(mo<0)mo=0;const y=Math.floor(mo/12),m=mo%12;return (y?y+' năm ':'')+m+' tháng';}
+function nextAnniv(emp){const s=_pd(emp.start),t=_today();if(!s.y)return '—';const passed=(t.m>s.m||(t.m===s.m&&t.d>=s.d));const yr=(passed?t.y+1:t.y);return String(s.d).padStart(2,'0')+'/'+String(s.m).padStart(2,'0')+'/'+yr;}
+function leavesOf(emp,year){const a=(emp.leaves&&emp.leaves[year])?emp.leaves[year]:[];return a.slice().sort(function(x,y){return x.date<y.date?-1:1;});}
+
+function ensureStaffYearOpts(){
+  const sel=document.getElementById('staffYear'); if(!sel)return;
+  const now=new Date().getFullYear();
+  let years=new Set([now,now+1]);
+  STAFF.forEach(function(e){const sy=_pd(e.start).y;if(sy)years.add(sy);Object.keys(e.leaves||{}).forEach(function(y){years.add(+y);});});
+  const arr=[...years].sort(function(a,b){return b-a;});
+  const cur=sel.value||String(now);
+  sel.innerHTML=arr.map(function(y){return '<option value="'+y+'">'+y+'</option>';}).join('');
+  sel.value=arr.indexOf(+cur)>=0?cur:String(now);
+}
+
+function renderStaff(){
+  ensureStaffYearOpts();
+  const year=+document.getElementById('staffYear').value;
+  const box=document.getElementById('staffList');
+  if(!STAFF.length){box.innerHTML='<div style="color:#9A8070;text-align:center;padding:40px">Chưa có nhân viên. Bấm “＋ Thêm nhân viên”.</div>';return;}
+  box.innerHTML=STAFF.map(function(e,i){
+    const full=leaveForYear(e,year), accr=accruedToDate(e,year), used=leavesOf(e,year).length, rem=accr-used;
+    const joinY=_pd(e.start).y, ty=(new Date()).getFullYear(), isJoin=(year===joinY), inProg=(year===ty);
+    const m2dec=12-_pd(e.start).m+1, mw=completedMonthsWorked(e);
+    let formula;
+    if(year<joinY) formula='Chưa vào làm trong năm '+year+'.';
+    else if(isJoin){
+      formula = inProg
+        ? ('Năm vào làm '+year+': cả năm được <b>'+full+' ngày</b> ('+e.base+' × '+m2dec+' tháng ÷ 12). Phép <b>tích dần theo tháng</b> — đã làm '+mw+' tháng nên hiện có <b>'+accr+' ngày</b>; làm đủ '+m2dec+' tháng (hết T12) sẽ đạt '+full+' ngày.')
+        : ('Năm vào làm '+year+': '+e.base+' × '+m2dec+' tháng ÷ 12 = <b>'+full+' ngày</b> (đã tích đủ).');
+    } else {
+      formula = year+': '+e.base+' ngày gốc + '+Math.max(0,year-joinY-1)+' ngày thâm niên = <b>'+full+' ngày</b>'+(inProg?', có đủ từ đầu năm':'')+'. <span style="opacity:.8">(+1 mỗi năm, bắt đầu từ năm sau khi đủ 1 năm.)</span>';
+    }
+    const chips=leavesOf(e,year).map(function(l){return '<span class="lv-chip">'+_dmy(l.date)+(l.note?'<span class="note">· '+esc(l.note)+'</span>':'')+'<span class="x" onclick="rmLeave('+i+',\''+l.date+'\')">✕</span></span>';}).join('');
+    return '<div class="st-card">'
+      +'<div class="st-hd"><div class="st-hd-l"><div class="st-ava">'+esc((e.name||'?').charAt(0).toUpperCase())+'</div>'
+      +'<div><div class="st-name">'+esc(e.name)+'</div><div class="st-meta">Vào làm '+_dmy(e.start)+' · đã làm '+serviceText(e)+' · mốc kế: '+nextAnniv(e)+'</div></div></div>'
+      +'<button class="btn btn-terra" onclick="openStaffKol('+i+')">Trang KOL ↗</button></div>'
+      +'<div class="st-body">'
+      +'<div class="st-stats">'
+      +'<div class="st-stat"><div class="v">'+full+'</div><div class="l">Phép cả năm '+year+'</div></div>'
+      +'<div class="st-stat"><div class="v">'+accr+'</div><div class="l">Đã tích đến nay</div></div>'
+      +'<div class="st-stat"><div class="v">'+used+'</div><div class="l">Đã nghỉ</div></div>'
+      +'<div class="st-stat rem"><div class="v'+(rem<0?' st-over':'')+'">'+rem+'</div><div class="l">Còn lại (nghỉ được)</div></div>'
+      +'</div>'
+      +'<div class="st-formula">📌 '+formula+(rem<0?' <b class="st-over">Đã nghỉ vượt '+(-rem)+' ngày!</b>':'')+'</div>'
+      +'<div class="st-sec-t">Ngày nghỉ có phép trong năm '+year+'</div>'
+      +(chips?'<div class="lv-list">'+chips+'</div>':'<div class="lv-empty">Chưa ghi ngày nghỉ nào trong năm '+year+'.</div>')
+      +'<div class="lv-add"><input type="date" id="lvd-'+i+'" value="'+year+'-01-01"><input class="note" id="lvn-'+i+'" placeholder="Lý do (không bắt buộc)…"><button class="btn btn-dl" onclick="addLeave('+i+')">＋ Thêm ngày nghỉ</button></div>'
+      +'<div class="st-actions"><button class="btn btn-ghost" onclick="editStaff('+i+')">✎ Sửa thông tin</button>'
+      +'<button class="btn btn-ghost" onclick="delStaff('+i+')" style="color:var(--red-fg);border-color:rgba(192,57,43,.3)">🗑 Xoá NV</button></div>'
+      +'</div></div>';
+  }).join('');
+}
+function esc(t){return String(t==null?'':t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+
+function openStaffKol(i){const u=(STAFF[i].kol||'').trim();if(!u){if(confirm(STAFF[i].name+' chưa có link trang KOL. Nhập bây giờ?')){editStaff(i);}return;}window.open(u,'_blank','noopener');}
+function addLeave(i){const el=document.getElementById('lvd-'+i);const d=el&&el.value;if(!d){alert('Chọn ngày nghỉ');return;}const y=_pd(d).y;STAFF[i].leaves=STAFF[i].leaves||{};STAFF[i].leaves[y]=STAFF[i].leaves[y]||[];if(STAFF[i].leaves[y].some(function(x){return x.date===d;})){alert('Ngày này đã ghi rồi.');return;}const note=(document.getElementById('lvn-'+i).value||'').trim();STAFF[i].leaves[y].push({date:d,note:note});saveStaff();document.getElementById('staffYear').value=y;renderStaff();}
+function rmLeave(i,date){const y=_pd(date).y;if(STAFF[i].leaves&&STAFF[i].leaves[y]){STAFF[i].leaves[y]=STAFF[i].leaves[y].filter(function(x){return x.date!==date;});saveStaff();renderStaff();}}
+function addStaff(){const name=(prompt('Tên nhân viên mới:')||'').trim();if(!name)return;const start=(prompt('Ngày vào làm (dd/mm/yyyy):')||'').trim();const iso=_toISO(start);if(!iso){alert('Ngày không hợp lệ. Nhập dạng dd/mm/yyyy, ví dụ 01/05/2026.');return;}const base=parseInt(prompt('Số ngày phép/năm (gốc, ví dụ 6):','6'),10)||0;const kol=(prompt('Link trang KOL riêng (để trống nếu chưa có):','')||'').trim();STAFF.push({id:'nv'+Date.now(),name:name,start:iso,base:base,kol:kol,leaves:{}});saveStaff();renderStaff();}
+function editStaff(i){const e=STAFF[i];const name=(prompt('Tên:',e.name)||e.name).trim();const start=(prompt('Ngày vào làm (dd/mm/yyyy):',_dmy(e.start))||'').trim();const iso=_toISO(start)||e.start;const baseIn=prompt('Số ngày phép/năm (gốc):',e.base);const base=(baseIn===null?e.base:(parseInt(baseIn,10)||0));const kol=prompt('Link trang KOL riêng:',e.kol||'');e.name=name;e.start=iso;e.base=base;if(kol!==null)e.kol=kol.trim();saveStaff();renderStaff();}
+function delStaff(i){if(confirm('Xoá nhân viên “'+STAFF[i].name+'”? Dữ liệu ngày nghỉ của người này cũng sẽ mất.')){STAFF.splice(i,1);saveStaff();renderStaff();}}
 </script>
 </body>
 </html>
