@@ -135,6 +135,8 @@ html,body{height:100%;font-family:var(--f-body);-webkit-font-smoothing:antialias
 .pick-tbl td.clbl{text-align:left;padding-left:10px;font-weight:700;color:var(--dark)}
 .pick-tbl tr:last-child td{border-bottom:none}
 .pv{font-weight:700;font-size:13px;color:var(--dark)}.ph2{font-weight:700;font-size:13px;color:var(--terra)}.pz{color:#ccc;font-size:10px}
+.p-out{background:rgba(200,40,40,.16)!important;color:#c0392b!important;font-weight:800!important}
+.p-low{background:rgba(214,140,60,.16)!important;color:#b5651d!important}
 .other-list{display:flex;flex-direction:column}
 .other-item{display:flex;justify-content:space-between;align-items:center;padding:6px 11px;border-bottom:1px solid rgba(220,198,170,.2);font-size:11px}
 .other-item:last-child{border-bottom:none}
@@ -316,6 +318,7 @@ select:focus,input[type=text]:focus,input[type=date]:focus{border-color:var(--te
 .ord-lot-tbl td.stk2{background:var(--white);font-weight:600}
 #salesContent.edit-on .edcell{cursor:pointer;outline:1px dashed rgba(190,115,94,.5);outline-offset:-2px}
 .ord-lot-tbl td.edited{background:rgba(190,115,94,.16) !important;color:var(--terra) !important;font-weight:700}
+.ord-lot-tbl td.counted{background:rgba(200,40,40,.14) !important;color:#c0392b !important;font-weight:800}
 .ord-lot-tbl tr:hover td:not(.fix){filter:brightness(.97)}
 /* Trạng thái màu nền cột */
 .th-go{background:#EFF6FF;color:#1D4ED8}.th-sec{background:#FFFBEB;color:#92400E}.th-home{background:#F0FDF4;color:#166534}
@@ -417,17 +420,8 @@ select:focus,input[type=text]:focus,input[type=date]:focus{border-color:var(--te
     <a class="nav-item" onclick="goPage('ord')" href="#">
       <div class="nav-ico">🚚</div><div><div class="nav-name">Ord Hàng</div><div class="nav-desc">Theo dõi đợt nhập</div></div>
     </a>
-    <a class="nav-item" onclick="goPage('kho')" href="#">
-      <div class="nav-ico">📦</div><div><div class="nav-name">Kiểm Kho</div><div class="nav-desc">Nhập số đếm thực tế</div></div>
-    </a>
     <a class="nav-item" onclick="goPage('dash')" href="#">
       <div class="nav-ico">📊</div><div><div class="nav-name">Dashboard</div><div class="nav-desc">Dự báo & cảnh báo</div></div>
-    </a>
-    <a class="nav-item" onclick="goPage('sizes')" href="#">
-      <div class="nav-ico">📈</div><div><div class="nav-name">Size & Màu</div><div class="nav-desc">Phân tích trend</div></div>
-    </a>
-    <a class="nav-item" onclick="goPage('ceo')" href="#">
-      <div class="nav-ico">🎯</div><div><div class="nav-name">CEO Dashboard</div><div class="nav-desc">Tổng quan nhanh</div></div>
     </a>
   </div>
   <div class="sb-foot">
@@ -498,7 +492,8 @@ select:focus,input[type=text]:focus,input[type=date]:focus{border-color:var(--te
         </div>
         <div style="display:flex;gap:6px">
           <button class="btn btn-ghost" onclick="window.print()" style="font-size:11px">🖨 In bảng</button>
-          <button class="btn btn-terra" onclick="syncSalesToSheet()" id="btnSyncSales" style="font-size:11px">☁ Ghi vào Đi Đơn</button>
+          <button class="btn btn-ghost" onclick="confirmDeleteSalesByDate()" style="font-size:11px;border-color:#e0b0a5;color:#b0503c">🗑 Xoá ngày này</button>
+          <button class="btn btn-terra" onclick="confirmSyncSales()" id="btnSyncSales" style="font-size:11px">☁ Ghi vào Đi Đơn</button>
         </div>
       </div>
       <div class="pick-grid" id="pickGrid"></div>
@@ -581,27 +576,6 @@ select:focus,input[type=text]:focus,input[type=date]:focus{border-color:var(--te
 </div>
 </div>
 
-<!-- PAGE: KIỂM KHO ──────────────────────────────────── -->
-<div class="page" id="page-kho">
-<div class="page-inner">
-  <div><div class="page-title">Kiểm Kho</div><div class="page-sub">Nhập số đếm thực tế → tự ghi vào Google Sheet</div></div>
-  <div class="card"><div class="card-body">
-    <div class="kho-tabs">
-      <div class="kho-tab on" onclick="setKhoTab('QNB',this)">Quần Nịt Bụng</div>
-      <div class="kho-tab" onclick="setKhoTab('NBL',this)">NB Lót</div>
-      <div class="kho-tab" onclick="setKhoTab('BSL',this)">Bodysuit</div>
-      <div class="kho-tab" onclick="setKhoTab('GY3',this)">Gym3</div>
-    </div>
-    <div style="overflow-x:auto"><table class="kho-tbl"><thead id="khoTblHead"></thead><tbody id="khoTblBody"></tbody></table></div>
-    <div class="kho-save-row">
-      <span class="kho-date" id="khoDate"></span>
-      <button class="btn btn-terra" onclick="saveKho()" style="margin-left:auto">💾 Ghi kho hôm nay</button>
-    </div>
-    <div class="kho-status" id="khoStatus"></div>
-  </div></div>
-</div>
-</div>
-
 <!-- PAGE: DASHBOARD ──────────────────────────────────── -->
 <div class="page" id="page-dash">
 <div class="page-inner">
@@ -609,35 +583,25 @@ select:focus,input[type=text]:focus,input[type=date]:focus{border-color:var(--te
     <div><div class="page-title">Master Dashboard</div><div class="page-sub">Dự báo tồn kho · Min stock + Lead time 20 ngày</div></div>
     <button class="btn btn-terra" onclick="loadDash()">↺ Cập nhật dữ liệu</button>
   </div>
-  <div id="dashContent"><div style="color:#9A8070;font-size:13px;text-align:center;padding:40px">Bấm "Cập nhật dữ liệu" để tải</div></div>
-</div>
-</div>
-
-<!-- PAGE: SIZE & MÀU ──────────────────────────────────── -->
-<div class="page" id="page-sizes">
-<div class="page-inner">
-  <div><div class="page-title">Phân Tích Size & Màu</div><div class="page-sub">So sánh 30 ngày gần nhất vs 30 ngày trước</div></div>
-  <div class="card"><div class="card-body">
-    <div class="size-tabs">
-      <div class="size-tab on" onclick="setSizeTab('QNB',this)">Quần Nịt Bụng</div>
-      <div class="size-tab" onclick="setSizeTab('NBL',this)">NB Lót</div>
-      <div class="size-tab" onclick="setSizeTab('BSL',this)">Bodysuit</div>
-      <div class="size-tab" onclick="setSizeTab('GY3',this)">Gym3</div>
+  <details style="background:#fff;border:1px solid var(--tan);border-radius:10px;padding:0 14px;margin:10px 0 4px" open>
+    <summary style="cursor:pointer;font-size:12px;font-weight:700;color:var(--brown);padding:10px 0">ℹ️ Nguyên lý tính toán — bấm để ẩn/hiện</summary>
+    <div style="display:grid;gap:6px;font-size:11.5px;line-height:1.55;color:#5B4636;padding:2px 0 12px">
+      <div>• <b>Dự báo 20ng</b> = (Bán 30 ngày ÷ 30) × 20 — hàng dự kiến bán ra trong 20 ngày tới.</div>
+      <div>• <b>Hụt</b> = nếu 20 ngày tới <b>không có hàng về</b>, tồn còn lại (Tổng KD − Dự báo 20ng) sẽ thiếu so với mục tiêu bao nhiêu. <b>Hụt = 0</b> nghĩa là vẫn đủ, chưa cần nhập. <i>(Mục tiêu = "Mức muốn luôn giữ" × %bán — đổi ô đó thì Hụt & Deadline cập nhật ngay.)</i></div>
+      <div>• <b>Deadline</b> = còn mấy ngày nữa tồn tụt xuống dưới mục tiêu (theo tốc độ bán hiện tại). <b>"Đã trễ"</b> = đang thiếu rồi, cần nhập gấp.</div>
+      <div>• <b>Cần nhập</b> = đặt thêm bao nhiêu để <b>nâng tồn lên đúng "Mức muốn luôn giữ"</b> (mức tồn tổng bạn muốn luôn có), cân theo %bán & Tổng KD. Ô "Mức muốn luôn giữ" = 0 thì cột này = 0.</div>
+      <div style="color:#8a6f56"><b>Khi nào dùng cột nào?</b> → <b>Cần nhập</b>: khi muốn kho luôn duy trì ở một mức cố định. → <b>Chia nhập</b>: khi đã biết đợt này định nhập tổng bao nhiêu cái. Cả hai đều cân theo %bán & Tổng KD (mã đang thiếu nhập nhiều, mã dư nhập ít/bỏ qua).</div>
+      <div>• <b>Chia nhập</b> = phân bổ "Số lượng muốn nhập" theo %bán <b>nhưng có nhìn Tổng KD hiện tại</b>: mã đang thiếu (so với tỉ lệ bán) nhập nhiều hơn, mã còn dư nhập ít/bỏ qua — để sau khi nhập tồn từng mã cân theo %bán. <b>Tổng nhập ≈ đúng số bạn muốn.</b> Bấm <b>✓ Tạo đơn Order</b> để đẩy sang Order, tên lô tự tăng (VD NBD8 → NBD9).</div>
     </div>
-    <div style="overflow-x:auto"><table class="size-tbl"><thead id="sizeTblHead"></thead><tbody id="sizeTblBody"></tbody></table></div>
-  </div></div>
-</div>
-</div>
-
-<!-- PAGE: CEO ──────────────────────────────────── -->
-<div class="page" id="page-ceo">
-<div class="page-inner">
-  <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:8px">
-    <div><div class="page-title">CEO Dashboard</div><div class="page-sub">Tổng quan nhanh toàn bộ sản phẩm</div></div>
-    <button class="btn btn-terra" onclick="loadCeo()">↺ Cập nhật</button>
+  </details>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 2px" id="dashProdTabs">
+    <button class="kho-tab" onclick="setDashTab('ALL',this)">Tất cả</button>
+    <button class="kho-tab on" onclick="setDashTab('QNB',this)">Quần Nịt Bụng</button>
+    <button class="kho-tab" onclick="setDashTab('NBL',this)">NB Lót</button>
+    <button class="kho-tab" onclick="setDashTab('BSL',this)">Bodysuit</button>
+    <button class="kho-tab" onclick="setDashTab('GY3',this)">Gym3</button>
   </div>
-  <div class="kpi-grid" id="ceoKpi"></div>
-  <div class="ceo-grid" id="ceoGrid"></div>
+  <div id="dashContent"><div style="color:#9A8070;font-size:13px;text-align:center;padding:40px">Bấm "Cập nhật dữ liệu" để tải</div></div>
 </div>
 </div>
 
@@ -646,39 +610,72 @@ select:focus,input[type=text]:focus,input[type=date]:focus{border-color:var(--te
 <div class="page-inner">
   <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:8px">
     <div>
-      <div class="page-title">Quản lý kho hàng</div>
-      <div class="page-sub">Kho nhà = tồn hôm qua − đi đơn hôm nay · Kho SEC = Ord Hàng · Hụt = Tồn mong muốn − Dự báo 20ng</div>
+      <div class="page-title">Quản lý kho</div>
+      <div class="page-sub">Kho hàng (Kho nhà = Tồn kho nhà · Kho SEC = Ord Hàng) · Kiểm kho thực tế</div>
     </div>
     <button class="btn btn-terra" onclick="loadInventoryNew()">↺ Tính lại</button>
   </div>
 
-  <!-- Tab sản phẩm -->
-  <div style="display:flex;gap:6px;flex-wrap:wrap" id="invProdTabs">
-    <button class="kho-tab on" onclick="setInvTab('ALL',this)">Tất cả</button>
-    <button class="kho-tab" onclick="setInvTab('QNB',this)">Quần Nịt Bụng</button>
-    <button class="kho-tab" onclick="setInvTab('NBL',this)">NB Lót</button>
-    <button class="kho-tab" onclick="setInvTab('BSL',this)">Bodysuit</button>
-    <button class="kho-tab" onclick="setInvTab('GY3',this)">Gym3</button>
+  <!-- 2 mục -->
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 2px" id="invSecTabs">
+    <button class="kho-tab on" onclick="switchInvSec('khohang',this)">🗂️ Kho hàng</button>
+    <button class="kho-tab" onclick="switchInvSec('kiemkho',this)">📦 Kiểm kho</button>
   </div>
 
-  <!-- Form đếm kho (có pass) -->
-  <div class="card" id="updateKhoCard" style="display:none">
-    <div class="card-body" style="padding:18px 22px">
-      <div style="font-family:var(--f-head);font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--brown);margin-bottom:6px" id="updateKhoTitle">Đếm kho hôm nay</div>
-      <div style="font-size:11px;color:#9A8070;margin-bottom:12px">Nhập số đếm thực tế · hệ thống sẽ dùng số này làm gốc và tự trừ đi đơn từ ngày này</div>
-      <div style="margin-bottom:10px">
-        <div class="manual-lbl">Ngày đếm kho</div>
-        <input type="date" id="khoSnapDate" style="padding:7px 9px;border:1px solid rgba(220,198,170,.6);border-radius:7px;font-size:12px;width:180px">
-      </div>
-      <div style="overflow-x:auto" id="updateKhoInputs"></div>
-      <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end">
-        <button class="btn btn-ghost" onclick="closeUpdateKho()">Huỷ</button>
-        <button class="btn btn-terra" onclick="saveKhoSnapshot()">💾 Lưu số đếm</button>
+  <!-- ── MỤC KHO HÀNG ── -->
+  <div id="invSecKhoHang">
+    <div style="display:flex;gap:6px;flex-wrap:wrap" id="invProdTabs">
+      <button class="kho-tab on" onclick="setInvTab('ALL',this)">Tất cả</button>
+      <button class="kho-tab" onclick="setInvTab('QNB',this)">Quần Nịt Bụng</button>
+      <button class="kho-tab" onclick="setInvTab('NBL',this)">NB Lót</button>
+      <button class="kho-tab" onclick="setInvTab('BSL',this)">Bodysuit</button>
+      <button class="kho-tab" onclick="setInvTab('GY3',this)">Gym3</button>
+    </div>
+    <div class="card" id="updateKhoCard" style="display:none">
+      <div class="card-body" style="padding:18px 22px">
+        <div style="font-family:var(--f-head);font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--brown);margin-bottom:6px" id="updateKhoTitle">Đếm kho hôm nay</div>
+        <div style="font-size:11px;color:#9A8070;margin-bottom:12px">Nhập số đếm thực tế · hệ thống sẽ dùng số này làm gốc và tự trừ đi đơn từ ngày này</div>
+        <div style="margin-bottom:10px">
+          <div class="manual-lbl">Ngày đếm kho</div>
+          <input type="date" id="khoSnapDate" style="padding:7px 9px;border:1px solid rgba(220,198,170,.6);border-radius:7px;font-size:12px;width:180px">
+        </div>
+        <div style="overflow-x:auto" id="updateKhoInputs"></div>
+        <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end">
+          <button class="btn btn-ghost" onclick="closeUpdateKho()">Huỷ</button>
+          <button class="btn btn-terra" onclick="saveKhoSnapshot()">💾 Lưu số đếm</button>
+        </div>
       </div>
     </div>
+    <div id="inventoryContent"><div style="color:#9A8070;font-size:13px;text-align:center;padding:40px">Đang tính toán...</div></div>
   </div>
 
-  <div id="inventoryContent"><div style="color:#9A8070;font-size:13px;text-align:center;padding:40px">Đang tính toán...</div></div>
+  <!-- ── MỤC KIỂM KHO ── -->
+  <div id="invSecKiemKho" style="display:none">
+    <div class="card"><div class="card-body">
+      <div style="font-size:11px;color:#9A8070;margin-bottom:10px">Chọn sản phẩm · nhập số đếm thực tế theo màu·size · bấm <b>So sánh với hệ thống</b>.</div>
+      <div class="kho-tabs">
+        <div class="kho-tab on" onclick="setKhoTab('QNB',this)">Quần Nịt Bụng</div>
+        <div class="kho-tab" onclick="setKhoTab('NBL',this)">NB Lót</div>
+        <div class="kho-tab" onclick="setKhoTab('BSL',this)">Bodysuit</div>
+        <div class="kho-tab" onclick="setKhoTab('GY3',this)">Gym3</div>
+      </div>
+      <div style="margin:6px 0 10px;display:flex;align-items:center;gap:8px">
+        <span class="manual-lbl" style="margin:0">Ngày đếm kho</span>
+        <input type="date" id="khoCountDate" style="padding:6px 9px;border:1px solid rgba(220,198,170,.6);border-radius:7px;font-size:12px;width:170px">
+      </div>
+      <div style="overflow-x:auto"><table class="kho-tbl"><thead id="khoTblHead"></thead><tbody id="khoTblBody"></tbody></table></div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn btn-terra" onclick="khoCompare()">🔍 So sánh với hệ thống</button>
+      </div>
+      <div id="khoCompareBox" style="margin-top:14px"></div>
+      <div class="kho-status" id="khoStatus"></div>
+    </div></div>
+
+    <div class="card"><div class="card-body">
+      <div style="font-family:var(--f-head);font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--brown);margin-bottom:10px">🗂️ Lịch sử kiểm kho đã lưu</div>
+      <div id="khoHistory"><div style="font-size:12px;color:#9A8070">Chưa có bản kiểm kho nào.</div></div>
+    </div></div>
+  </div>
 </div>
 </div>
 
@@ -786,15 +783,18 @@ const SZ=['XS/S','XS','S','M/L','M','L','XL/2XL','XL/XXL','XL','XXL','2XL','3XL'
 const SZP='(XS\\/S|M\\/L|XL\\/2XL|XL\\/XXL|XS|S|M|L|XL|XXL|2XL|3XL|4XL|5XL|6XL)';
 const PICK_SIZES={NBD:['XS/S','M/L','XL/2XL','3XL','4XL','5XL','6XL'],NB01:['XS/S','M/L','XL/2XL','3XL','4XL','5XL','6XL'],JS01:['S','M','L','XL','2XL','3XL'],GY3:['S','M']};
 const PICK_COLORS={NBD:['Đen','Da'],NB01:['Đen','Da'],JS01:['Đen','Nâu','Da'],GY3:['Đen','Nâu']};
+// Tồn kho nhà cho cảnh báo lúc soạn hàng (map mã sort → mã Đi Đơn)
+let PICK_STOCK={},PICK_STOCK_READY=false;
+const PICK_PMAP={NBD:'QNB',NB01:'NBL',JS01:'BSL',GY3:'GY3'};
+function pickColToSales(salesProd,c){c=(c||'').toLowerCase();if(c.includes('đen')||c.includes('den'))return 'ĐEN';if(c.includes('nâu')||c.includes('nau'))return 'NÂU';if(c.includes('nude')||c==='da')return salesProd==='BSL'?'DA':'Da';return c;}
 
 // ═══ INIT ════════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded',async ()=>{
   document.getElementById('gsUrl').value=localStorage.getItem('gsUrl')||'';
   updateGsStatus();
   document.getElementById('sbDate').textContent=new Date().toLocaleDateString('vi-VN',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'});
-  setKhoTab('QNB',document.querySelector('.kho-tab.on'));
-  setSizeTab('QNB',document.querySelector('.size-tab.on'));
-  document.getElementById('khoDate').textContent='Ngày: '+new Date().toLocaleDateString('vi-VN');
+  setKhoTab('QNB',document.querySelector('#invSecKiemKho .kho-tab'));
+  const _kcd=document.getElementById('khoCountDate');if(_kcd)_kcd.value=new Date().toISOString().split('T')[0];
   // Auto-load nếu đã có URL Sheet
   if(getGsUrl()){
     showSbConnecting();
@@ -812,11 +812,6 @@ async function autoLoadAll(){
   try{
     const rows=await sbSelect('latest_dashboard','order=prod.asc');
     if(rows?.length){
-      DASH_DATA=sbRowsToDashData(rows);
-      SIZE_DATA=DASH_DATA;
-      renderDash(DASH_DATA);
-      renderCeoFromDash(DASH_DATA);
-      setSizeTab(curSizeProd,document.querySelector('.size-tab.on'));
       document.getElementById('gsStatus').textContent='✓ Supabase · '+new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'});
       document.getElementById('gsStatus').className='sb-gs-status ok';
     } else {
@@ -841,11 +836,7 @@ function goPage(p){
   document.getElementById('page-'+p).classList.add('active');
   event.currentTarget.classList.add('active');
   // Auto-render nếu đã có data (không cần bấm nút load)
-  if(p==='dash'&&DASH_DATA) renderDash(DASH_DATA);
-  if(p==='sizes'&&SIZE_DATA) setSizeTab(curSizeProd,document.querySelector('.size-tab.on'));
-  if(p==='ceo'&&DASH_DATA) renderCeo(DASH_DATA);
-  // Nếu chưa có data và có URL → tự fetch
-  if((p==='dash'||p==='sizes'||p==='ceo')&&!DASH_DATA) loadDash();
+  if(p==='dash') loadDash();
   if(p==='ord'&&!ORD_DATA.length) loadOrdLots();
   if(p==='inventory'){loadInventoryNew();}
   if(p==='sales'){initSalesPage();}
@@ -1026,9 +1017,28 @@ function getTkItems(raw){
   const res=[];let m;
   const r0=new RegExp(`([^\\d,\\n][^,\\n]{0,8}),\\s*${SZP}\\s+(NBD|NB01|GY3|CB01|JS01)\\s+(\\d+)`,'gi');
   while((m=r0.exec(t))!==null){const color=m[1].trim(),size=nSize(m[2]),code=m[3].toUpperCase(),qty=parseInt(m[4]);if(size&&qty>0&&!res.some(r=>r.code===code&&r.size===size))res.push({code,color,size,qty});}
+  // Thứ tự ĐẢO "Size, Màu CODE qty" (VD Bodysuit "M, Đen JS01 1" — TikTok đặt option size trước màu)
+  const r0b=new RegExp(`${SZP}\\s*,\\s*(Đen|Den|Nude|Nâu|Nau|Da|Be|Brown|Black|Skin)\\s+(NBD|NB01|GY3|CB01|JS01)\\s+(\\d+)`,'gi');
+  while((m=r0b.exec(t))!==null){const size=nSize(m[1]),color=m[2].trim(),code=m[3].toUpperCase(),qty=parseInt(m[4]);if(size&&qty>0&&!res.some(r=>r.code===code&&r.size===size))res.push({code,color,size,qty});}
   if(res.length)return res;
   const r1=new RegExp(`\\b(NBD|NB01|GY3|CB01|JS01)\\s+([^,]{1,30}?),\\s*${SZP}(?:\\s*[x×]\\s*(\\d+)|\\s*,?\\s*(?:SL|Qty)\\s*:?\\s*(\\d+))?`,'gi');
   while((m=r1.exec(t))!==null){const code=m[1].toUpperCase(),color=m[2].trim(),size=nSize(m[3]),qty=parseInt(m[4]||m[5]||'1');if(size&&qty>0&&!res.some(r=>r.code===code&&r.size===size))res.push({code,color,size,qty});}
+  // Fallback cuối: token có thể bị pdf.js tách rời (VD "M, Đen" xa "JS01").
+  // Tìm CODE + cặp (màu,size) ở BẤT KỲ vị trí, BẤT KỲ thứ tự — chỉ chạy khi các mẫu trên trượt.
+  if(!res.length){
+    const codeM=t.match(/\b(JS01|NB01|NBD|GY3|CB01)\b/i);
+    if(codeM){
+      const code=codeM[1].toUpperCase();
+      const COL='(Đen|Den|Nude|Nâu|Nau|Da|Be|Brown|Black|Skin)';
+      let color,size,cs;
+      if((cs=t.match(new RegExp(`${COL}\\s*,\\s*${SZP}`,'i')))){color=cs[1];size=nSize(cs[2]);}       // "Màu, Size"
+      else if((cs=t.match(new RegExp(`${SZP}\\s*,\\s*${COL}`,'i')))){size=nSize(cs[1]);color=cs[2];}   // "Size, Màu"
+      if(color&&size){
+        const qm=t.match(/(?:Qty\s*Total|T[oổ]ng\s*SL)\s*:?\s*(\d+)/i);
+        res.push({code,color,size,qty:qm?parseInt(qm[1]):1});
+      }
+    }
+  }
   return res;
 }
 function groupTkPages(pages){
@@ -1158,16 +1168,33 @@ function renderPickTable(prod,label,cls){
     let cells='';
     colors.forEach(c=>{
       const v=(data[c]||{})[s]||0;
-      if(!v)cells+=`<td class="pz">—</td>`;
-      else if(v===maxVal)cells+=`<td class="ph2">${v}</td>`;
-      else cells+=`<td class="pv">${v}</td>`;
+      if(!v){cells+=`<td class="pz">—</td>`;return;}
+      let cls=(v===maxVal)?'ph2':'pv',tag='';
+      if(PICK_STOCK_READY&&PICK_PMAP[prod]){
+        const stock=Math.round((PICK_STOCK[prod]||{})[pickColToSales(PICK_PMAP[prod],c)+'|'+s]||0);
+        if(stock<=0){cls='pv p-out';tag=`<div style="font-size:7px;font-weight:800;letter-spacing:.03em">HẾT KHO</div>`;}
+        else if(stock<v){cls='pv p-low';tag=`<div style="font-size:7px">còn ${stock}</div>`;}
+      }
+      cells+=`<td class="${cls}">${v}${tag}</td>`;
     });
     rows+=`<tr><td class="clbl">${s}</td>${cells}</tr>`;
   });
   return`<div class="pick-block"><div class="pick-blk-hdr ${cls}">${label}</div><table class="pick-tbl"><thead><tr><th class="l">Size\\Màu</th>${colors.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;
 }
-function showPickTable(){
+async function loadPickStock(){
+  try{
+    const [sl,ol]=await Promise.all([sbSelect('sales_log','order=date.asc'),sbSelect('ord_lots','order=prod.asc')]);
+    SALES_ALL=[...SEED_SALES,...sl].map(normSalesRow).filter(r=>r.date);
+    const toDMY=v=>{v=String(v||'');return v.includes('/')?v:(v?v.split('-').reverse().join('/'):'');};
+    const t=new Date();const todayDMY=`${String(t.getDate()).padStart(2,'0')}/${String(t.getMonth()+1).padStart(2,'0')}/${t.getFullYear()}`;const todayYMD=t.toISOString().split('T')[0];
+    ORD_HOME_ROWS=ol.filter(r=>r.status==='Đã về nhà'&&(r.qty||0)>0).map(r=>{const pk=SALES_PMAP[r.prod]||r.prod;let d=toDMY(r.arr_date)||toDMY(r.ord_date)||todayDMY;if(d.split('/').reverse().join('-')>todayYMD)d=todayDMY;return {date:d,prod:pk,color:salesCanonColor(pk,r.color),size:r.size,qty:r.qty||0,lot:r.dot_name||'Lô'};});
+    PICK_STOCK={};Object.entries(PICK_PMAP).forEach(([pick,sales])=>{try{PICK_STOCK[pick]=khoNhaNow(sales);}catch(_){PICK_STOCK[pick]={};}});
+    PICK_STOCK_READY=true;
+  }catch(_){PICK_STOCK_READY=false;}
+}
+async function showPickTable(){
   if(!PICK_INV)return;
+  await loadPickStock();
   document.getElementById('pickGrid').innerHTML=
     renderPickTable('NBD','Quần Nịt Bụng Dài — NBD','ph-nbd')+
     renderPickTable('NB01','Quần Nịt Bụng Lót — NB01','ph-nbl')+
@@ -1185,28 +1212,183 @@ function showPickTable(){
   }
   let totalItems=0;
   Object.values(PICK_INV).forEach(prod=>{if(typeof prod==='object')Object.values(prod).forEach(col=>{if(typeof col==='object')Object.values(col).forEach(v=>{totalItems+=(v||0);});});});
-  document.getElementById('pickNote').textContent=`Tổng ${totalItems} sản phẩm đếm từ PDF. CB01 đã cộng vào cả NBD và NB01.`;
+  document.getElementById('pickNote').innerHTML=`Tổng ${totalItems} sản phẩm đếm từ PDF. CB01 đã cộng vào cả NBD và NB01.`+(PICK_STOCK_READY?` · <span style="color:#c0392b;font-weight:700">■ HẾT KHO</span> (kho nhà = 0 → thay size/màu khác) · <span style="color:#b5651d;font-weight:700">■ còn ít</span> (không đủ đơn)`:` · <span style="color:#9A8070">(không tải được tồn kho để cảnh báo)</span>`);
   const pc=document.getElementById('pickCard');pc.style.display='block';
 }
-async function syncSalesToSheet(){
-  if(!PICK_INV){toast('Chưa có dữ liệu sort!','err');return;}
+let _salesWriting=false,_lastSalesIds=[],_pendingSales=null;
+
+function buildSalesItems(){
   const dateVal=document.getElementById('pickDate')?.value||new Date().toISOString().split('T')[0];
-  // Convert yyyy-mm-dd → dd/mm/yyyy
-  const dateParts=dateVal.split('-');
-  const dateStr=dateParts.length===3?`${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`:dateVal;
-  const platform=`${PLAT==='tiktok'?'TikTok':'Shopee'} · Ca ${curShift==='sang'?'sáng':'chiều'}`;
+  const dp=dateVal.split('-');const dateStr=dp.length===3?`${dp[2]}/${dp[1]}/${dp[0]}`:dateVal;
+  const ca=curShift==='sang'?'sáng':'chiều';
+  const platform=`${PLAT==='tiktok'?'TikTok':'Shopee'} · Ca ${ca}`;
   const items=[];
-  for(const[prod,colors]of Object.entries(PICK_COLORS)){
-    for(const c of colors){for(const s of PICK_SIZES[prod]){
-      const v=(PICK_INV[prod][c]||{})[s]||0;
-      if(v>0)items.push({date:dateStr,prod,color:c,size:s,qty:v,platform});
-    }}
+  for(const[prod,colors]of Object.entries(PICK_COLORS))for(const c of colors)for(const s of PICK_SIZES[prod]){
+    const v=(PICK_INV[prod][c]||{})[s]||0;if(v>0)items.push({date:dateStr,prod,color:c,size:s,qty:v,platform});
   }
   Object.entries(PICK_INV.OTHER||{}).forEach(([k,v])=>{if(v>0)items.push({date:dateStr,prod:'OTHER',color:'',size:k,qty:v,platform});});
+  return {items,dateStr,ca};
+}
+
+// Bấm "Ghi vào Đi Đơn" → mở hộp xác nhận (chống bấm nhầm 2 lần)
+function confirmSyncSales(){
+  if(_salesWriting)return;
+  if(!PICK_INV){toast('Chưa có dữ liệu sort!','err');return;}
+  const {items,dateStr,ca}=buildSalesItems();
+  if(!items.length){toast('Không có dòng nào để ghi!','err');return;}
+  _pendingSales={items,dateStr,ca};
+  const totQty=items.reduce((s,x)=>s+x.qty,0);
+  renderSalesModal('confirm',{lines:items.length,totQty,dateStr,ca});
+}
+
+function renderSalesModal(mode,info){
+  let ov=document.getElementById('salesConfirmOverlay');
+  if(!ov){
+    ov=document.createElement('div');ov.id='salesConfirmOverlay';
+    ov.style.cssText='position:fixed;inset:0;background:rgba(42,33,28,.55);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px';
+    ov.addEventListener('click',e=>{if(e.target===ov&&!_salesWriting)closeSalesModal();});
+    document.body.appendChild(ov);
+  }
+  let html='';
+  if(mode==='confirm'){
+    html=`<div style="background:#fff;border-radius:16px;max-width:390px;width:100%;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.35)">
+      <div style="background:var(--dark);padding:15px 20px;color:var(--tan);font-family:var(--f-head);font-weight:800;font-size:14px;letter-spacing:.04em">☁ Xác nhận ghi vào Đi Đơn?</div>
+      <div style="padding:18px 20px;color:var(--dark);font-size:13px;line-height:1.75">
+        Sắp ghi <b>${info.lines} dòng</b> (tổng <b>${info.totQty} sản phẩm</b>) vào Đi Đơn.<br>
+        <span style="color:#7a5a40">📅 Ngày <b>${info.dateStr}</b> · Ca <b>${info.ca}</b> · ${PLAT==='tiktok'?'TikTok':'Shopee'}</span>
+        <div style="margin-top:12px;background:var(--yel-bg);border:1px solid #e8d9a0;border-radius:8px;padding:8px 11px;font-size:11.5px;color:#8a6f0b">⚠️ Ghi trùng sẽ <b>cộng dồn</b> số liệu. Chỉ bấm 1 lần.</div>
+      </div>
+      <div style="display:flex;gap:8px;padding:0 20px 18px">
+        <button onclick="closeSalesModal()" style="flex:1;padding:11px;border-radius:9px;border:1px solid rgba(220,198,170,.7);background:var(--cream);color:var(--brown);font-family:var(--f-head);font-weight:700;font-size:12px;cursor:pointer">Hủy</button>
+        <button id="salesConfirmBtn" onclick="doSyncSales(this)" style="flex:1.4;padding:11px;border-radius:9px;border:none;background:var(--terra);color:#fff;font-family:var(--f-head);font-weight:800;font-size:12px;cursor:pointer">✓ Xác nhận ghi</button>
+      </div>
+    </div>`;
+  }else{ // done
+    const canUndo=_lastSalesIds.length>0;
+    html=`<div style="background:#fff;border-radius:16px;max-width:390px;width:100%;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.35)">
+      <div style="background:var(--green);padding:15px 20px;color:#fff;font-family:var(--f-head);font-weight:800;font-size:14px">✓ Đã ghi vào Đi Đơn</div>
+      <div style="padding:18px 20px;color:var(--dark);font-size:13px;line-height:1.75">
+        Đã ghi <b>${info.lines} dòng</b> (${info.totQty} sản phẩm) · ${info.dateStr} · Ca ${info.ca}.
+        ${canUndo?'<div style="margin-top:10px;color:#7a5a40;font-size:11.5px">Lỡ bấm nhầm? Bấm <b>Hoàn tác</b> để xoá đúng lần ghi này.</div>':'<div style="margin-top:10px;color:#9A8070;font-size:11px">(Lần này không hoàn tác tự động được — nếu sai cần xoá thủ công.)</div>'}
+      </div>
+      <div style="display:flex;gap:8px;padding:0 20px 18px">
+        ${canUndo?`<button id="salesUndoBtn" onclick="undoLastSales(this)" style="flex:1;padding:11px;border-radius:9px;border:1px solid #c0392b;background:#fdecea;color:#c0392b;font-family:var(--f-head);font-weight:700;font-size:12px;cursor:pointer">↶ Hoàn tác</button>`:''}
+        <button onclick="closeSalesModal()" style="flex:1;padding:11px;border-radius:9px;border:none;background:var(--dark);color:var(--tan);font-family:var(--f-head);font-weight:800;font-size:12px;cursor:pointer">Đóng</button>
+      </div>
+    </div>`;
+  }
+  ov.innerHTML=html;ov.style.display='flex';
+}
+function closeSalesModal(){const ov=document.getElementById('salesConfirmOverlay');if(ov)ov.style.display='none';}
+
+// Ghi thật (chỉ chạy khi bấm "Xác nhận ghi") — có khoá chống double-click
+async function doSyncSales(btn){
+  if(_salesWriting)return;
+  if(!_pendingSales){closeSalesModal();return;}
+  _salesWriting=true;
+  if(btn){btn.disabled=true;btn.textContent='Đang ghi…';btn.style.opacity=.7;}
+  const {items,dateStr,ca}=_pendingSales;
   try{
-    await sbInsert('sales_log',items);
-    toast(`✓ Đã ghi ${items.length} dòng · ${dateStr} · Ca ${curShift==='sang'?'sáng':'chiều'}`,'ok');
-  }catch(e){toast('Lỗi: '+e.message,'err');}
+    const res=await fetch(`${SB_URL}/rest/v1/sales_log`,{
+      method:'POST',
+      headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(items)
+    });
+    if(!res.ok)throw new Error('Supabase '+res.status);
+    _lastSalesIds=[];
+    try{const rows=await res.json();if(Array.isArray(rows))_lastSalesIds=rows.map(r=>r&&r.id).filter(x=>x!=null);}catch(_){}
+    const totQty=items.reduce((s,x)=>s+x.qty,0);
+    toast(`✓ Đã ghi ${items.length} dòng vào Đi Đơn`,'ok');
+    renderSalesModal('done',{lines:items.length,totQty,dateStr,ca});
+  }catch(e){
+    toast('Lỗi ghi: '+e.message,'err');
+    if(btn){btn.disabled=false;btn.textContent='✓ Xác nhận ghi';btn.style.opacity=1;}
+  }finally{_salesWriting=false;}
+}
+
+// Hoàn tác: xoá đúng các dòng vừa ghi (theo id trả về)
+async function undoLastSales(btn){
+  if(!_lastSalesIds.length){closeSalesModal();return;}
+  if(btn){btn.disabled=true;btn.textContent='Đang hoàn tác…';}
+  try{
+    const list=_lastSalesIds.join(',');
+    const res=await fetch(`${SB_URL}/rest/v1/sales_log?id=in.(${list})`,{
+      method:'DELETE',
+      headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Prefer':'return=minimal'}
+    });
+    if(!res.ok)throw new Error('Supabase '+res.status);
+    toast(`↶ Đã hoàn tác — xoá ${_lastSalesIds.length} dòng vừa ghi`,'ok');
+    _lastSalesIds=[];closeSalesModal();
+  }catch(e){
+    toast('Lỗi hoàn tác: '+e.message,'err');
+    if(btn){btn.disabled=false;btn.textContent='↶ Hoàn tác';}
+  }
+}
+
+// Xoá TẤT CẢ dữ liệu Đi Đơn của 1 ngày (dùng khi bị ghi trùng/gấp đôi) → rồi ghi lại
+function _salesDateFilter(dateStr){
+  // dateStr dạng dd/mm/yyyy — bắt cả bản có số 0 lẫn không có số 0 ở đầu
+  const p=dateStr.split('/');const set=new Set([dateStr]);
+  if(p.length===3){
+    set.add(`${parseInt(p[0])}/${parseInt(p[1])}/${p[2]}`);
+    set.add(`${String(p[0]).padStart(2,'0')}/${String(p[1]).padStart(2,'0')}/${p[2]}`);
+  }
+  return 'or=('+[...set].map(v=>`date.eq.${encodeURIComponent(v)}`).join(',')+')';
+}
+async function confirmDeleteSalesByDate(){
+  const dateVal=document.getElementById('pickDate')?.value||new Date().toISOString().split('T')[0];
+  const dp=dateVal.split('-');const dateStr=dp.length===3?`${dp[2]}/${dp[1]}/${dp[0]}`:dateVal;
+  let cnt=null;
+  try{
+    const r=await fetch(`${SB_URL}/rest/v1/sales_log?${_salesDateFilter(dateStr)}&select=id`,{
+      headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Range':'0-0','Prefer':'count=exact'}
+    });
+    const cr=r.headers.get('content-range');if(cr){const m=cr.match(/\/(\d+)$/);if(m)cnt=parseInt(m[1]);}
+  }catch(_){}
+  let ov=document.getElementById('salesConfirmOverlay');
+  if(!ov){ov=document.createElement('div');ov.id='salesConfirmOverlay';ov.style.cssText='position:fixed;inset:0;background:rgba(42,33,28,.55);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px';ov.addEventListener('click',e=>{if(e.target===ov&&!_salesWriting)closeSalesModal();});document.body.appendChild(ov);}
+  const body=(cnt===0)
+    ? `<b>Không tìm thấy dòng nào</b> của ngày <b>${dateStr}</b> trong hệ thống.<div style="margin-top:12px;background:var(--yel-bg);border:1px solid #e8d9a0;border-radius:8px;padding:8px 11px;font-size:11.5px;color:#8a6f0b">Có thể bạn chọn chưa đúng ngày bị trùng — chọn lại đúng ngày rồi thử. <br>(Số liệu nền cũ nhúng sẵn trong app không xoá ở đây được.)</div>`
+    : `Sẽ xoá <b>TẤT CẢ</b> dữ liệu Đi Đơn của ngày <b>${dateStr}</b>${cnt!=null?` (<b>${cnt} dòng</b>)`:''} khỏi hệ thống (mọi ca · nền tảng · hoả tốc của ngày đó).<div style="margin-top:12px;background:#fdecea;border:1px solid #e5b4b4;border-radius:8px;padding:8px 11px;font-size:11.5px;color:#8a2020">⚠️ <b>Không hoàn tác được.</b> Xoá xong hãy tải file lên và bấm "Ghi vào Đi Đơn" lại đúng 1 lần.</div>`;
+  ov.innerHTML=`<div style="background:#fff;border-radius:16px;max-width:400px;width:100%;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.35)">
+    <div style="background:#b0503c;padding:15px 20px;color:#fff;font-family:var(--f-head);font-weight:800;font-size:14px">🗑 Xoá dữ liệu Đi Đơn ngày này?</div>
+    <div style="padding:18px 20px;color:var(--dark);font-size:13px;line-height:1.75">${body}</div>
+    <div style="display:flex;gap:8px;padding:0 20px 18px">
+      <button onclick="closeSalesModal()" style="flex:1;padding:11px;border-radius:9px;border:1px solid rgba(220,198,170,.7);background:var(--cream);color:var(--brown);font-family:var(--f-head);font-weight:700;font-size:12px;cursor:pointer">${cnt===0?'Đóng':'Hủy'}</button>
+      ${cnt===0?'':`<button id="delSalesBtn" onclick="doDeleteSalesByDate('${dateStr}',this)" style="flex:1.3;padding:11px;border-radius:9px;border:none;background:#b0503c;color:#fff;font-family:var(--f-head);font-weight:800;font-size:12px;cursor:pointer">🗑 Xoá ngày ${dateStr}</button>`}
+    </div>
+  </div>`;
+  ov.style.display='flex';
+}
+async function doDeleteSalesByDate(dateStr,btn){
+  if(_salesWriting)return;_salesWriting=true;
+  if(btn){btn.disabled=true;btn.textContent='Đang xử lý…';btn.style.opacity=.7;}
+  const H={'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`};
+  const filt=_salesDateFilter(dateStr);
+  try{
+    // 1) Thử xoá trực tiếp
+    try{await fetch(`${SB_URL}/rest/v1/sales_log?${filt}`,{method:'DELETE',headers:{...H,'Prefer':'return=minimal'}});}catch(_){}
+    // 2) Kiểm tra còn dòng nào của ngày đó không
+    let remain=[];
+    try{const r=await fetch(`${SB_URL}/rest/v1/sales_log?${filt}&select=date,prod,color,size,qty`,{headers:H});if(r.ok)remain=(await r.json())||[];}catch(_){}
+    if(!remain.length){
+      closeSalesModal();
+      toast(`🗑 Đã xoá sạch dữ liệu ngày ${dateStr}. Đang tải lại…`,'ok');
+    }else{
+      // Xoá bị chặn (thường do RLS) → BÙ TRỪ về 0 bằng cách ghi dòng âm (quyền ghi vẫn hoạt động)
+      const agg={};
+      remain.forEach(r=>{const k=[r.date,r.prod,r.color,r.size].join('|');agg[k]=(agg[k]||0)+(r.qty||0);});
+      const comp=Object.entries(agg).filter(([,v])=>v!==0).map(([k,v])=>{const p=k.split('|');return{date:p[0],prod:p[1],color:p[2],size:p[3],qty:-v,platform:'Điều chỉnh (xoá ngày)'};});
+      if(comp.length){
+        const ins=await fetch(`${SB_URL}/rest/v1/sales_log`,{method:'POST',headers:{...H,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify(comp)});
+        if(!ins.ok)throw new Error('Không xoá được và cũng không bù trừ được (mã '+ins.status+'). Có thể cần bật quyền cho bảng sales_log trên Supabase.');
+      }
+      closeSalesModal();
+      toast(`⚠️ Supabase chặn xoá trực tiếp → đã bù trừ ngày ${dateStr} về 0. Giờ tải file lên & bấm "Ghi vào Đi Đơn" lại.`,'ok');
+    }
+    try{if(typeof loadSales==='function')await loadSales();}catch(_){}   // tải lại để Đi Đơn cập nhật ngay
+  }catch(e){toast('Lỗi: '+e.message,'err');if(btn){btn.disabled=false;btn.textContent='🗑 Xoá ngày '+dateStr;btn.style.opacity=1;}}
+  finally{_salesWriting=false;}
 }
 
 // ═══ MANUAL ORDER (Hoả tốc) ══════════════════════════════════════
@@ -1289,17 +1471,37 @@ dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag');}
 dz.addEventListener('dragleave',()=>dz.classList.remove('drag'));
 dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');const f=e.dataTransfer.files[0];if(!f)return;const dt=new DataTransfer();dt.items.add(f);document.getElementById('fileInput').files=dt.files;onFile(document.getElementById('fileInput'));});
 
+// Tự nhận diện nền tảng từ nội dung PDF (khỏi phụ thuộc nút chọn)
+async function detectPlat(buf){
+  try{
+    const pdf=await pdfjsLib.getDocument({data:buf.slice(0)}).promise;
+    const n=Math.min(pdf.numPages,2);let txt='';
+    for(let i=1;i<=n;i++){const pg=await pdf.getPage(i);const tc=await pg.getTextContent();txt+=' '+tc.items.map(s=>s.str).join(' ');}
+    if(/tiktok|seller\s*sku|qty\s*total/i.test(txt))return 'tiktok';
+    if(/nội dung hàng|shopee|\bSPX\b/i.test(txt))return 'shopee';
+  }catch(_){}
+  return null;
+}
+
 async function run(){
   if(!F)return;if(typeof PDFLib==='undefined'){showErr('pdf-lib chưa load');return;}
   loadingSort(true);clearUI();
   try{
     const buf=await F.arrayBuffer();
+    const auto=await detectPlat(buf);
+    if(auto&&auto!==PLAT){
+      lg('info',`⚙️ Tự nhận diện file ${auto.toUpperCase()} (nút đang để ${PLAT.toUpperCase()}) → dùng parser ${auto.toUpperCase()}`);
+      PLAT=auto;const isTk=auto==='tiktok';
+      document.getElementById('btnShopee').className='plat-btn'+(isTk?'':' active-shopee');
+      document.getElementById('btnTiktok').className='plat-btn'+(isTk?' active-tiktok':'');
+      const mt=document.getElementById('modeTxt');if(mt)mt.textContent=isTk?'Chế độ: TikTok V2 · NBD/NB01/GY3/JS01':'Chế độ: Shopee · NBD/NB01/GY3/JS01';
+    }
     const result=PLAT==='shopee'?await runShopee(buf,F.name):await runTiktok(buf,F.name);
     RPDF=result.pdfBytes;RFNAME=result.name;
     lg('ok',`✓ Xong → ${RFNAME}`);
     document.getElementById('resFn').textContent=RFNAME;
     showStats(result.st,result.total);
-    showPickTable();
+    await showPickTable();
     document.getElementById('btnDl').style.display='inline-flex';
   }catch(e){lg('error','Lỗi: '+e.message);showErr(e.message);console.error(e);}
   finally{loadingSort(false);document.getElementById('btnRow').style.display='flex';}
@@ -1632,7 +1834,7 @@ async function loadOrd(){await loadOrdLots();}
 const KHO_CFG={QNB:{name:'Quần Nịt Bụng',colors:['ĐEN','Da'],sizes:['XS/S','M/L','XL/2XL','3XL','4XL','5XL','6XL']},NBL:{name:'Quần NB Lót',colors:['ĐEN','Da'],sizes:['XS/S','M/L','XL/2XL','3XL','4XL','5XL','6XL']},BSL:{name:'Bodysuite Lót',colors:['ĐEN','NÂU','DA'],sizes:['S','M','L','XL','2XL','3XL']},GY3:{name:'Gym3',colors:['ĐEN','NÂU'],sizes:['S','M']}};
 let curKhoProd='QNB',khoVals={};
 function setKhoTab(prod,el){
-  curKhoProd=prod;document.querySelectorAll('.kho-tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');
+  curKhoProd=prod;(el&&el.parentElement?el.parentElement:document).querySelectorAll('.kho-tab').forEach(t=>t.classList.remove('on'));if(el)el.classList.add('on');
   if(!khoVals[prod])khoVals[prod]={};
   renderKhoTable();
 }
@@ -1646,8 +1848,93 @@ function renderKhoTable(){
     rows+=`<tr><td class="clbl">${c}</td>${cells}</tr>`;
   });
   document.getElementById('khoTblBody').innerHTML=rows;
+  const _cb=document.getElementById('khoCompareBox');if(_cb)_cb.innerHTML='';
 }
 function setKhoVal(c,s,v){if(!khoVals[curKhoProd])khoVals[curKhoProd]={};if(!khoVals[curKhoProd][c])khoVals[curKhoProd][c]={};khoVals[curKhoProd][c][s]=parseInt(v)||0;}
+// ═══ KIỂM KHO: So sánh thực đếm vs hệ thống → Lưu → cập nhật Tồn kho nhà (đỏ) ═══
+function khoCompare(){
+  const pk=curKhoProd,cfg=KHO_CFG[pk];
+  const dv=document.getElementById('khoCountDate').value||new Date().toISOString().split('T')[0];
+  const sys=khoNhaNow(pk,dv);   // tồn hệ thống tính tới ngày đếm
+  let body='',totSys=0,totCnt=0,totThieu=0,totDu=0,nCnt=0;
+  cfg.colors.forEach(c=>{
+    cfg.sizes.forEach((s,si)=>{
+      const system=Math.round(sys[c+'|'+s]||0);
+      const counted=(khoVals[pk]?.[c]?.[s]);
+      const has=counted!=null&&counted!==''&&!isNaN(counted);
+      const cnt=has?parseInt(counted):0;
+      if(has)nCnt++;
+      const diff=cnt-system;
+      totSys+=system;if(has){totCnt+=cnt;if(diff<0)totThieu+=-diff;else if(diff>0)totDu+=diff;}
+      const dcol=diff<0?'#c0392b':diff>0?'#1A6B5C':'#9A8070';
+      const dtxt=!has?'—':diff===0?'✓ khớp':(diff>0?`+${diff} dư`:`${diff} thiếu`);
+      const clr=c==='ĐEN'?'#2A211C':c==='Da'||c==='DA'?'#7a4530':'#3d2010';
+      const cc=si===0?`<td rowspan="${cfg.sizes.length}" style="background:${clr};color:#fff;font-weight:700;writing-mode:vertical-rl;transform:rotate(180deg);text-align:center">${c}</td>`:'';
+      body+=`<tr>${cc}<td style="font-weight:600">${s}</td><td style="text-align:center">${system}</td><td style="text-align:center;font-weight:700">${has?cnt:'—'}</td><td style="text-align:center;font-weight:700;color:${dcol}">${dtxt}</td></tr>`;
+    });
+  });
+  const box=document.getElementById('khoCompareBox');
+  box.innerHTML=`
+    <div style="border:1px solid #E8D9C8;border-radius:12px;overflow:hidden">
+      <div style="background:var(--dark);color:var(--tan);padding:8px 14px;font-size:11px;font-family:var(--f-head);font-weight:700;letter-spacing:.05em">SO SÁNH · ${cfg.name} · ngày ${dv.split('-').reverse().join('/')}</div>
+      <div style="display:flex;gap:14px;padding:8px 14px;font-size:11px;background:var(--cream);color:#5B4636">
+        <span>Hệ thống: <b>${totSys.toLocaleString()}</b></span><span>Đếm: <b>${totCnt.toLocaleString()}</b></span>
+        <span style="color:#c0392b">Thiếu: <b>${totThieu.toLocaleString()}</b></span><span style="color:#1A6B5C">Dư: <b>${totDu.toLocaleString()}</b></span>
+      </div>
+      <div style="overflow-x:auto"><table class="ord-lot-tbl" style="min-width:auto">
+        <thead><tr><th class="fix">Màu</th><th class="fix" style="left:42px">Size</th><th>Hệ thống</th><th>Đếm</th><th>Chênh</th></tr></thead>
+        <tbody>${body}</tbody></table></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end">
+      <button class="btn btn-terra" onclick="khoSaveCount('${pk}','${dv}')" ${nCnt?'':'disabled'}>💾 Lưu & cập nhật tồn kho nhà</button>
+    </div>
+    <div style="font-size:11px;color:#9A8070;margin-top:6px">Sau khi lưu, số đếm sẽ hiện <b style="color:#c0392b">màu đỏ</b> trong bảng Tồn kho nhà ở trang Đi Đơn (từ ngày đếm), rồi tồn tự cuộn tiếp như cũ.</div>`;
+}
+
+function khoSaveCount(pk,dv){
+  const cfg=KHO_CFG[pk];
+  const dstr=dv.split('-').reverse().join('/');
+  const sys=khoNhaNow(pk,dv);
+  const rows=[];let n=0;
+  cfg.colors.forEach(c=>cfg.sizes.forEach(s=>{
+    const counted=(khoVals[pk]?.[c]?.[s]);
+    if(counted!=null&&counted!==''&&!isNaN(counted)){
+      const cnt=parseInt(counted);const system=Math.round(sys[c+'|'+s]||0);
+      KHO_COUNTS[pk+'|'+dstr+'|'+c+'|'+s]=cnt;   // recount đỏ, cuộn tiếp từ đây
+      rows.push({color:c,size:s,system,counted:cnt,diff:cnt-system});n++;
+    }
+  }));
+  if(!n){toast('Chưa nhập số đếm nào!','err');return;}
+  KHO_COUNT_LOG.unshift({ts:Date.now(),date:dstr,prod:pk,prodName:cfg.name,rows});
+  saveKhoCounts();
+  toast(`✓ Đã lưu kiểm kho ${cfg.name} ngày ${dstr} · cập nhật ${n} ô vào tồn kho nhà`,'ok');
+  renderKhoHistory();
+  loadInventoryNew();
+}
+
+function renderKhoHistory(){
+  const box=document.getElementById('khoHistory');if(!box)return;
+  if(!KHO_COUNT_LOG.length){box.innerHTML='<div style="font-size:12px;color:#9A8070">Chưa có bản kiểm kho nào.</div>';return;}
+  box.innerHTML=KHO_COUNT_LOG.map((e,i)=>{
+    const thieu=e.rows.reduce((s,r)=>s+(r.diff<0?-r.diff:0),0),du=e.rows.reduce((s,r)=>s+(r.diff>0?r.diff:0),0);
+    const body=e.rows.map(r=>`<tr><td style="font-weight:600">${r.color} ${r.size}</td><td style="text-align:center">${r.system}</td><td style="text-align:center;font-weight:700">${r.counted}</td><td style="text-align:center;font-weight:700;color:${r.diff<0?'#c0392b':r.diff>0?'#1A6B5C':'#9A8070'}">${r.diff===0?'✓':r.diff>0?'+'+r.diff:r.diff}</td></tr>`).join('');
+    return `<details style="border:1px solid #E8D9C8;border-radius:10px;margin-bottom:8px;overflow:hidden">
+      <summary style="padding:10px 14px;cursor:pointer;font-size:12px;background:var(--cream);display:flex;align-items:center;gap:10px;list-style:none">
+        <b>${e.date}</b> · ${e.prodName}
+        <span style="color:#c0392b">thiếu ${thieu}</span><span style="color:#1A6B5C">dư ${du}</span>
+        <button onclick="event.preventDefault();delKhoCount(${i})" style="margin-left:auto;font-size:10px;padding:2px 7px;border-radius:5px;border:1px solid rgba(192,57,43,.3);background:rgba(192,57,43,.08);color:#C0392B;cursor:pointer">Xoá</button>
+      </summary>
+      <div style="overflow-x:auto;padding:6px"><table class="ord-lot-tbl" style="min-width:auto"><thead><tr><th class="fix">Màu·Size</th><th>Hệ thống</th><th>Đếm</th><th>Chênh</th></tr></thead><tbody>${body}</tbody></table></div>
+    </details>`;
+  }).join('');
+}
+function delKhoCount(i){
+  const e=KHO_COUNT_LOG[i];if(!e)return;
+  if(!confirm(`Xoá bản kiểm kho ${e.date} · ${e.prodName}? (số đỏ tương ứng cũng bị gỡ khỏi tồn kho nhà)`))return;
+  e.rows.forEach(r=>{delete KHO_COUNTS[e.prod+'|'+e.date+'|'+r.color+'|'+r.size];});
+  KHO_COUNT_LOG.splice(i,1);saveKhoCounts();renderKhoHistory();loadInventoryNew();toast('Đã xoá bản kiểm kho','ok');
+}
+
 async function saveKho(){
   const cfg=KHO_CFG[curKhoProd];const rows=[];
   cfg.colors.forEach(c=>cfg.sizes.forEach(s=>{const v=(khoVals[curKhoProd]?.[c]?.[s])||0;rows.push({color:c,size:s,qty:v});}));
@@ -1662,19 +1949,23 @@ async function saveKho(){
 // ═══ DASHBOARD — đọc thẳng MASTER_DASHBOARD ══════════════════════
 const PROD_KEYS=['QNB','NBL','BSL','GY3'];
 const PROD_NAMES={QNB:'Quần Nịt Bụng',NBL:'Quần NB Lót',BSL:'Bodysuite Lót',GY3:'Gym3'};
+let curDashProd='QNB';   // sản phẩm đang xem trên Dashboard ('ALL' = tất cả)
+function setDashTab(prod,el){
+  curDashProd=prod;
+  document.querySelectorAll('#dashProdTabs .kho-tab').forEach(t=>t.classList.remove('on'));
+  if(el)el.classList.add('on');
+  if(DASH_DATA)renderDash(DASH_DATA);
+}
 const PROD_CLS={QNB:'dp-nbd',NBL:'dp-nbl',BSL:'dp-bsl',GY3:'dp-gy3'};
 
 async function loadDash(){
-  showLoading('Tải dashboard...');
+  showLoading('Tính dashboard...');
   try{
-    const rows=await sbSelect('latest_dashboard','order=prod.asc');
+    await computeInvData();
     hideLoading();
-    if(!rows?.length){toast('Chưa có data — sync từ Sheet trước','err');return;}
-    DASH_DATA=sbRowsToDashData(rows);SIZE_DATA=DASH_DATA;
+    DASH_DATA=invToDashData();SIZE_DATA=DASH_DATA;
     renderDash(DASH_DATA);
-    if(document.getElementById('page-sizes').classList.contains('active'))setSizeTab(curSizeProd,document.querySelector('.size-tab.on'));
-    if(document.getElementById('page-ceo').classList.contains('active'))loadCeo();
-  }catch(e){hideLoading();toast('Lỗi: '+e.message,'err');}
+  }catch(e){hideLoading();toast('Lỗi: '+e.message,'err');console.error(e);}
 }
 
 function actionClass(txt){
@@ -1693,8 +1984,9 @@ function deadlineClass(dl){
 }
 
 function renderDash(data){
+  const keys=curDashProd==='ALL'?PROD_KEYS:PROD_KEYS.filter(k=>k===curDashProd);
   let html='';
-  PROD_KEYS.forEach(pk=>{
+  keys.forEach(pk=>{
     const blk=data[pk];
     if(!blk){html+=`<div style="padding:20px;color:#9A8070">${pk}: Không có dữ liệu</div>`;return;}
     const {action,summary,skus,tot}=blk;
@@ -1704,14 +1996,22 @@ function renderDash(data){
     const totS30=skus.reduce((s,r)=>s+(r.s30||0),0);
 
     let rows='';
+    // Gom màu thành 1 ô dọc (rowspan) như bảng Quản lý kho cho dễ nhìn
+    const dcfg=INV_PROD_CFG[pk]||{};
+    const colorCounts={};skus.forEach(r=>{colorCounts[r.color]=(colorCounts[r.color]||0)+1;});
     skus.forEach((r,i)=>{
       const hutTxt=String(r.hut||'—');
       const hutCls=hutTxt.includes('-')?'hut-red':'';
       const dlCls=deadlineClass(r.deadline);
       const rowCls=hutTxt.includes('-')?'dr':String(r.deadline).includes('trễ')?'dr':deadlineClass(r.deadline)==='dl-org'?'do':deadlineClass(r.deadline)==='dl-yel'?'dy':'';
+      const firstOfColor=(i===0)||(skus[i-1].color!==r.color);
+      const cbg=(dcfg.clrBg&&dcfg.clrBg[r.color])||'#2A211C';
+      const cfg2=(dcfg.clrFg&&dcfg.clrFg[r.color])||'#DCC6AA';
+      const cspan=colorCounts[r.color]||1;
+      const colorCell=firstOfColor?`<td rowspan="${cspan}" style="padding:2px;text-align:center;vertical-align:middle;background:${cbg};min-width:28px"><span style="color:${cfg2};font-weight:700;font-size:10.5px;writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg);letter-spacing:.04em;display:inline-block">${r.color}</span></td>`:'';
       rows+=`<tr class="${rowCls}" data-pct="${totS30>0?((r.s30||0)/totS30).toFixed(6):0}" data-pk="${pk}" data-idx="${i}">
         <td>${r.num||i+1}</td>
-        <td class="l">${r.color||''}</td>
+        ${colorCell}
         <td class="l">${r.size||''}</td>
         <td style="color:#9A8070">${r.pct||0}%</td>
         <td>${r.s7||0}</td>
@@ -1722,9 +2022,10 @@ function renderDash(data){
         <td>${r.dangve||'—'}</td>
         <td style="font-weight:700">${r.tongkd||0}</td>
         <td>${r.db20||0}</td>
-        <td class="${hutCls}">${hutTxt}</td>
-        <td class="${dlCls}">${r.deadline||'—'}</td>
+        <td class="${hutCls}" id="hut-${pk}-${i}">${hutTxt}</td>
+        <td class="${dlCls}" id="dl-${pk}-${i}">${r.deadline||'—'}</td>
         <td><span class="nen" id="qty-${pk}-${i}">0</span></td>
+        <td><span id="dist-${pk}-${i}" style="font-weight:700;color:var(--terra)">—</span></td>
       </tr>`;
     });
 
@@ -1736,21 +2037,25 @@ function renderDash(data){
       <td>${t.s7||0}</td><td>${t.s30||0}</td><td>${t.s60||0}</td>
       <td>${t.kho||0}</td><td>${t.sec||0}</td><td>${t.dangve||0}</td>
       <td>${t.tongkd||0}</td><td>${t.db20||0}</td>
-      <td>${t.hut||'—'}</td><td>—</td>
+      <td id="tot-hut-${pk}">${t.hut||'—'}</td><td>—</td>
       <td id="tot-order-${pk}">—</td>
+      <td id="tot-dist-${pk}">—</td>
     </tr>`;
 
     html+=`<div class="dash-prod-block">
       <div class="dash-prod-title">
         <div class="dash-prod-name ${PROD_CLS[pk]}">▸ ${PROD_NAMES[pk]}</div>
-        <div class="dash-action ${acls}">${action||'—'}</div>
+        <div class="dash-action ${acls}" id="action-${pk}">${action||'—'}</div>
       </div>
       <div class="dash-sum">
-        <div class="dsm" style="flex:1;font-size:11px;color:rgba(220,198,170,.7)">${summary}</div>
-        <div class="order-inp-row">
-          <span style="font-size:10px;color:rgba(220,198,170,.6)">Muốn order:</span>
-          <input class="order-inp" type="number" id="order-inp-${pk}" value="0" min="0" step="10" oninput="calcOrder('${pk}')">
-          <span class="order-hint">← tự chia % bán 30D · tròn 10c</span>
+        <div class="dsm" style="flex:1;font-size:11px;color:rgba(220,198,170,.7)" id="summary-${pk}">${summary}</div>
+        <div class="order-inp-row" style="flex-wrap:wrap;gap:10px">
+          <span style="font-size:10px;color:rgba(220,198,170,.6)">Mức muốn luôn giữ:</span>
+          <input class="order-inp" type="number" id="order-inp-${pk}" value="${INV_TARGET[pk]||0}" min="0" step="10" oninput="onTargetChange('${pk}')" onchange="saveTargetFromDash('${pk}')">
+          <span style="font-size:10px;color:rgba(220,198,170,.6);margin-left:6px">Số lượng muốn nhập:</span>
+          <input class="order-inp" type="number" id="dist-inp-${pk}" value="0" min="0" step="10" oninput="calcDist('${pk}')">
+          <button class="ord-add-btn" style="padding:5px 12px;font-size:11px;margin-left:2px" onclick="confirmDist('${pk}')">✓ Tạo đơn Order</button>
+          <span class="order-hint">"Cần nhập" = nâng tồn về mức muốn giữ · "Chia nhập" = chia số muốn nhập đợt này · cả 2 cân theo %bán & Tổng KD · Mức muốn giữ tự lưu & đồng bộ với Quản lý kho</span>
         </div>
       </div>
       <div class="dash-tbl-wrap"><table class="dash-tbl">
@@ -1759,7 +2064,8 @@ function renderDash(data){
           <th class="th-ban">7D</th><th class="th-ban">30D</th><th class="th-ban">60D</th>
           <th class="th-ton">Kho</th><th class="th-ton">SEC</th><th class="th-ton">ĐV</th><th class="th-ton">Tổng KD</th>
           <th class="th-db">Dự báo 20ng</th><th class="th-db">Hụt</th><th class="th-db">Deadline</th>
-          <th class="th-db" style="background:var(--dark);color:var(--tan)">Nên nhập</th>
+          <th class="th-db" style="background:var(--dark);color:var(--tan)">Cần nhập<br><span style="font-size:8px;font-weight:400">(về mức muốn giữ)</span></th>
+          <th class="th-db" style="background:#5B4636;color:var(--tan)">Chia nhập<br><span style="font-size:8px;font-weight:400">(cân theo %bán & Tổng KD)</span></th>
         </tr></thead>
         <tbody>${rows}</tbody>
         <tfoot>${fr}</tfoot>
@@ -1767,24 +2073,152 @@ function renderDash(data){
     </div>`;
   });
   document.getElementById('dashContent').innerHTML=html;
+  keys.forEach(pk=>{if(data[pk]){calcOrder(pk);calcDist(pk);}});
+}
+
+// ── Phân bổ "Số lượng muốn nhập" (want) theo %bán NHƯNG cân theo Tổng KD hiện tại ──
+// Mục tiêu: sau khi nhập, tồn từng SKU tỉ lệ với %bán. Mã đang thiếu → nhập nhiều;
+// mã còn dư → nhập ít/0. Tổng nhập ≈ đúng want (water-filling). Chỉ nhìn Tổng KD (Kho nhà+SEC).
+function distNeed(pk, want){
+  const blk=DASH_DATA?.[pk];
+  const skus=(blk&&blk.skus)||[];
+  const totS30=skus.reduce((s,r)=>s+(r.s30||0),0);
+  const items=skus.map(r=>({
+    color:r.color, size:r.size,
+    pct: totS30>0?(r.s30||0)/totS30:0,
+    have: (r.tongkd||0)                 // Tổng KD = Kho nhà + SEC (không tính đang về)
+  }));
+  want=Math.max(0,want||0);
+  const sumHave=items.reduce((s,x)=>s+x.have,0);
+  const F=sumHave+want;                 // tổng tồn mục tiêu SAU khi nhập
+  const posPct=items.filter(x=>x.pct>0).map(x=>x.pct);
+  if(!want||!posPct.length) return items.map(x=>({color:x.color,size:x.size,qty:0}));
+  // Tìm mức λ sao cho Σ max(have, λ·pct) = F  (water-filling)
+  const minPct=Math.min(...posPct);
+  let lo=0, hi=F/minPct+1;
+  for(let it=0;it<60;it++){
+    const mid=(lo+hi)/2;
+    const tot=items.reduce((s,x)=>s+Math.max(x.have, mid*x.pct),0);
+    if(tot>F) hi=mid; else lo=mid;
+  }
+  const lam=(lo+hi)/2;
+  return items.map(x=>{
+    const order=Math.max(0, lam*x.pct - x.have);   // nâng tồn lên mức cân, phần thiếu = cần nhập
+    return {color:x.color, size:x.size, qty:Math.round(order/10)*10};
+  });
+}
+
+function calcDist(pk){
+  const want=parseInt(document.getElementById(`dist-inp-${pk}`).value)||0;
+  const res=distNeed(pk,want);
+  let sum=0;
+  res.forEach((it,i)=>{
+    const el=document.getElementById(`dist-${pk}-${i}`);
+    if(el){el.textContent=it.qty||'—';el.style.color=it.qty>0?'var(--terra)':'#ccc';}
+    sum+=it.qty;
+  });
+  const tot=document.getElementById(`tot-dist-${pk}`);
+  if(tot)tot.textContent=sum>0?sum.toLocaleString():'—';
+}
+
+// Khi đổi "Mức muốn luôn giữ" → tính lại SỐNG cả Hụt, Deadline và Cần nhập
+function onTargetChange(pk){
+  const newTarget=parseInt(document.getElementById(`order-inp-${pk}`).value)||0;
+  INV_TARGET[pk]=newTarget;
+  const blk=DASH_DATA?.[pk];
+  if(!blk){return;}
+  const skus=blk.skus||[];
+  const totS30=skus.reduce((s,r)=>s+(r.s30||0),0);
+  let totHut=0;
+  skus.forEach((r,i)=>{
+    const pct=totS30>0?(r.s30||0)/totS30:0;
+    const dailyRate=(r.s30||0)/30;
+    const targetSku=Math.round(newTarget*pct);
+    const tonSau20=Math.max(0,(r.tongkd||0)-(r.db20||0));
+    const hut=Math.max(0,targetSku-tonSau20);
+    let deadline='—';
+    if(dailyRate>0){const days=Math.round(((r.tongkd||0)-targetSku)/dailyRate);deadline=days<=0?`Đã trễ ${Math.abs(days)}ng`:`Còn ${days}ng`;}
+    r.hut=hut;r.deadline=deadline;r.targetSku=targetSku;   // lưu lại vào DASH_DATA
+    totHut+=hut;
+    const hcell=document.getElementById(`hut-${pk}-${i}`);
+    if(hcell){hcell.textContent=hut>0?hut:'—';hcell.className=hut>0?'hut-red':'';}
+    const dcell=document.getElementById(`dl-${pk}-${i}`);
+    if(dcell){dcell.textContent=deadline;dcell.className=deadlineClass(deadline);}
+    const tr=dcell?dcell.closest('tr'):null;   // tô màu dòng theo deadline mới
+    if(tr){tr.classList.remove('dr','do','dy');const dc=deadlineClass(deadline);
+      if(String(deadline).includes('trễ'))tr.classList.add('dr');
+      else if(dc==='dl-org')tr.classList.add('do');else if(dc==='dl-yel')tr.classList.add('dy');}
+  });
+  if(blk.tot)blk.tot.hut=totHut;
+  const fh=document.getElementById(`tot-hut-${pk}`);
+  if(fh)fh.textContent=totHut>0?totHut.toLocaleString():'—';
+  // Cập nhật badge (góc phải) + dòng tóm tắt theo mức mới
+  const tt=blk.tot||{};
+  let action='🟢 Ổn';
+  if(totHut>0)action=`🔴 Cần nhập ${totHut.toLocaleString()}c`;
+  else if(((tt.tongkd||0)-(tt.db20||0))<newTarget)action='🟠 Sắp hụt';
+  blk.action=action;
+  blk.summary=`Tồn ${(tt.tongkd||0).toLocaleString()}c · bán 30ng ${(tt.s30||0).toLocaleString()}c · dự báo 20ng ${(tt.db20||0).toLocaleString()}c${totHut>0?` · hụt ${totHut.toLocaleString()}c`:''}`;
+  const acell=document.getElementById(`action-${pk}`);
+  if(acell){acell.textContent=action;acell.className='dash-action '+actionClass(action);}
+  const scell=document.getElementById(`summary-${pk}`);
+  if(scell)scell.textContent=blk.summary;
+  calcOrder(pk);   // cập nhật cột Cần nhập theo mức mới
 }
 
 function calcOrder(pk){
-  const total=parseInt(document.getElementById(`order-inp-${pk}`).value)||0;
+  // Ô nhập = MỨC TỒN muốn luôn giữ (tổng cho cả sản phẩm).
+  // Cần đặt thêm = (mức muốn giữ − Tổng KD hiện có), rồi water-fill cân theo %bán.
+  const desired=parseInt(document.getElementById(`order-inp-${pk}`).value)||0;
   const blk=DASH_DATA?.[pk];
   if(!blk)return;
   const skus=blk.skus||[];
-  const totS30=skus.reduce((s,r)=>s+(r.s30||0),0);
+  const sumHave=skus.reduce((s,r)=>s+(r.tongkd||0),0);   // Tổng KD (Kho nhà + SEC)
+  const want=Math.max(0, desired-sumHave);               // phần còn thiếu để đạt mức giữ
+  const res=distNeed(pk, want);
   let sum=0;
-  skus.forEach((r,i)=>{
-    const pct=totS30>0?(r.s30||0)/totS30:0;
-    const qty=Math.round(pct*total/10)*10;
+  res.forEach((it,i)=>{
     const el=document.getElementById(`qty-${pk}-${i}`);
-    if(el){el.textContent=qty||0;el.className=qty>0?'nen':'n0';}
-    sum+=qty;
+    if(el){el.textContent=it.qty||0;el.className=it.qty>0?'nen':'n0';}
+    sum+=it.qty;
   });
   const tot=document.getElementById(`tot-order-${pk}`);
   if(tot)tot.textContent=sum>0?sum.toLocaleString():'—';
+}
+
+// ── Xác nhận "Chia nhập" → nhảy sang trang Order, tạo nháp lô tên tự tăng ──
+function goPageProg(p){
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  const pg=document.getElementById('page-'+p);if(pg)pg.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(el=>{if((el.getAttribute('onclick')||'').includes("goPage('"+p+"'"))el.classList.add('active');});
+}
+// Tên lô kế tiếp theo code sản phẩm (NBD/NB01/JS01/GY3): tìm số lớn nhất rồi +1
+function nextLotName(prodKey){
+  const p=ORD_PRODS.find(x=>x.key===prodKey);
+  const code=(p&&p.code)||prodKey;
+  const re=new RegExp('^'+code+'(\\d+)$','i');
+  let max=0;
+  (ORD_DATA||[]).forEach(r=>{const m=String(r.dot_name||'').trim().match(re);if(m){const n=parseInt(m[1]);if(n>max)max=n;}});
+  return code+(max+1);
+}
+async function confirmDist(pk){
+  const want=parseInt(document.getElementById('dist-inp-'+pk)?.value)||0;
+  const blk=DASH_DATA?.[pk];
+  if(!blk){toast('Chưa có dữ liệu — bấm "Cập nhật dữ liệu" trước','err');return;}
+  const items=distNeed(pk,want).filter(x=>x.qty>0);
+  if(!want||!items.length){toast('Nhập "Số lượng muốn nhập" trước đã (hoặc tồn đang đủ, không cần nhập)','err');return;}
+  try{await loadOrdLots();}catch(e){}          // đảm bảo ORD_DATA mới nhất để đánh số đúng
+  const name=nextLotName(pk);
+  goPageProg('ord');
+  openAddLot(pk);                              // mở form thêm đợt cho sản phẩm này
+  const nm=document.getElementById('lotName');if(nm)nm.value=name;   // đặt tên sau khi openAddLot đã reset
+  items.forEach(it=>{
+    const id='lot_'+it.color.replace(/[^a-z0-9]/gi,'_')+'_'+it.size.replace(/[^a-z0-9]/gi,'_');
+    const el=document.getElementById(id);if(el)el.value=it.qty;
+  });
+  const total=items.reduce((s,x)=>s+x.qty,0);
+  toast('✓ Đã tạo nháp đơn '+name+' ('+total.toLocaleString()+'c) — kiểm tra rồi bấm Lưu','ok');
 }
 
 // ═══ SIZE ANALYSIS — từ DASH_DATA ════════════════════════════════
@@ -1828,23 +2262,13 @@ function renderSizeTable(pk){
 
 // ═══ CEO DASHBOARD — đọc thẳng CEO_DASHBOARD ═════════════════════
 async function loadCeo(){
-  showLoading('Tải CEO dashboard...');
+  showLoading('Tính CEO dashboard...');
   try{
-    const rows=await sbSelect('latest_ceo');
+    await computeInvData();
     hideLoading();
-    if(rows?.length){
-      CEO_DATA=rows;
-      // Parse lại format cho renderCeo
-      const kpiRow=rows[0]||{};
-      const kpi={totalSKU:kpiRow.total_sku,orderNow:kpiRow.order_now,sapOrder:kpiRow.sap_order,ban30:kpiRow.ban30,ban7:kpiRow.ban7};
-      const prods={};
-      rows.forEach(r=>{prods[r.prod]={action:r.action,tongton:r.tongton,min:r.min_stock,daily:r.daily,db20:r.db20,hut:r.hut,topSizes:r.top_sizes||[],topColors:r.top_colors||[]};});
-      renderCeo({kpi,prods});
-    } else {
-      if(DASH_DATA)renderCeoFromDash(DASH_DATA);
-      else toast('Chưa có data CEO — sync từ Sheet trước','err');
-    }
-  }catch(e){hideLoading();if(DASH_DATA)renderCeoFromDash(DASH_DATA);else toast('Lỗi: '+e.message,'err');}
+    const d=invToDashData();DASH_DATA=d;SIZE_DATA=d;
+    renderCeoFromDash(d);
+  }catch(e){hideLoading();toast('Lỗi: '+e.message,'err');console.error(e);}
 }
 let CEO_DATA=null;
 function renderCeo(data){
@@ -1908,6 +2332,16 @@ const INV_PROD_CFG={
        clrBg:{ĐEN:'#2A211C',NÂU:'#3d2010'},clrFg:{ĐEN:'#DCC6AA',NÂU:'#d4a07a'}},
 };
 
+function switchInvSec(sec,el){
+  const kh=document.getElementById('invSecKhoHang'),kk=document.getElementById('invSecKiemKho');
+  if(kh)kh.style.display=sec==='khohang'?'block':'none';
+  if(kk)kk.style.display=sec==='kiemkho'?'block':'none';
+  const tabs=document.querySelectorAll('#invSecTabs .kho-tab');
+  tabs.forEach(t=>t.classList.remove('on'));
+  if(el&&el.classList)el.classList.add('on');
+  else if(tabs[sec==='kiemkho'?1:0])tabs[sec==='kiemkho'?1:0].classList.add('on');
+  if(sec==='kiemkho'){setKhoTab(curKhoProd||'QNB',document.querySelector('#invSecKiemKho .kho-tab.on')||document.querySelector('#invSecKiemKho .kho-tab'));renderKhoHistory();}
+}
 function setInvTab(prod,el){
   curInvTab=prod;
   document.querySelectorAll('#invProdTabs .kho-tab').forEach(t=>t.classList.remove('on'));
@@ -1921,57 +2355,85 @@ function toYMD(d){
   return d;
 }
 
+async function computeInvData(){
+  const today=new Date().toISOString().split('T')[0];
+  const mk=(days)=>{const d=new Date();d.setDate(d.getDate()-days);return d.toISOString().split('T')[0];};
+  const from7=mk(7),from30=mk(30),from60=mk(60);
+  const [snapRows,salesRows,ordRowsAll,targetRows]=await Promise.all([
+    sbSelect('kho_snapshot','order=counted_at.desc'),
+    sbSelect('sales_log','order=date.asc'),
+    sbSelect('ord_lots','order=prod.asc'),
+    sbSelect('kho_target'),
+  ]);
+  targetRows.forEach(r=>{if(INV_TARGET[r.prod]!==undefined)INV_TARGET[r.prod]=r.target_qty||0;});
+  SALES_ALL=[...SEED_SALES,...salesRows].map(normSalesRow).filter(r=>r.date);
+  (function(){const toDMY=v=>{v=String(v||'');return v.includes('/')?v:(v?v.split('-').reverse().join('/'):'');};
+    const t=new Date();const todayDMY=`${String(t.getDate()).padStart(2,'0')}/${String(t.getMonth()+1).padStart(2,'0')}/${t.getFullYear()}`;const todayYMD=t.toISOString().split('T')[0];
+    ORD_HOME_ROWS=ordRowsAll.filter(r=>r.status==='Đã về nhà'&&(r.qty||0)>0).map(r=>{const pk=SALES_PMAP[r.prod]||r.prod;let d=toDMY(r.arr_date)||toDMY(r.ord_date)||todayDMY;if(d.split('/').reverse().join('-')>todayYMD)d=todayDMY;return {date:d,prod:pk,color:salesCanonColor(pk,r.color),size:r.size,qty:r.qty||0,lot:r.dot_name||'Lô'};});})();
+  const secRows=ordRowsAll.filter(r=>r.status==='Kho SEC');
+  const dangRows=ordRowsAll.filter(r=>r.status==='Đang về');
+  INV_DATA={};
+  ['QNB','NBL','BSL','GY3'].forEach(pk=>{
+    const cfg=INV_PROD_CFG[pk];
+    const khoMap=khoNhaNow(pk);
+    const grp=(list)=>{const m={};list.filter(r=>(SALES_PMAP[r.prod]||r.prod)===pk).forEach(r=>{let nc=ordNormColor(pk,r.color),nsz=ordNormSize(pk,r.size);if(!cfg.colors.includes(nc))nc=cfg.colors[0];if(!cfg.sizes.includes(nsz))nsz=cfg.sizes[0];m[nc+'|'+nsz]=(m[nc+'|'+nsz]||0)+(r.qty||0);});return m;};
+    const secMap=grp(secRows),dangMap=grp(dangRows);
+    INV_DATA[pk]={};
+    cfg.colors.forEach(col=>{
+      INV_DATA[pk][col]={};
+      cfg.sizes.forEach(sz=>{
+        const getSales=(f,t)=>SALES_ALL.filter(r=>r.prod===pk&&r.color===col&&r.size===sz).filter(r=>{const d=toYMD(r.date||'');return d>=f&&d<=t;}).reduce((s,r)=>s+(r.qty||0),0);
+        const khoNha=Math.max(0,Math.round(khoMap[col+'|'+sz]||0));
+        const khoSec=secMap[col+'|'+sz]||0;
+        const dangve=dangMap[col+'|'+sz]||0;
+        const tongKD=khoNha+khoSec;
+        const s7=getSales(from7,today),s30=getSales(from30,today),s60=getSales(from60,today);
+        const dailyRate=s30/30;
+        const db20=Math.round(dailyRate*20);
+        INV_DATA[pk][col][sz]={khoNha,khoSec,dangve,tongKD,s7,s30,s60,db20,dailyRate};
+      });
+    });
+    const tot30=cfg.colors.reduce((s,col)=>s+cfg.sizes.reduce((s2,sz)=>s2+(INV_DATA[pk][col][sz].s30||0),0),0);
+    const target=INV_TARGET[pk]||0;
+    cfg.colors.forEach(col=>cfg.sizes.forEach(sz=>{
+      const d=INV_DATA[pk][col][sz];
+      const pct=tot30>0?d.s30/tot30:0;
+      const targetSku=Math.round(target*pct);
+      const tonSau20=Math.max(0,d.tongKD-d.db20);
+      const hut=Math.max(0,targetSku-tonSau20);
+      let deadline='—',deadlineDays=null;
+      if(d.dailyRate>0){const days=Math.round((d.tongKD-targetSku)/d.dailyRate);deadlineDays=days;deadline=days<=0?`Đã trễ ${Math.abs(days)}ng`:`Còn ${days}ng`;}
+      d.pct=pct;d.targetSku=targetSku;d.tonSau20=tonSau20;d.hut=hut;d.deadline=deadline;d.deadlineDays=deadlineDays;
+    }));
+  });
+}
 async function loadInventoryNew(){
   showLoading('Tính toán kho...');
-  try{
-    const today=new Date().toISOString().split('T')[0];
-    const mk=(days)=>{const d=new Date();d.setDate(d.getDate()-days);return d.toISOString().split('T')[0];};
-    const from7=mk(7),from30=mk(30),from60=mk(60);
-    const [snapRows,salesRows,ordRows,targetRows]=await Promise.all([
-      sbSelect('kho_snapshot','order=counted_at.desc'),
-      sbSelect('sales_log','order=date.asc'),
-      sbSelect('ord_lots','status=eq.Kho SEC'),
-      sbSelect('kho_target'),
-    ]);
-    targetRows.forEach(r=>{if(INV_TARGET[r.prod]!==undefined)INV_TARGET[r.prod]=r.target_qty||0;});
-    INV_DATA={};
-    ['QNB','NBL','BSL','GY3'].forEach(pk=>{
-      const cfg=INV_PROD_CFG[pk];
-      INV_DATA[pk]={};
-      cfg.colors.forEach(col=>{
-        INV_DATA[pk][col]={};
-        cfg.sizes.forEach(sz=>{
-          const snaps=snapRows.filter(r=>r.prod===pk&&r.color===col&&r.size===sz).sort((a,b)=>b.counted_at.localeCompare(a.counted_at));
-          const snap=snaps[0];
-          const snapDate=snap?.counted_at||null;
-          const snapQty=snap?.qty||0;
-          const getSales=(f,t)=>salesRows.filter(r=>r.prod===pk&&r.color===col&&r.size===sz).filter(r=>{const d=toYMD(r.date||'');return d>=f&&d<=t;}).reduce((s,r)=>s+(r.qty||0),0);
-          const soldAfterSnap=snapDate?getSales(snapDate,today):0;
-          const khoNha=Math.max(0,snapQty-soldAfterSnap);
-          const khoSec=ordRows.filter(r=>r.prod===pk&&r.color===col&&r.size===sz).reduce((s,r)=>s+(r.qty||0),0);
-          const tongKD=khoNha+khoSec;
-          const s7=getSales(from7,today),s30=getSales(from30,today),s60=getSales(from60,today);
-          const dailyRate=s30/30;
-          const db20=Math.round(dailyRate*20);
-          INV_DATA[pk][col][sz]={snapDate,snapQty,soldAfterSnap,khoNha,khoSec,tongKD,s7,s30,s60,db20,dailyRate};
-        });
-      });
-      const tot30=cfg.colors.reduce((s,col)=>s+cfg.sizes.reduce((s2,sz)=>s2+(INV_DATA[pk][col][sz].s30||0),0),0);
-      const target=INV_TARGET[pk]||0;
-      cfg.colors.forEach(col=>cfg.sizes.forEach(sz=>{
-        const d=INV_DATA[pk][col][sz];
-        const pct=tot30>0?d.s30/tot30:0;
-        const targetSku=Math.round(target*pct);
-        const tonSau20=Math.max(0,d.tongKD-d.db20);
-        const hut=Math.max(0,targetSku-tonSau20);
-        let deadline='—',deadlineDays=null;
-        if(d.dailyRate>0){const days=Math.round((d.tongKD-targetSku)/d.dailyRate);deadlineDays=days;deadline=days<=0?`Đã trễ ${Math.abs(days)}ng`:`Còn ${days}ng`;}
-        d.pct=pct;d.targetSku=targetSku;d.tonSau20=tonSau20;d.hut=hut;d.deadline=deadline;d.deadlineDays=deadlineDays;
-      }));
-    });
-    hideLoading();renderInventoryNew();
-  }catch(e){hideLoading();toast('Lỗi: '+e.message,'err');console.error(e);}
+  try{ await computeInvData(); hideLoading(); renderInventoryNew(); }
+  catch(e){hideLoading();toast('Lỗi: '+e.message,'err');console.error(e);}
 }
+
+// Chuyển INV_DATA (tính sống) → DASH_DATA cho Dashboard / Size / CEO
+function invToDashData(){
+  const data={};
+  ['QNB','NBL','BSL','GY3'].forEach(pk=>{
+    const cfg=INV_PROD_CFG[pk],pd=INV_DATA[pk];if(!pd)return;
+    const skus=[];const T={s7:0,s30:0,s60:0,tongkd:0,db20:0,kho:0,sec:0,hut:0,dangve:0};
+    cfg.colors.forEach(col=>cfg.sizes.forEach(sz=>{
+      const d=pd[col]?.[sz]||{};
+      const row={color:col,size:sz,s7:d.s7||0,s30:d.s30||0,s60:d.s60||0,tongkd:d.tongKD||0,db20:d.db20||0,kho:d.khoNha||0,sec:d.khoSec||0,dangve:d.dangve||0,hut:d.hut||0,deadline:d.deadline||'—',pct:Math.round((d.pct||0)*100),targetSku:d.targetSku||0};
+      skus.push(row);
+      T.s7+=row.s7;T.s30+=row.s30;T.s60+=row.s60;T.tongkd+=row.tongkd;T.db20+=row.db20;T.kho+=row.kho;T.sec+=row.sec;T.hut+=row.hut;T.dangve+=row.dangve;
+    }));
+    const target=INV_TARGET[pk]||0;
+    let action='🟢 Ổn';
+    if(T.hut>0)action=`🔴 Cần nhập ${T.hut.toLocaleString()}c`;
+    else if((T.tongkd-T.db20)<target)action='🟠 Sắp hụt';
+    data[pk]={action,summary:`Tồn ${T.tongkd.toLocaleString()}c · bán 30ng ${T.s30.toLocaleString()}c · dự báo 20ng ${T.db20.toLocaleString()}c${T.hut>0?` · hụt ${T.hut.toLocaleString()}c`:''}`,skus,tot:{...T,pct:'100%'}};
+  });
+  return data;
+}
+
 
 function loadInventory(){loadInventoryNew();}
 function renderInventory(){renderInventoryNew();}
@@ -1989,8 +2451,23 @@ async function saveTarget(pk){
   try{
     const res=await fetch(`${SB_URL}/rest/v1/kho_target?prod=eq.${pk}`,{method:'PATCH',headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({target_qty:v,updated_at:new Date().toISOString()})});
     if(!res.ok)throw new Error('HTTP '+res.status);
-    INV_TARGET[pk]=v;toast(`✓ Đã lưu mục tiêu ${INV_PROD_CFG[pk].name}: ${v.toLocaleString()}c`,'ok');await loadInventoryNew();
+    INV_TARGET[pk]=v;
+    const di=document.getElementById(`order-inp-${pk}`);if(di)di.value=v;   // đồng bộ sang ô Dashboard
+    toast(`✓ Đã lưu mục tiêu ${INV_PROD_CFG[pk].name}: ${v.toLocaleString()}c`,'ok');await loadInventoryNew();
   }catch(e){toast('Lỗi: '+e.message,'err');}
+}
+
+// Lưu "Mức muốn luôn giữ" ngay từ Dashboard (khi rời ô) → đồng bộ với Quản lý kho + Supabase
+async function saveTargetFromDash(pk){
+  const v=parseInt(document.getElementById(`order-inp-${pk}`).value)||0;
+  INV_TARGET[pk]=v;
+  const ki=document.getElementById(`target-inp-${pk}`);if(ki)ki.value=v;              // đồng bộ ô Kho trữ
+  const kd=document.getElementById(`target-disp-${pk}`);if(kd)kd.textContent=v.toLocaleString()+'c';
+  try{
+    const res=await fetch(`${SB_URL}/rest/v1/kho_target?prod=eq.${pk}`,{method:'PATCH',headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({target_qty:v,updated_at:new Date().toISOString()})});
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    toast(`✓ Đã lưu & đồng bộ mức muốn giữ ${INV_PROD_CFG[pk].name}: ${v.toLocaleString()}c`,'ok');
+  }catch(e){toast('Lỗi lưu mục tiêu: '+e.message,'err');}
 }
 
 function renderInventoryNew(){
@@ -2026,7 +2503,7 @@ function renderInventoryNew(){
         <div class="dsm">Kho SEC: <b>${totSec.toLocaleString()}c</b></div>
         <div class="dsm">Tổng KD: <b>${totKD.toLocaleString()}c</b></div>
         <div class="dsm">Mục tiêu: <b id="target-disp-${pk}">${target.toLocaleString()}c</b></div>
-        <div class="order-inp-row"><span style="font-size:10px;color:rgba(220,198,170,.6)">Kho trữ:</span><input class="order-inp" type="number" id="target-inp-${pk}" value="${target}" min="0" step="50" oninput="previewTarget('${pk}')"><button onclick="saveTarget('${pk}')" style="font-size:9px;padding:3px 9px;border-radius:6px;border:1px solid rgba(190,115,94,.4);background:rgba(190,115,94,.15);color:var(--tan);cursor:pointer;margin-left:4px">Lưu</button></div>
+        <div class="order-inp-row"><span style="font-size:10px;color:rgba(220,198,170,.6)">Mức muốn luôn giữ:</span><input class="order-inp" type="number" id="target-inp-${pk}" value="${target}" min="0" step="50" oninput="previewTarget('${pk}')"><button onclick="saveTarget('${pk}')" style="font-size:9px;padding:3px 9px;border-radius:6px;border:1px solid rgba(190,115,94,.4);background:rgba(190,115,94,.15);color:var(--tan);cursor:pointer;margin-left:4px">Lưu</button></div>
       </div>
       <div class="dash-tbl-wrap"><table class="dash-tbl" style="width:100%"><thead><tr><th class="l" style="min-width:52px">Màu</th><th class="l" style="min-width:60px">Size</th><th class="th-ton">Kho nhà</th><th class="th-ton">Kho SEC</th><th class="th-ton" style="background:var(--dark);color:var(--tan)">Tổng KD</th><th class="th-ban">7D</th><th class="th-ban">30D</th><th class="th-ban">60D</th><th class="th-db">Dự báo 20ng</th><th class="th-db">Hụt</th><th class="th-db">Deadline</th><th class="th-db">%Bán</th></tr></thead><tbody>${tbody}</tbody></table></div>
       <div style="padding:8px 16px;border-top:1px solid rgba(220,198,170,.1);font-size:10px;color:rgba(220,198,170,.4);background:var(--dark);display:flex;align-items:center;gap:8px">
@@ -2128,7 +2605,10 @@ function mergeOverride(rows,ovr,pk){
 let MANUAL_ARR=(function(){try{return JSON.parse(localStorage.getItem('hannal_manual_arr')||'[]')||[];}catch(_){return [];}})();
 function saveManualArr(){try{localStorage.setItem('hannal_manual_arr',JSON.stringify(MANUAL_ARR));}catch(_){}}
 let ORD_HOME_ROWS=[]; // lô ord_lots đã "Đã về nhà"
-function getArrRows(pk){
+// Số đếm kho thực tế (kiểm kho): recount đè lên tồn kho nhà, hiển thị ĐỎ
+let KHO_COUNTS=(function(){try{return JSON.parse(localStorage.getItem('hannal_kho_counts')||'{}')||{};}catch(_){return {};}})();
+let KHO_COUNT_LOG=(function(){try{return JSON.parse(localStorage.getItem('hannal_kho_count_log')||'[]')||[];}catch(_){return [];}})();
+function saveKhoCounts(){try{localStorage.setItem('hannal_kho_counts',JSON.stringify(KHO_COUNTS));localStorage.setItem('hannal_kho_count_log',JSON.stringify(KHO_COUNT_LOG));}catch(_){}}function getArrRows(pk){
   const out=SEED_ARR_D.filter(r=>r.prod===pk).map(r=>({date:r.date,prod:pk,color:r.color,size:r.size,qty:r.qty}));
   MANUAL_ARR.filter(r=>r.prod===pk).forEach(r=>out.push(r));
   ORD_HOME_ROWS.filter(r=>r.prod===pk).forEach(r=>out.push(r));
@@ -2344,8 +2824,11 @@ function detailTableHtml(pk,rows,label,accent,lastMode,tableKey,dateLabels){
     cfg.sizes.forEach((sz,si)=>{
       const cells=dates.map(d=>{
         const v=cellVal(d,col,sz);
-        const ed=ovr[pk+'|'+d+'|'+col+'|'+sz]!=null;
-        return `<td class="edcell${ed?' edited':''}" data-tbl="${tableKey}" data-pk="${pk}" data-d="${d}" data-c="${col}" data-s="${sz}" style="text-align:center;font-weight:${v>0?600:400};color:${v>0?'var(--dark)':'#ccc'}">${v||'—'}</td>`;
+        const ekey=pk+'|'+d+'|'+col+'|'+sz;
+        const isCount=(tableKey==='kho'&&KHO_COUNTS[ekey]!=null);
+        const ed=ovr[ekey]!=null;
+        const cls=isCount?'edcell counted':ed?'edcell edited':'edcell';
+        return `<td class="${cls}" data-tbl="${tableKey}" data-pk="${pk}" data-d="${d}" data-c="${col}" data-s="${sz}" style="text-align:center;font-weight:${v>0?600:400};color:${v>0?'var(--dark)':'#ccc'}">${v||'—'}</td>`;
       }).join('');
       const last=lastMode==='latest'?cellVal(dates[dates.length-1],col,sz):dates.reduce((a,d)=>a+cellVal(d,col,sz),0);
       const clrBg=col==='ĐEN'?'#2A211C':col==='Da'?'#7a4530':col==='NÂU'?'#3d2010':'#8a6040';
@@ -2372,11 +2855,12 @@ function computeKhoRows(pk,from,to){
   const eff=(rows,ovr)=>{const m={};rows.forEach(r=>{const k=r.date+'|'+r.color+'|'+r.size;m[k]=(m[k]||0)+(r.qty||0);});Object.keys(ovr||{}).forEach(fk=>{const p=fk.split('|');if(p[0]!==pk)return;m[p.slice(1).join('|')]=ovr[fk];});return m;};
   const ordMap=eff(SALES_ALL.filter(r=>r.prod===pk),EDITS.ord);
   const arrMap=eff(getArrRows(pk),EDITS.arr);
-  const khoOvr=EDITS.kho||{};
+  const khoOvr=EDITS.kho||{};const khoCnt=KHO_COUNTS||{};
   const dset=new Set();
   Object.keys(ordMap).forEach(k=>dset.add(k.split('|')[0]));
   Object.keys(arrMap).forEach(k=>dset.add(k.split('|')[0]));
   Object.keys(khoOvr).forEach(fk=>{const p=fk.split('|');if(p[0]===pk)dset.add(p[1]);});
+  Object.keys(khoCnt).forEach(fk=>{const p=fk.split('|');if(p[0]===pk)dset.add(p[1]);});
   const active=[...dset].filter(d=>{const y=toYMD(d);return y>=ANCHOR&&(!to||y<=to);}).sort(salesDateCmp);
   const cur={};cfg.colors.forEach(c=>cfg.sizes.forEach(s=>{cur[c+'|'+s]=((base[c]||{})[s])||0;}));
   const rows=[];
@@ -2386,12 +2870,29 @@ function computeKhoRows(pk,from,to){
       cur[k]=(cur[k]||0)-(ordMap[dk]||0)+(arrMap[dk]||0);
       const ok=pk+'|'+d+'|'+c+'|'+s;
       if(khoOvr[ok]!=null)cur[k]=khoOvr[ok];
+      if(khoCnt[ok]!=null)cur[k]=khoCnt[ok];
     }));
     if(!from||toYMD(d)>=from){
-      cfg.colors.forEach(c=>cfg.sizes.forEach(s=>{const v=cur[c+'|'+s]||0;if(v!==0||EDITS.kho[pk+'|'+d+'|'+c+'|'+s]!=null)rows.push({date:d,prod:pk,color:c,size:s,qty:v});}));
+      cfg.colors.forEach(c=>cfg.sizes.forEach(s=>{const ok=pk+'|'+d+'|'+c+'|'+s;const v=cur[c+'|'+s]||0;if(v!==0||khoOvr[ok]!=null||khoCnt[ok]!=null)rows.push({date:d,prod:pk,color:c,size:s,qty:v});}));
     }
   });
   return rows;
+}
+
+// Tồn kho nhà (tồn nay hoặc tới ngày toParam) mỗi SKU — dùng cho Quản lý kho & Kiểm kho
+function khoNhaNow(pk,toParam){
+  const cfg=SALES_PROD_CFG[pk];const base=SEED_KHO_BASE[pk]||{};
+  const toYMD=s=>{const p=s.split('/');return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;};
+  const today=toParam||new Date().toISOString().split('T')[0];
+  const eff=(rows,ovr)=>{const m={};rows.forEach(r=>{const k=r.date+'|'+r.color+'|'+r.size;m[k]=(m[k]||0)+(r.qty||0);});Object.keys(ovr||{}).forEach(fk=>{const p=fk.split('|');if(p[0]!==pk)return;m[p.slice(1).join('|')]=ovr[fk];});return m;};
+  const ordMap=eff(SALES_ALL.filter(r=>r.prod===pk),EDITS.ord);
+  const arrMap=eff(getArrRows(pk),EDITS.arr);
+  const khoOvr=EDITS.kho||{},khoCnt=KHO_COUNTS||{};
+  const dset=new Set();Object.keys(ordMap).forEach(k=>dset.add(k.split('|')[0]));Object.keys(arrMap).forEach(k=>dset.add(k.split('|')[0]));Object.keys(khoOvr).forEach(fk=>{const p=fk.split('|');if(p[0]===pk)dset.add(p[1]);});Object.keys(khoCnt).forEach(fk=>{const p=fk.split('|');if(p[0]===pk)dset.add(p[1]);});
+  const active=[...dset].filter(d=>toYMD(d)<=today).sort(salesDateCmp);
+  const cur={};cfg.colors.forEach(c=>cfg.sizes.forEach(s=>cur[c+'|'+s]=((base[c]||{})[s])||0));
+  active.forEach(d=>{cfg.colors.forEach(c=>cfg.sizes.forEach(s=>{const k=c+'|'+s;cur[k]=cur[k]-(ordMap[d+'|'+k]||0)+(arrMap[d+'|'+k]||0);const ok=pk+'|'+d+'|'+c+'|'+s;if(khoOvr[ok]!=null)cur[k]=khoOvr[ok];if(khoCnt[ok]!=null)cur[k]=khoCnt[ok];}));});
+  return cur;
 }
 
 function renderSalesDetail(){
@@ -2400,6 +2901,13 @@ function renderSalesDetail(){
   const sc=document.getElementById('salesContent');sc.classList.toggle('edit-on',EDIT_MODE);
   let html='';
   if(EDIT_MODE){html+=`<div style="background:rgba(190,115,94,.1);border:1px solid rgba(190,115,94,.3);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:12px;color:#a75f4c">✏️ Đang ở chế độ sửa — bấm vào ô bất kỳ để chỉnh (để trống = về số gốc). Sửa đơn đi / hàng về thì tồn kho tự tính lại. <button class="btn btn-ghost" style="font-size:10px;padding:3px 8px;margin-left:6px" onclick="if(confirm('Xoá tất cả chỉnh sửa tay?')){EDITS={ord:{},arr:{},kho:{}};saveEdits();renderSalesKpi();renderSales();}">Xoá hết sửa</button></div>`;}
+  const _editCount=Object.keys(EDITS.ord||{}).length+Object.keys(EDITS.arr||{}).length+Object.keys(EDITS.kho||{}).length;
+  if(_editCount>0&&!EDIT_MODE){
+    html+=`<div style="background:#fdf0e6;border:1px solid #e5b98f;border-radius:8px;padding:9px 12px;margin-bottom:12px;font-size:12px;color:#a75f4c;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span>⚠️ Đang có <b>${_editCount} ô sửa tay</b> (ô nền cam). Nếu bạn từng chỉnh 1 ô về 0 thì ô đó sẽ <b>che số thật/số mới nhập</b> — bấm nút bên phải để trả về số gốc.</span>
+      <button class="btn btn-ghost" style="font-size:10px;padding:4px 10px;white-space:nowrap" onclick="if(confirm('Xoá tất cả ${_editCount} ô sửa tay? Toàn bộ số sẽ về đúng gốc/số mới.')){EDITS={ord:{},arr:{},kho:{}};saveEdits();renderSalesKpi();renderSales();toast('✓ Đã xoá sửa tay — số về đúng gốc','ok');}">↺ Xoá tất cả sửa tay</button>
+    </div>`;
+  }
   prods.forEach(pk=>{
     const cfg=SALES_PROD_CFG[pk];
     const ordRows=mergeOverride(SALES_DATA.filter(r=>r.prod===pk),EDITS.ord,pk).filter(r=>salesInRange(r.date,from,to));
