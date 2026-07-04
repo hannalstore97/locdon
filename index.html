@@ -514,6 +514,26 @@ select:focus,input[type=text]:focus,input[type=date]:focus{border-color:var(--te
     </div>
   </div>
 
+  <!-- Đơn Hoả Tốc / Ngoại Sàn (nhiều file PDF) -->
+  <div class="card" id="htCard">
+    <div class="card-body" style="padding:18px 22px">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <div style="font-family:var(--f-head);font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--brown)">🚀 Hoả Tốc / Ngoại Sàn</div>
+          <input type="date" id="htDate" style="padding:5px 9px;border:1px solid rgba(220,198,170,.6);border-radius:7px;font-size:12px;color:var(--dark);background:var(--cream)">
+          <script>try{var _hd=document.getElementById('htDate');if(_hd&&!_hd.value)_hd.value=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().split('T')[0];}catch(e){}</script>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-ghost" onclick="document.getElementById('htFiles').click()" style="font-size:11px">📎 Chọn nhiều file PDF</button>
+          <button class="btn btn-terra" id="htWriteBtn" onclick="confirmHtSales()" style="font-size:11px" disabled>☁ Ghi vào Đi Đơn</button>
+        </div>
+      </div>
+      <input type="file" id="htFiles" accept="application/pdf" multiple style="display:none" onchange="onHtFiles(this)">
+      <div style="font-size:11px;color:#9A8070;margin-bottom:8px">Chọn nhiều nhãn PDF (GHN, SPX Hoả Tốc, đơn ngoại sàn…) — hệ thống tự đọc & đếm, rồi bấm <b>Ghi vào Đi Đơn</b>.</div>
+      <div id="htContent"><div style="color:#9A8070;font-size:12px;text-align:center;padding:18px">Chưa có file — bấm "📎 Chọn nhiều file PDF"</div></div>
+    </div>
+  </div>
+
   <!-- Stats — dưới cùng -->
   <div class="card" id="statsCard" style="display:none">
     <div class="card-body" style="padding:18px 22px">
@@ -785,6 +805,7 @@ const PICK_SIZES={NBD:['XS/S','M/L','XL/2XL','3XL','4XL','5XL','6XL'],NB01:['XS/
 const PICK_COLORS={NBD:['Đen','Da'],NB01:['Đen','Da'],JS01:['Đen','Nâu','Da'],GY3:['Đen','Nâu']};
 // Tồn kho nhà cho cảnh báo lúc soạn hàng (map mã sort → mã Đi Đơn)
 let PICK_STOCK={},PICK_STOCK_READY=false;
+let HT_INV=null;   // đếm đơn hoả tốc / ngoại sàn (nhiều file PDF)
 const PICK_PMAP={NBD:'QNB',NB01:'NBL',JS01:'BSL',GY3:'GY3'};
 function pickColToSales(salesProd,c){c=(c||'').toLowerCase();if(c.includes('đen')||c.includes('den'))return 'ĐEN';if(c.includes('nâu')||c.includes('nau'))return 'NÂU';if(c.includes('nude')||c==='da')return salesProd==='BSL'?'DA':'Da';return c;}
 
@@ -795,6 +816,7 @@ window.addEventListener('DOMContentLoaded',async ()=>{
   document.getElementById('sbDate').textContent=new Date().toLocaleDateString('vi-VN',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'});
   setKhoTab('QNB',document.querySelector('#invSecKiemKho .kho-tab'));
   const _kcd=document.getElementById('khoCountDate');if(_kcd)_kcd.value=new Date().toISOString().split('T')[0];
+  const _htd=document.getElementById('htDate');if(_htd&&!_htd.value)_htd.value=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().split('T')[0];
   // Auto-load nếu đã có URL Sheet
   if(getGsUrl()){
     showSbConnecting();
@@ -1156,6 +1178,29 @@ function buildPickFromGroups(groups){
   groups.forEach(({pages:gp})=>{const combined=gp.map(p=>p.text).join(' ');getTkItems(combined).forEach(it=>addPickItem(inv,it.code,it.color,it.size,it.qty));});
   return inv;
 }
+
+// ── PARSER ĐƠN HOẢ TỐC / NGOẠI SÀN (GHN + gộp chung) ──
+// GHN dạng "CODE color size : Nc"  (VD "NB01 nude 3XL : 1c")
+function getGHNItems(raw){
+  const t=(raw||'').replace(/\u00A0/g,' ').replace(/\s+/g,' ').normalize('NFC');
+  const res=[];let m;
+  const re=new RegExp(`\\b(NBD|NB01|JS01|GY3|CB01)\\s+([A-Za-zÀ-ỹ+ ]{1,25}?)\\s*${SZP}\\s*:\\s*(\\d+)`,'gi');
+  while((m=re.exec(t))!==null){
+    const code=m[1].toUpperCase();let colorRaw=(m[2]||'').trim();const size=nSize(m[3]);const qty=parseInt(m[4])||1;
+    if(!size||qty<=0)continue;
+    if(/combo/i.test(colorRaw)){
+      const uniq=[...new Set([...colorRaw.matchAll(/Đen|Den|Nude|Nâu|Nau|Da/gi)].map(x=>x[0].toLowerCase()))];
+      uniq.forEach(c=>res.push({code,color:c,size,qty:1}));
+    }else res.push({code,color:colorRaw,size,qty});
+  }
+  return res;
+}
+// Thử lần lượt Shopee/SPX → TikTok → GHN
+function getExpressItems(text){
+  let sh=getShopeeItems(text).filter(i=>i.code&&i.code!=='OTHER');if(sh.length)return sh;
+  let tk=getTkItems(text).filter(i=>i.code&&i.code!=='OTHER');if(tk.length)return tk;
+  return getGHNItems(text);
+}
 function renderPickTable(prod,label,cls){
   const inv=PICK_INV;if(!inv||!inv[prod])return'';
   const sizes=PICK_SIZES[prod],colors=PICK_COLORS[prod],data=inv[prod];
@@ -1300,6 +1345,11 @@ async function doSyncSales(btn){
     const totQty=items.reduce((s,x)=>s+x.qty,0);
     toast(`✓ Đã ghi ${items.length} dòng vào Đi Đơn`,'ok');
     renderSalesModal('done',{lines:items.length,totQty,dateStr,ca});
+    if(_pendingSales&&_pendingSales.source==='ht'){   // dọn mục Hoả Tốc để tránh ghi trùng
+      HT_INV=null;const fi=document.getElementById('htFiles');if(fi)fi.value='';
+      const wb=document.getElementById('htWriteBtn');if(wb)wb.disabled=true;
+      const hc=document.getElementById('htContent');if(hc)hc.innerHTML='<div style="color:#1A6B5C;font-size:12px;text-align:center;padding:14px">✓ Đã ghi xong. Chọn file khác nếu cần.</div>';
+    }
   }catch(e){
     toast('Lỗi ghi: '+e.message,'err');
     if(btn){btn.disabled=false;btn.textContent='✓ Xác nhận ghi';btn.style.opacity=1;}
@@ -1389,6 +1439,68 @@ async function doDeleteSalesByDate(dateStr,btn){
     try{if(typeof loadSales==='function')await loadSales();}catch(_){}   // tải lại để Đi Đơn cập nhật ngay
   }catch(e){toast('Lỗi: '+e.message,'err');if(btn){btn.disabled=false;btn.textContent='🗑 Xoá ngày '+dateStr;btn.style.opacity=1;}}
   finally{_salesWriting=false;}
+}
+
+// ═══ ĐƠN HOẢ TỐC / NGOẠI SÀN (nhiều file PDF) ═══════════════════
+async function onHtFiles(input){
+  const files=[...(input.files||[])];
+  if(!files.length)return;
+  if(typeof pdfjsLib==='undefined'){toast('pdf.js chưa load, thử lại sau vài giây','err');return;}
+  HT_INV=initPickInv();
+  let fileCount=0,totalPages=0,unread=0;
+  showLoading('Đọc đơn hoả tốc / ngoại sàn...');
+  for(const f of files){
+    try{
+      const buf=await f.arrayBuffer();
+      const pdf=await pdfjsLib.getDocument({data:buf.slice(0)}).promise;
+      for(let i=1;i<=pdf.numPages;i++){
+        const pg=await pdf.getPage(i);const tc=await pg.getTextContent();
+        const text=tc.items.map(s=>s.str).join(' ');
+        const items=getExpressItems(text);
+        if(items.length)items.forEach(it=>addPickItem(HT_INV,it.code,it.color,it.size,it.qty));
+        else unread++;
+        totalPages++;
+      }
+      fileCount++;
+    }catch(e){console.error(e);unread++;}
+  }
+  hideLoading();
+  renderHtTable(fileCount,totalPages,unread);
+}
+function renderHtTable(fileCount,totalPages,unread){
+  const el=document.getElementById('htContent');if(!el)return;
+  const btn=document.getElementById('htWriteBtn');
+  if(!HT_INV){el.innerHTML='';if(btn)btn.disabled=true;return;}
+  const NAMES={NBD:'Quần NB Dài',NB01:'Quần NB Lót',JS01:'Bodysuit',GY3:'Gym3'};
+  const chip=(t)=>`<span style="display:inline-block;background:var(--cream);border:1px solid #e8d9c8;border-radius:6px;padding:3px 8px;margin:2px;font-size:11px">${t}</span>`;
+  let total=0,rowsHtml='';
+  ['NBD','NB01','JS01','GY3'].forEach(prod=>{
+    const colors=PICK_COLORS[prod],sizes=PICK_SIZES[prod];let cells='';
+    colors.forEach(c=>sizes.forEach(s=>{const v=(HT_INV[prod][c]||{})[s]||0;if(v>0){cells+=chip(`<b>${c} ${s}</b> ×${v}`);total+=v;}}));
+    if(cells)rowsHtml+=`<div style="margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:var(--brown);font-family:var(--f-head);margin-bottom:3px">${NAMES[prod]} — ${prod}</div>${cells}</div>`;
+  });
+  const other=HT_INV.OTHER||{};const okeys=Object.keys(other).filter(k=>other[k]>0);
+  if(okeys.length){okeys.forEach(k=>total+=other[k]);rowsHtml+=`<div style="margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:#c0392b;font-family:var(--f-head);margin-bottom:3px">⚠️ Không nhận dạng được</div>${okeys.map(k=>chip(`${k} ×${other[k]}`)).join('')}</div>`;}
+  if(total<=0){el.innerHTML='<div style="color:#c0392b;font-size:12px;text-align:center;padding:14px">Không đọc được sản phẩm nào từ file. Kiểm tra lại file PDF (phải có lớp text).</div>';if(btn)btn.disabled=true;return;}
+  el.innerHTML=`<div style="font-size:11px;color:#5b4636;margin-bottom:8px">📎 ${fileCount} file · ${totalPages} nhãn${unread?` · <span style="color:#c0392b">${unread} nhãn chưa đọc được</span>`:''} · <b>Tổng ${total} sản phẩm</b></div>${rowsHtml}`;
+  if(btn)btn.disabled=false;
+}
+function buildHtItems(){
+  const dateVal=document.getElementById('htDate')?.value||new Date().toISOString().split('T')[0];
+  const dp=dateVal.split('-');const dateStr=dp.length===3?`${dp[2]}/${dp[1]}/${dp[0]}`:dateVal;
+  const platform='Hoả tốc / Ngoại sàn';
+  const items=[];
+  for(const[prod,colors]of Object.entries(PICK_COLORS)){for(const c of colors){for(const s of PICK_SIZES[prod]){const v=(HT_INV[prod][c]||{})[s]||0;if(v>0)items.push({date:dateStr,prod,color:c,size:s,qty:v,platform});}}}
+  Object.entries(HT_INV.OTHER||{}).forEach(([k,v])=>{if(v>0)items.push({date:dateStr,prod:'OTHER',color:'',size:k,qty:v,platform});});
+  return {items,dateStr};
+}
+function confirmHtSales(){
+  if(!HT_INV){toast('Chưa đọc file nào!','err');return;}
+  const {items,dateStr}=buildHtItems();
+  if(!items.length){toast('Không có sản phẩm nào để ghi','err');return;}
+  _pendingSales={items,dateStr,ca:'Hoả tốc / Ngoại sàn',source:'ht'};
+  const totQty=items.reduce((s,x)=>s+x.qty,0);
+  renderSalesModal('confirm',{lines:items.length,totQty,dateStr,ca:'Hoả tốc / Ngoại sàn'});
 }
 
 // ═══ MANUAL ORDER (Hoả tốc) ══════════════════════════════════════
