@@ -256,6 +256,16 @@ td.act{text-align:right;width:36px}.del{border:none;background:none;color:#c9b8a
 .koltbl a:hover{text-decoration:underline}
 .koltbl .kc-psel{margin:0}
 .koltbl .kc-del{font-size:14px}
+/* --- sửa inline Zalo/SĐT/Link --- */
+.edcell{cursor:pointer;position:relative;transition:background .15s}
+.edcell:hover{background:#fbf4ec}
+.edcell .edadd{color:#c9a988;font-size:11px;font-style:italic}
+.edcell:hover .edadd{color:#BE735E}
+.edcell .edpen{color:#c9b8a6;font-size:11px;margin-left:2px;opacity:0}
+.edcell.edlink:hover .edpen{opacity:1}
+.edcell.editing{background:#fff4e9}
+.edinput{width:100%;min-width:70px;box-sizing:border-box;border:1px solid #BE735E;border-radius:5px;padding:4px 6px;font-family:'Poppins';font-size:12px;color:#4a3a2c;background:#fff;outline:none}
+.edinput:focus{box-shadow:0 0 0 2px rgba(190,115,94,.18)}
 
 /* xác nhận xoá tháng */
 .mmconfirm{width:100%;margin-top:4px;background:rgba(192,57,43,.16);border:1px solid rgba(240,163,163,.4);border-radius:11px;padding:11px 13px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
@@ -617,9 +627,9 @@ function renderReg(){
     const mut='<span class="mut">—</span>';
     return `<tr class="${isNew?'new':''}">
       <td class="kr-name"><span class="at">@</span>${esc(k.name)}${badge}</td>
-      <td>${k.zalo?esc(k.zalo):mut}</td>
-      <td>${k.phone?esc(k.phone):mut}</td>
-      <td>${k.link?`<a href="${esc(k.link)}" target="_blank" rel="noopener">🔗 Mở link</a>`:mut}</td>
+      <td class="edcell" data-i="${k.idx}" data-f="zalo" title="Bấm để sửa Zalo">${k.zalo?esc(k.zalo):'<span class=\'edadd\'>+ Zalo</span>'}</td>
+      <td class="edcell" data-i="${k.idx}" data-f="phone" title="Bấm để sửa SĐT">${k.phone?esc(k.phone):'<span class=\'edadd\'>+ SĐT</span>'}</td>
+      <td class="edcell edlink" data-i="${k.idx}" data-f="link" title="Bấm để sửa link">${k.link?`<a href="${esc(k.link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 Mở</a> <span class="edpen">✎</span>`:'<span class=\'edadd\'>+ Link</span>'}</td>
       <td><select class="kc-psel psel" data-i="${k.idx}">${prodOptions(k.prod)}</select></td>
       <td>${k.m.length?mtag(k.m):mut}</td>
       <td>${k.addDate?esc(k.addDate):mut}</td>
@@ -629,7 +639,43 @@ function renderReg(){
   }).join('')||`<tr><td colspan="9" style="text-align:center;color:#b9a892;padding:22px;font-size:12px">${q?`Không tìm thấy "${esc(q)}"`:'Chưa có KOL nào. Thêm ở form phía trên.'}</td></tr>`;
   document.querySelectorAll('.psel').forEach(s=>s.onchange=()=>{const k=REG[+s.dataset.i];k.prod=s.value;pushKolProd(k.name,s.value);renderDash();renderSum();renderReport();});
   document.querySelectorAll('.del').forEach(b=>b.onclick=()=>{const k=REG[+b.dataset.i];if(k)delKolDb(k.name);REG.splice(+b.dataset.i,1);renderReg();renderDash();renderSum();renderReport();});
+  bindInlineEdit();
 }
+function bindInlineEdit(){
+  document.querySelectorAll('.edcell').forEach(cell=>{
+    cell.onclick=e=>{
+      if(cell.querySelector('input'))return;              // đang sửa rồi
+      if(e.target.tagName==='A')return;                   // bấm link "Mở" thì mở link, không sửa
+      const idx=+cell.dataset.i, field=cell.dataset.f, k=REG[idx];
+      if(!k)return;
+      const cur=k[field]||'';
+      cell.classList.add('editing');
+      const inp=document.createElement('input');
+      inp.type=field==='phone'?'tel':'text';
+      inp.className='edinput';
+      inp.value=cur;
+      inp.placeholder=field==='zalo'?'Tên Zalo':field==='phone'?'SĐT':'Link TikTok';
+      cell.innerHTML='';cell.appendChild(inp);
+      inp.focus();inp.select();
+      let done=false;
+      const finish=save=>{
+        if(done)return;done=true;
+        if(save){
+          const val=inp.value.trim();
+          if(val!==cur){k[field]=val;pushKol(k);}
+        }
+        cell.classList.remove('editing');
+        renderReg();
+      };
+      inp.addEventListener('keydown',ev=>{
+        if(ev.key==='Enter'){ev.preventDefault();finish(true);}
+        else if(ev.key==='Escape'){ev.preventDefault();finish(false);}
+      });
+      inp.addEventListener('blur',()=>finish(true));
+    };
+  });
+}
+
 function renderReport(){
   const el=$('report');if(!el)return;
   // các tháng có KOL thêm tay (theo addDate dd/mm/yyyy)
