@@ -158,7 +158,7 @@ tfoot td.r{text-align:right;color:#F7F3EB}
 .bulkwrap{display:none;margin-top:10px}.bulkwrap.show{display:block}
 .bulkwrap textarea{width:100%;border-radius:10px;border:none;padding:10px 12px;font-family:'Poppins';font-size:12px;min-height:72px;resize:vertical;color:#2A211C}
 .bulkwrap .brow{display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:8px;flex-wrap:wrap}
-.addmsg{font-size:11px;margin-top:9px;min-height:16px}.addmsg.ok{color:#9fe0b4}.addmsg.warn{color:#e7b98a}
+.addmsg{font-size:11px;margin-top:9px;min-height:16px;line-height:1.5}.addmsg.ok{color:#9fe0b4}.addmsg.warn{color:#e7b98a}.addmsg.err{color:#f5b3a6;font-weight:600}.addmsg.err b{color:#ffd9cf}
 .toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:18px;flex-wrap:wrap}
 .count{font-family:'Montserrat';font-size:12px;font-weight:800}.count b{color:#BE735E}
 .search{border:1px solid #E0D2C0;border-radius:10px;padding:8px 12px;font-family:'Poppins';font-size:12px;background:#fff;min-width:160px;color:#2A211C}
@@ -213,6 +213,21 @@ td.act{text-align:right;width:36px}.del{border:none;background:none;color:#c9b8a
 .kc-mtags{display:inline-flex;gap:3px}
 .kc-mtag{font-family:'Montserrat';font-size:8px;font-weight:800;width:15px;height:15px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;background:#EFE6D8;color:#a98d6f}
 .kc-mtag.a{background:#BE735E;color:#fff}
+/* KOL list table */
+.koltbl-wrap{margin-top:12px;overflow-x:auto;border:1px solid #E8D9C8;border-radius:12px;background:#fff}
+.koltbl{width:100%;border-collapse:collapse;font-size:12.5px;min-width:760px}
+.koltbl thead th{background:#F7F3EB;text-align:left;font-family:'Montserrat';font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#BE735E;padding:11px 13px;white-space:nowrap;border-bottom:1px solid #E8D9C8}
+.koltbl td{padding:10px 13px;border-bottom:1px solid #F0EBE3;vertical-align:middle;color:#2A211C}
+.koltbl tbody tr:last-child td{border-bottom:none}
+.koltbl tbody tr.new td{background:#FBF1EC}
+.koltbl tbody tr:hover td{background:#FDFBF7}
+.kr-name{font-weight:700;white-space:nowrap}
+.kr-name .at{color:#BE735E}
+.koltbl .mut{color:#c7b6a4}
+.koltbl a{color:#BE735E;text-decoration:none;white-space:nowrap;font-weight:600}
+.koltbl a:hover{text-decoration:underline}
+.koltbl .kc-psel{margin:0}
+.koltbl .kc-del{font-size:14px}
 
 /* xác nhận xoá tháng */
 .mmconfirm{width:100%;margin-top:4px;background:rgba(192,57,43,.16);border:1px solid rgba(240,163,163,.4);border-radius:11px;padding:11px 13px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
@@ -339,7 +354,14 @@ td.act{text-align:right;width:36px}.del{border:none;background:none;color:#c9b8a
     <div class="report" id="report"></div>
 
     <div class="toolbar"><div class="count">Danh sách KOL của Nhi: <b id="cnt">0</b></div><input class="search" id="search" placeholder="🔍 Tìm tên…"></div>
-    <div id="regBody" class="kolcards"></div>
+    <div class="koltbl-wrap">
+      <table class="koltbl">
+        <thead><tr>
+          <th>@TikTok</th><th>Tên Zalo</th><th>SĐT</th><th>Link TikTok</th><th>Sản phẩm</th><th>Tháng</th><th>Ngày thêm</th><th>Nguồn</th><th></th>
+        </tr></thead>
+        <tbody id="regBody"></tbody>
+      </table>
+    </div>
   </div>
   <div class="foot">HANNALSTORE97 · PREVIEW · KOL CỦA LINH</div>
 </div>
@@ -382,10 +404,12 @@ const vndShort=n=>{
 };
 const norm=s=>s.trim().replace(/^@+/,'').toLowerCase();
 const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 // registry: {name, prod, m:[months], src}  — tạm gán tất cả 'QNB'
 let REG=REG_SEED.map(r=>({name:r.n,prod:'QNB',m:r.m.slice(),src:'file',zalo:'',phone:'',link:'',addDate:''}));
 let lastAdded=new Set();
+let OTHERS={}; // {handle(lowercase): tên nhân viên đang sở hữu} — KOL của nhân viên KHÁC
 let curMD='4', curMS='all';
 let pendingDelMonth=null;
 let curNewMonth='7'; // tháng xem báo cáo KOL mới
@@ -512,23 +536,21 @@ function renderReg(){
   const mtag=ms=>ms.length?`<span class="kc-mtags">${ALLM.slice().sort((a,b)=>a-b).map(m=>`<span class="kc-mtag ${ms.includes(m)?'a':''}">${m}</span>`).join('')}</span>`:'';
   $('regBody').innerHTML=rows.map(k=>{
     const isNew=lastAdded.has(k.name);
-    const src=isNew?'<span class="kc-src new">MỚI</span>':k.src==='file'?'<span class="kc-src file">Từ file cũ</span>':'<span class="kc-src manual">Thêm tay</span>';
-    const meta=[];
-    if(k.zalo)meta.push(`<span><span class="lbl">Zalo:</span> ${k.zalo}</span>`);
-    if(k.phone)meta.push(`<span><span class="lbl">SĐT:</span> ${k.phone}</span>`);
-    if(k.link)meta.push(`<a href="${k.link}" target="_blank" rel="noopener">🔗 Link TikTok</a>`);
-    if(k.addDate)meta.push(`<span><span class="lbl">Thêm:</span> ${k.addDate}</span>`);
-    if(k.m.length)meta.push(mtag(k.m));
-    meta.push(src);
-    return `<div class="kolcard ${isNew?'new':''}">
-      <div class="kc-top">
-        <div class="kc-name"><span class="at">@</span>${k.name}</div>
-        <select class="kc-psel psel" data-i="${k.idx}">${prodOptions(k.prod)}</select>
-        <button class="kc-del del" data-i="${k.idx}" title="Xoá KOL">✕</button>
-      </div>
-      <div class="kc-meta">${meta.join('')}</div>
-    </div>`;
-  }).join('')||`<div style="text-align:center;color:#b9a892;padding:22px;font-size:12px">Không tìm thấy "${q}"</div>`;
+    const badge=isNew?' <span class="kc-src new">MỚI</span>':'';
+    const srcTag=isNew?'<span class="kc-src new">Mới</span>':k.src==='file'?'<span class="kc-src file">File cũ</span>':'<span class="kc-src manual">Thêm tay</span>';
+    const mut='<span class="mut">—</span>';
+    return `<tr class="${isNew?'new':''}">
+      <td class="kr-name"><span class="at">@</span>${esc(k.name)}${badge}</td>
+      <td>${k.zalo?esc(k.zalo):mut}</td>
+      <td>${k.phone?esc(k.phone):mut}</td>
+      <td>${k.link?`<a href="${esc(k.link)}" target="_blank" rel="noopener">🔗 Mở link</a>`:mut}</td>
+      <td><select class="kc-psel psel" data-i="${k.idx}">${prodOptions(k.prod)}</select></td>
+      <td>${k.m.length?mtag(k.m):mut}</td>
+      <td>${k.addDate?esc(k.addDate):mut}</td>
+      <td>${srcTag}</td>
+      <td><button class="kc-del del" data-i="${k.idx}" title="Xoá KOL">✕</button></td>
+    </tr>`;
+  }).join('')||`<tr><td colspan="9" style="text-align:center;color:#b9a892;padding:22px;font-size:12px">${q?`Không tìm thấy "${esc(q)}"`:'Chưa có KOL nào. Thêm ở form phía trên.'}</td></tr>`;
   document.querySelectorAll('.psel').forEach(s=>s.onchange=()=>{const k=REG[+s.dataset.i];k.prod=s.value;pushKolProd(k.name,s.value);renderDash();renderSum();renderReport();});
   document.querySelectorAll('.del').forEach(b=>b.onclick=()=>{const k=REG[+b.dataset.i];if(k)delKolDb(k.name);REG.splice(+b.dataset.i,1);renderReg();renderDash();renderSum();renderReport();});
 }
@@ -553,14 +575,23 @@ function renderReport(){
 }
 function addKols(list,prod,info){
   const ex=new Set(REG.map(r=>r.name.toLowerCase()));
-  let added=0,dup=0;lastAdded=new Set();const fresh=[];
+  let added=0,dup=0;lastAdded=new Set();const fresh=[];const blocked=[];
   list.map(norm).filter(Boolean).forEach(n=>{
-    if(ex.has(n)){dup++;return;}ex.add(n);
+    if(ex.has(n)){dup++;return;}
+    if(OTHERS[n]){blocked.push({n,owner:OTHERS[n]});return;} // KOL đang của nhân viên khác → chặn
+    ex.add(n);
     const k={name:n,prod:prod,m:[],src:'manual',addDate:TODAY,zalo:(info&&info.zalo)||'',phone:(info&&info.phone)||'',link:(info&&info.link)||''};
     REG.unshift(k);fresh.push(k);lastAdded.add(n);added++;
   });
   const m=$('addMsg');
-  if(added){m.className='addmsg ok';m.textContent=`✓ Thêm ${added} KOL vào ${PMAP[prod].name}${dup?` · bỏ qua ${dup} trùng`:''}. Ngày thêm: ${TODAY}.`;}
+  if(blocked.length){
+    const names=blocked.map(b=>`@${b.n} <span style="opacity:.85">(của ${b.owner})</span>`).join(', ');
+    m.className='addmsg err';
+    m.innerHTML=`⛔ <b>${blocked.length} KOL đang thuộc nhân viên khác</b>, không thêm được: ${names}. Để nhân viên đó làm tiếp.`
+      +(added?`<br><span style="color:#9fe0b4">✓ Đã thêm ${added} KOL còn lại vào ${PMAP[prod].name}.</span>`:'')
+      +(dup?`<br><span style="color:#e7b98a">⚠ Bỏ qua ${dup} tên đã có sẵn.</span>`:'');
+  }
+  else if(added){m.className='addmsg ok';m.textContent=`✓ Thêm ${added} KOL vào ${PMAP[prod].name}${dup?` · bỏ qua ${dup} trùng`:''}. Ngày thêm: ${TODAY}.`;}
   else if(dup){m.className='addmsg warn';m.textContent=`⚠ ${dup} tên đã có rồi.`;}
   else{m.className='addmsg warn';m.textContent='Chưa nhập tên nào.';}
   fresh.forEach(pushKol);
@@ -708,23 +739,27 @@ function setSbBadge(){
   b.className='sbbadge '+(SB_OK?'ok':'warn');
 }
 // lưu (không chặn UI; lỗi thì bỏ qua, giữ trên máy)
-async function pushKol(k){try{if(!SB_OK)return;await sbUpsert('kol_list_nhi',[{name:k.name,employee:EMP,prod:k.prod,zalo:k.zalo||'',phone:k.phone||'',link:k.link||'',add_date:k.addDate||'',source:k.src}],'name');}catch(e){}}
-async function pushKolProd(name,prod){try{if(!SB_OK)return;await sbUpsert('kol_list_nhi',[{name,employee:EMP,prod}],'name');}catch(e){}}
-async function delKolDb(name){try{if(!SB_OK)return;await sbDel('kol_list_nhi',`name=eq.${encodeURIComponent(name)}`);}catch(e){}}
+async function pushKol(k){try{if(!SB_OK)return;await sbUpsert('kol_list',[{name:k.name,employee:EMP,prod:k.prod,zalo:k.zalo||'',phone:k.phone||'',link:k.link||'',add_date:k.addDate||'',source:k.src}],'name');}catch(e){}}
+async function pushKolProd(name,prod){try{if(!SB_OK)return;await sbUpsert('kol_list',[{name,employee:EMP,prod}],'name');}catch(e){}}
+async function delKolDb(name){try{if(!SB_OK)return;await sbDel('kol_list',`name=eq.${encodeURIComponent(name)}`);}catch(e){}}
 async function pushMonth(month,matched){try{if(!SB_OK)return;await sbDel('kol_monthly_nhi',`month=eq.${month}&year=eq.2026`);const rows=matched.map(k=>({month,year:2026,name:k.n,gmv:k.g,refund:k.rf||0,com:k.c,orders:k.o}));if(rows.length)await sbUpsert('kol_monthly_nhi',rows);}catch(e){}}
 async function delMonthDb(month){try{if(!SB_OK)return;await sbDel('kol_monthly_nhi',`month=eq.${month}&year=eq.2026`);}catch(e){}}
 
 async function loadFromSupabase(){
   try{
-    // thử đọc — nếu bảng chưa có sẽ nhảy catch
-    const [kl,km]=await Promise.all([sbSel('kol_list_nhi','select=*&order=add_date.asc'),sbSel('kol_monthly_nhi','select=*&order=month.asc')]);
+    // Bảng danh sách KOL dùng CHUNG (phân biệt bằng cột employee). Nếu bảng chưa có sẽ nhảy catch.
+    const kl=await sbSel('kol_list',`select=*&employee=eq.${EMP}&order=add_date.asc`);
     SB_OK=true;
+    // KOL của các nhân viên KHÁC → để cảnh báo trùng khi nhập
+    try{const others=await sbSel('kol_list',`select=name,employee&employee=neq.${EMP}`);OTHERS={};(others||[]).forEach(r=>{if(r&&r.name)OTHERS[r.name.toLowerCase()]=r.employee||'nhân viên khác';});}catch(_){OTHERS={};}
     if(Array.isArray(kl)&&kl.length){
       REG=kl.map(r=>({name:r.name,prod:r.prod||'QNB',m:[],src:r.source||'file',zalo:r.zalo||'',phone:r.phone||'',link:r.link||'',addDate:r.add_date||''}));
-    }else{
-      // seed 133 KOL lần đầu
-      await sbUpsert('kol_list_nhi',REG.map(k=>({name:k.name,employee:EMP,prod:k.prod,zalo:'',phone:'',link:'',add_date:'',source:'file'})),'name');
+    }else if(REG.length){
+      // seed danh sách lần đầu (chỉ khi có sẵn trong file)
+      await sbUpsert('kol_list',REG.map(k=>({name:k.name,employee:EMP,prod:k.prod,zalo:'',phone:'',link:'',add_date:'',source:'file'})),'name');
     }
+    // Dữ liệu tháng để bảng RIÊNG theo nhân viên; nếu chưa có bảng thì bỏ qua, không chặn phần còn lại
+    let km=[];try{km=await sbSel('kol_monthly_nhi','select=*&order=month.asc');}catch(_){km=[];}
     if(Array.isArray(km)&&km.length){
       const mo={};const mset=new Set();
       km.forEach(r=>{const m=+r.month;if(!mo[m])mo[m]=[];mo[m].push({n:r.name,g:r.gmv||0,rf:r.refund||0,c:r.com||0,o:r.orders||0});mset.add(m);});
