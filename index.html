@@ -121,6 +121,89 @@ html,body{height:100%;font-family:var(--f-body);-webkit-font-smoothing:antialias
 .lv-add input:focus{border-color:var(--terra)}
 .lv-add input.note{flex:1;min-width:140px}
 .st-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px dashed rgba(220,198,170,.8)}
+/* ── STAFF SUB-TABS ── */
+.staff-subtabs{display:flex;gap:0;border-bottom:1.5px solid var(--tan);margin:18px 0 4px}
+.staff-subtab{font-family:var(--f-head);font-size:13px;font-weight:800;letter-spacing:.02em;padding:11px 18px;cursor:pointer;color:#9A8070;border:none;background:none;border-bottom:2.5px solid transparent;margin-bottom:-1.5px}
+.staff-subtab.on{color:var(--terra);border-bottom-color:var(--terra)}
+.staff-subtab:hover:not(.on){color:var(--brown)}
+/* ── LƯƠNG: khoá ── */
+.sal-lock{max-width:360px;margin:34px auto;background:var(--white);border:1px solid rgba(220,198,170,.7);border-radius:16px;box-shadow:0 4px 24px rgba(42,33,28,.08);padding:30px 28px;text-align:center}
+.sal-lock .ico{font-size:34px;margin-bottom:6px}
+.sal-lock h3{font-family:var(--f-head);font-size:19px;font-weight:900;color:var(--dark);margin-bottom:5px}
+.sal-lock p{font-size:12.5px;color:#9A8070;margin-bottom:18px}
+.sal-lock input{width:100%;padding:13px 15px;border-radius:11px;border:1.5px solid var(--tan);background:var(--cream);color:var(--dark);font-size:17px;text-align:center;letter-spacing:6px;font-family:var(--f-head);font-weight:700;outline:none;margin-bottom:11px}
+.sal-lock input:focus{border-color:var(--terra)}
+.sal-lock button{width:100%;padding:12px;border-radius:11px;border:none;background:var(--terra);color:#fff;font-family:var(--f-head);font-size:12.5px;font-weight:800;letter-spacing:.5px;cursor:pointer}
+.sal-lock button:hover{background:#a35f4d}
+.sal-lock .err{color:var(--red-fg);font-size:12px;margin-top:9px;min-height:15px}
+/* ── LƯƠNG: bảng ── */
+.sal-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:16px 0 6px}
+.sal-bar select{font-family:var(--f-head);font-weight:700;font-size:13px;padding:7px 12px;border-radius:8px;border:1.5px solid var(--tan);background:var(--white);color:var(--dark);cursor:pointer;outline:none}
+.sal-note-top{font-size:11.5px;color:#9A8070;margin:2px 0 4px}
+.sal-card{background:var(--white);border-radius:16px;border:1px solid rgba(220,198,170,.6);box-shadow:0 4px 24px rgba(42,33,28,.08);overflow:hidden;margin-bottom:18px}
+.sal-hd{background:var(--dark);padding:14px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.sal-hd-l{display:flex;align-items:center;gap:12px}
+.sal-hd .st-name{font-size:17px}
+.sal-hd .st-meta{margin-top:1px}
+.sal-net{text-align:right}
+.sal-net .nl{font-size:10px;color:rgba(220,198,170,.6);font-weight:600;text-transform:uppercase;letter-spacing:.08em}
+.sal-net .nv{font-family:var(--f-head);font-size:22px;font-weight:900;color:#fff;line-height:1.05}
+.sal-body{padding:14px 22px 20px}
+.sal-grid{display:flex;flex-direction:column;gap:0}
+.sal-line{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid rgba(220,198,170,.35)}
+.sal-line:last-child{border-bottom:none}
+.sal-line .lab{font-size:13px;color:var(--brown);font-weight:600}
+.sal-line .lab small{display:block;font-size:10.5px;color:#9A8070;font-weight:400;margin-top:1px}
+.sal-line .amt{font-family:var(--f-head);font-weight:800;font-size:15px;color:var(--dark);white-space:nowrap}
+.sal-line .amt.auto{color:var(--green)}
+.sal-line .amt.minus{color:var(--red-fg)}
+.sal-inp{width:150px;padding:8px 11px;border-radius:9px;border:1.5px solid var(--tan);font-family:var(--f-head);font-size:14px;font-weight:700;color:var(--dark);outline:none;text-align:right;background:var(--cream)}
+.sal-inp:focus{border-color:var(--terra);background:#fff}
+.sal-tot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;padding:13px 15px;border-radius:12px;background:linear-gradient(100deg,#BE735E,#a35f4d)}
+.sal-tot .lab{font-family:var(--f-head);font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:rgba(255,255,255,.85)}
+.sal-tot .amt{font-family:var(--f-head);font-size:23px;font-weight:900;color:#fff}
+.sal-com-loading{color:#B8A491;font-style:italic;font-size:13px}
+.sal-com-warn{font-size:11px;color:var(--org-fg);font-weight:600}
+/* ── nút xác nhận lương + badge ── */
+.sal-confirm-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:12px;padding-top:13px;border-top:1px dashed rgba(220,198,170,.8)}
+.sal-cfm-badge{font-size:11.5px;font-weight:700;color:var(--grn-fg);background:var(--grn-bg);border:1px solid rgba(30,132,73,.25);border-radius:20px;padding:5px 12px}
+.sal-cfm-badge.none{color:#9A8070;background:var(--cream);border-color:var(--tan)}
+.btn-confirm{font-family:var(--f-head);font-size:12.5px;font-weight:800;letter-spacing:.02em;padding:10px 18px;border-radius:10px;border:none;background:var(--green);color:#fff;cursor:pointer}
+.btn-confirm:hover{background:var(--teal2)}
+/* ── modal chung (xác nhận + lịch sử) ── */
+.cfx-overlay{position:fixed;inset:0;z-index:100000;background:rgba(26,20,16,.55);display:flex;align-items:center;justify-content:center;padding:20px}
+.cfx-box{width:100%;max-width:420px;background:var(--white);border-radius:16px;box-shadow:0 20px 60px rgba(26,20,16,.4);overflow:hidden;animation:cfxIn .18s ease}
+@keyframes cfxIn{from{transform:translateY(12px);opacity:.4}to{transform:none;opacity:1}}
+.cfx-box.hist{max-width:560px}
+.cfx-title{font-family:var(--f-head);font-size:17px;font-weight:900;color:var(--dark);padding:20px 22px 6px}
+.cfx-msg{font-size:13.5px;color:var(--brown);line-height:1.6;padding:0 22px 4px}
+.cfx-msg b{color:var(--dark)}
+.cfx-warn{margin:12px 22px 4px;font-size:12px;color:var(--org-fg);background:var(--org-bg);border:1px solid rgba(211,84,0,.2);border-radius:9px;padding:9px 12px;line-height:1.5}
+.cfx-btns{display:flex;gap:9px;justify-content:flex-end;padding:16px 22px 20px}
+.cfx-btns button{font-family:var(--f-head);font-size:12.5px;font-weight:800;letter-spacing:.02em;padding:10px 20px;border-radius:10px;border:none;cursor:pointer}
+.cfx-cancel{background:var(--cream);color:var(--brown);border:1.5px solid var(--tan)!important}
+.cfx-cancel:hover{background:#efe7db}
+.cfx-ok{background:var(--terra);color:#fff}
+.cfx-ok:hover{background:#a35f4d}
+.cfx-ok.danger{background:var(--red-fg)}.cfx-ok.danger:hover{background:#a5311f}
+.cfx-ok.good{background:var(--green)}.cfx-ok.good:hover{background:var(--teal2)}
+/* ── lịch sử ── */
+.hist-body{max-height:56vh;overflow-y:auto;padding:6px 22px 4px}
+.hist-empty{color:#9A8070;font-style:italic;text-align:center;padding:26px;font-size:13px}
+.hist-item{display:flex;gap:11px;padding:11px 0;border-bottom:1px solid rgba(220,198,170,.4)}
+.hist-item:last-child{border-bottom:none}
+.hist-dot{flex-shrink:0;width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;margin-top:1px}
+.hist-dot.add{background:var(--grn-bg);color:var(--grn-fg)}
+.hist-dot.remove{background:var(--red-bg);color:var(--red-fg)}
+.hist-dot.salary{background:rgba(190,115,94,.12);color:var(--terra)}
+.hist-main{flex:1;min-width:0}
+.hist-l1{font-size:13px;color:var(--dark);font-weight:600}
+.hist-l1 .who{color:var(--terra);font-weight:800}
+.hist-l2{font-size:11px;color:#9A8070;margin-top:2px}
+.hist-amt{font-family:var(--f-head);font-weight:800;font-size:14px;color:var(--dark);white-space:nowrap}
+.hist-del{flex-shrink:0;cursor:pointer;width:24px;height:24px;border-radius:7px;background:rgba(192,57,43,.1);color:var(--red-fg);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;margin-left:8px;align-self:center}
+.hist-del:hover{background:rgba(192,57,43,.24)}
+.hist-hint{font-size:11.5px;color:#9A8070;padding:2px 22px 8px;font-style:italic}
 .prog-wrap{margin:0 0 14px}
 .prog-bg{height:3px;background:var(--tan);border-radius:2px;overflow:hidden}
 .prog-fill{height:100%;background:var(--terra);border-radius:2px;animation:slide 1.3s ease-in-out infinite;width:45%}
@@ -829,20 +912,76 @@ select:focus,input[type=text]:focus,input[type=date]:focus{border-color:var(--te
 <!-- PAGE: NHÂN VIÊN ─────────────────────────────────── -->
 <div class="page" id="page-staff">
 <div class="page-inner">
-  <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px">
-    <div><div class="page-title">Nhân Viên</div><div class="page-sub">Ngày vào làm · phép năm (tự tính thâm niên) · ngày nghỉ có phép trong năm · trang KOL riêng</div></div>
-    <div class="staff-yearbar">
+  <div><div class="page-title">Nhân Viên</div><div class="page-sub">Phép năm · ngày nghỉ có phép · trang KOL riêng · tính lương</div></div>
+
+  <div class="staff-subtabs">
+    <button class="staff-subtab on" id="stab-leave" onclick="staffTab('leave')">📅 Phép năm & ngày nghỉ</button>
+    <button class="staff-subtab" id="stab-salary" onclick="staffTab('salary')">💰 Tính lương</button>
+  </div>
+
+  <!-- VIEW: PHÉP NĂM -->
+  <div id="staffLeaveView">
+    <div class="staff-yearbar" style="margin:16px 0 4px;justify-content:flex-end">
       <span style="font-size:12px;color:#9A8070">Xem năm</span>
       <select id="staffYear" onchange="renderStaff()"></select>
+      <button class="btn btn-ghost" onclick="openLeaveHistory()">📜 Lịch sử phép</button>
       <button class="btn btn-terra" onclick="addStaff()">＋ Thêm nhân viên</button>
     </div>
+    <div class="staff-wrap" id="staffList"></div>
   </div>
-  <div class="staff-wrap" id="staffList"></div>
+
+  <!-- VIEW: LƯƠNG -->
+  <div id="staffSalaryView" style="display:none">
+    <!-- Khoá -->
+    <div id="salLock" class="sal-lock">
+      <div class="ico">🔒</div>
+      <h3>Tính lương nhân viên</h3>
+      <p>Nhập mật khẩu để xem mục lương</p>
+      <input type="password" id="salPass" inputmode="numeric" placeholder="••••" autocomplete="off">
+      <button onclick="salUnlock()">Mở khoá</button>
+      <div class="err" id="salErr"></div>
+    </div>
+    <!-- Nội dung lương -->
+    <div id="salContent" style="display:none">
+      <div class="sal-bar">
+        <span style="font-size:12px;color:#9A8070">Tháng lương</span>
+        <select id="salMonth" onchange="renderSalary()"></select>
+        <select id="salYear" onchange="renderSalary()"></select>
+        <button class="btn btn-ghost" onclick="refreshSalaryCom()">↻ Cập nhật hoa hồng</button>
+        <button class="btn btn-ghost" onclick="openSalaryHistory()">📜 Lịch sử lương</button>
+      </div>
+      <div class="sal-note-top">Hoa hồng lấy tự động từ trang KOL của mỗi nhân viên (bậc thang theo tổng HH KOL của tháng). Lương cứng, thưởng… bạn tự điền — lưu ngay trên máy.</div>
+      <div id="salList"></div>
+    </div>
+  </div>
 </div>
 </div>
 
 </main>
 </div>
+
+<!-- Modal xác nhận chung -->
+<div id="cfxModal" class="cfx-overlay" style="display:none">
+  <div class="cfx-box">
+    <div class="cfx-title" id="cfxTitle">Xác nhận</div>
+    <div class="cfx-msg" id="cfxMsg"></div>
+    <div class="cfx-warn" id="cfxWarn" style="display:none"></div>
+    <div class="cfx-btns">
+      <button class="cfx-cancel" onclick="cfxClose()">Huỷ</button>
+      <button class="cfx-ok" id="cfxOk" onclick="cfxConfirm()">Xác nhận</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal lịch sử -->
+<div id="histModal" class="cfx-overlay" style="display:none">
+  <div class="cfx-box hist">
+    <div class="cfx-title" id="histTitle">Lịch sử</div>
+    <div class="hist-body" id="histBody"></div>
+    <div class="cfx-btns"><button class="cfx-cancel" onclick="histClose()">Đóng</button></div>
+  </div>
+</div>
+
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
@@ -3389,11 +3528,13 @@ function initSalesPage(){
 const STAFF_KEY='hannal_staff_v1';
 function staffDefault(){return [
   {id:'linh',name:'Linh',start:'2025-04-01',base:7,kol:'hannalstore97_kol.html',leaves:{}},
-  {id:'nhi', name:'Nhi', start:'2026-05-01',base:6,kol:'hannalstore97_kol_nhi.html',leaves:{}}
+  {id:'nhi', name:'Nhi', start:'2026-06-04',base:6,kol:'hannalstore97_kol_nhi.html',leaves:{}}
 ];}
 let STAFF=(function(){try{const s=JSON.parse(localStorage.getItem(STAFF_KEY));if(Array.isArray(s)&&s.length)return s.map(x=>Object.assign({leaves:{}},x));}catch(_){}
   return staffDefault();})();
 function saveStaff(){try{localStorage.setItem(STAFF_KEY,JSON.stringify(STAFF));}catch(_){}}
+// Sửa 1 lần: Nhi vào làm 04/06/2026 (trước ghi nhầm 01/05/2026)
+(function(){try{if(localStorage.getItem('hannal_nhi_start_fix'))return;const nhi=STAFF.find(function(x){return x.id==='nhi'||x.name==='Nhi';});if(nhi&&nhi.start==='2026-05-01'){nhi.start='2026-06-04';saveStaff();}localStorage.setItem('hannal_nhi_start_fix','1');}catch(_){}})();
 
 function _pd(iso){const a=(iso||'').split('-').map(Number);return{y:a[0],m:a[1],d:a[2]};}
 function _today(){const t=new Date();return{y:t.getFullYear(),m:t.getMonth()+1,d:t.getDate()};}
@@ -3409,7 +3550,7 @@ function leaveForYear(emp,year){
   return emp.base + Math.max(0, year-s.y-1);
 }
 // Số tháng đã làm tròn tính từ ngày vào đến hôm nay
-function completedMonthsWorked(emp){const s=_pd(emp.start),t=_today();if(!s.y)return 0;let m=(t.y-s.y)*12+(t.m-s.m);if(t.d<s.d)m--;return Math.max(0,m);}
+function completedMonthsWorked(emp){const s=_pd(emp.start),t=_today();if(!s.y)return 0;let m=(t.y-s.y)*12+(t.m-s.m);if(t.d<=s.d)m--;return Math.max(0,m);}
 // Phép ĐÃ TÍCH đến hôm nay (năm vào làm: tích dần theo tháng; năm cũ đã qua: đủ; NV cũ trong năm hiện tại: đủ từ đầu năm)
 function accruedToDate(emp,year){
   const jy=_pd(emp.start).y, ty=_today().y, full=leaveForYear(emp,year);
@@ -3420,7 +3561,7 @@ function accruedToDate(emp,year){
   return Math.min(full, Math.floor(emp.base*completedMonthsWorked(emp)/12)); // năm vào làm → tích dần
 }
 function completedYears(emp){const s=_pd(emp.start),t=_today();if(!s.y)return 0;let y=t.y-s.y;if(t.m<s.m||(t.m===s.m&&t.d<s.d))y--;return Math.max(0,y);}
-function serviceText(emp){const s=_pd(emp.start),t=_today();if(!s.y)return '—';let mo=(t.y-s.y)*12+(t.m-s.m);if(t.d<s.d)mo--;if(mo<0)mo=0;const y=Math.floor(mo/12),m=mo%12;return (y?y+' năm ':'')+m+' tháng';}
+function serviceText(emp){const s=_pd(emp.start),t=_today();if(!s.y)return '—';let mo=(t.y-s.y)*12+(t.m-s.m);if(t.d<=s.d)mo--;if(mo<0)mo=0;if(mo===0){const d1=new Date(s.y,s.m-1,s.d),d2=new Date(t.y,t.m-1,t.d);const days=Math.max(0,Math.round((d2-d1)/86400000));return days+' ngày';}const y=Math.floor(mo/12),m=mo%12;return (y?y+' năm ':'')+((m||!y)?m+' tháng':'');}
 function nextAnniv(emp){const s=_pd(emp.start),t=_today();if(!s.y)return '—';const passed=(t.m>s.m||(t.m===s.m&&t.d>=s.d));const yr=(passed?t.y+1:t.y);return String(s.d).padStart(2,'0')+'/'+String(s.m).padStart(2,'0')+'/'+yr;}
 function leavesOf(emp,year){const a=(emp.leaves&&emp.leaves[year])?emp.leaves[year]:[];return a.slice().sort(function(x,y){return x.date<y.date?-1:1;});}
 
@@ -3448,12 +3589,12 @@ function renderStaff(){
     if(year<joinY) formula='Chưa vào làm trong năm '+year+'.';
     else if(isJoin){
       formula = inProg
-        ? ('Năm vào làm '+year+': cả năm được <b>'+full+' ngày</b> ('+e.base+' × '+m2dec+' tháng ÷ 12). Phép <b>tích dần theo tháng</b> — đã làm '+mw+' tháng nên hiện có <b>'+accr+' ngày</b>; làm đủ '+m2dec+' tháng (hết T12) sẽ đạt '+full+' ngày.')
+        ? ('Năm vào làm '+year+': cả năm được <b>'+full+' ngày</b> ('+e.base+' × '+m2dec+' tháng ÷ 12). Phép <b>tích dần theo tháng</b> — '+(mw>0?'đã làm <b>'+mw+' tháng</b>':'<b>chưa tròn 1 tháng</b>')+' nên hiện có <b>'+accr+' ngày</b>; làm đủ '+m2dec+' tháng (hết T12) sẽ đạt '+full+' ngày.')
         : ('Năm vào làm '+year+': '+e.base+' × '+m2dec+' tháng ÷ 12 = <b>'+full+' ngày</b> (đã tích đủ).');
     } else {
       formula = year+': '+e.base+' ngày gốc + '+Math.max(0,year-joinY-1)+' ngày thâm niên = <b>'+full+' ngày</b>'+(inProg?', có đủ từ đầu năm':'')+'. <span style="opacity:.8">(+1 mỗi năm, bắt đầu từ năm sau khi đủ 1 năm.)</span>';
     }
-    const chips=leavesOf(e,year).map(function(l){return '<span class="lv-chip">'+_dmy(l.date)+(l.note?'<span class="note">· '+esc(l.note)+'</span>':'')+'<span class="x" onclick="rmLeave('+i+',\''+l.date+'\')">✕</span></span>';}).join('');
+    const chips=leavesOf(e,year).map(function(l){return '<span class="lv-chip">'+_dmy(l.date)+(l.note?'<span class="note">· '+esc(l.note)+'</span>':'')+'<span class="x" onclick="askRmLeave('+i+',\''+l.date+'\')">✕</span></span>';}).join('');
     return '<div class="st-card">'
       +'<div class="st-hd"><div class="st-hd-l"><div class="st-ava">'+esc((e.name||'?').charAt(0).toUpperCase())+'</div>'
       +'<div><div class="st-name">'+esc(e.name)+'</div><div class="st-meta">Vào làm '+_dmy(e.start)+' · đã làm '+serviceText(e)+' · mốc kế: '+nextAnniv(e)+'</div></div></div>'
@@ -3477,11 +3618,312 @@ function renderStaff(){
 function esc(t){return String(t==null?'':t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 
 function openStaffKol(i){const u=(STAFF[i].kol||'').trim();if(!u){if(confirm(STAFF[i].name+' chưa có link trang KOL. Nhập bây giờ?')){editStaff(i);}return;}window.open(u,'_blank','noopener');}
-function addLeave(i){const el=document.getElementById('lvd-'+i);const d=el&&el.value;if(!d){alert('Chọn ngày nghỉ');return;}const y=_pd(d).y;STAFF[i].leaves=STAFF[i].leaves||{};STAFF[i].leaves[y]=STAFF[i].leaves[y]||[];if(STAFF[i].leaves[y].some(function(x){return x.date===d;})){alert('Ngày này đã ghi rồi.');return;}const note=(document.getElementById('lvn-'+i).value||'').trim();STAFF[i].leaves[y].push({date:d,note:note});saveStaff();document.getElementById('staffYear').value=y;renderStaff();}
-function rmLeave(i,date){const y=_pd(date).y;if(STAFF[i].leaves&&STAFF[i].leaves[y]){STAFF[i].leaves[y]=STAFF[i].leaves[y].filter(function(x){return x.date!==date;});saveStaff();renderStaff();}}
+function addLeave(i){
+  const el=document.getElementById('lvd-'+i);const d=el&&el.value;
+  if(!d){alert('Chọn ngày nghỉ');return;}
+  const y=_pd(d).y;STAFF[i].leaves=STAFF[i].leaves||{};STAFF[i].leaves[y]=STAFF[i].leaves[y]||[];
+  if(STAFF[i].leaves[y].some(function(x){return x.date===d;})){alert('Ngày này đã ghi rồi.');return;}
+  const note=(document.getElementById('lvn-'+i).value||'').trim();
+  cfxAsk({title:'Xác nhận thêm ngày nghỉ',
+    msg:'Thêm nghỉ phép ngày <b>'+_dmy(d)+'</b> cho <b>'+esc(STAFF[i].name)+'</b>'+(note?' — lý do: '+esc(note):'')+'?',
+    warn:'Thao tác này sẽ được lưu vào lịch sử.',
+    okLabel:'✓ Thêm', okClass:'good',
+    cb:function(){
+      STAFF[i].leaves[y].push({date:d,note:note});
+      logLeave('add',STAFF[i],d,note);
+      saveStaff();
+      const nn=document.getElementById('lvn-'+i);if(nn)nn.value='';
+      document.getElementById('staffYear').value=y;renderStaff();
+    }});
+}
+function askRmLeave(i,date){
+  const y=_pd(date).y;
+  const rec=((STAFF[i].leaves&&STAFF[i].leaves[y])||[]).find(function(x){return x.date===date;});
+  const note=rec?rec.note:'';
+  cfxAsk({title:'Xoá ngày nghỉ?',
+    msg:'Xoá ngày nghỉ <b>'+_dmy(date)+'</b> của <b>'+esc(STAFF[i].name)+'</b>'+(note?' — lý do: '+esc(note):'')+'?',
+    warn:'⚠ Việc xoá sẽ được ghi lại vĩnh viễn trong lịch sử (ai xoá · ngày nghỉ nào · lúc nào). Không xoá được dấu vết này.',
+    okLabel:'🗑 Xoá', okClass:'danger',
+    cb:function(){
+      if(STAFF[i].leaves&&STAFF[i].leaves[y]){
+        STAFF[i].leaves[y]=STAFF[i].leaves[y].filter(function(x){return x.date!==date;});
+        logLeave('remove',STAFF[i],date,note);
+        saveStaff();renderStaff();
+      }
+    }});
+}
+function rmLeave(i,date){askRmLeave(i,date);}
 function addStaff(){const name=(prompt('Tên nhân viên mới:')||'').trim();if(!name)return;const start=(prompt('Ngày vào làm (dd/mm/yyyy):')||'').trim();const iso=_toISO(start);if(!iso){alert('Ngày không hợp lệ. Nhập dạng dd/mm/yyyy, ví dụ 01/05/2026.');return;}const base=parseInt(prompt('Số ngày phép/năm (gốc, ví dụ 6):','6'),10)||0;const kol=(prompt('Link trang KOL riêng (để trống nếu chưa có):','')||'').trim();STAFF.push({id:'nv'+Date.now(),name:name,start:iso,base:base,kol:kol,leaves:{}});saveStaff();renderStaff();}
 function editStaff(i){const e=STAFF[i];const name=(prompt('Tên:',e.name)||e.name).trim();const start=(prompt('Ngày vào làm (dd/mm/yyyy):',_dmy(e.start))||'').trim();const iso=_toISO(start)||e.start;const baseIn=prompt('Số ngày phép/năm (gốc):',e.base);const base=(baseIn===null?e.base:(parseInt(baseIn,10)||0));const kol=prompt('Link trang KOL riêng:',e.kol||'');e.name=name;e.start=iso;e.base=base;if(kol!==null)e.kol=kol.trim();saveStaff();renderStaff();}
 function delStaff(i){if(confirm('Xoá nhân viên “'+STAFF[i].name+'”? Dữ liệu ngày nghỉ của người này cũng sẽ mất.')){STAFF.splice(i,1);saveStaff();renderStaff();}}
+
+// ═══ TÍNH LƯƠNG ══════════════════════════════════════════════════
+const SAL_PASS='0702';
+const SAL_ALLOW_DEFAULT=120000;   // phụ cấp mặc định /tháng
+const SAL_WORKDAYS=26;            // ngày công chuẩn để quy đổi 1 ngày nghỉ lố phép
+let SAL_COM={};                   // cache hoa hồng: 'empid|year|month' → {com,rate,kolCom,err}
+let SAL_UNLOCKED=(sessionStorage.getItem('hannal_gate_salary')==='1');
+
+function staffTab(which){
+  const isL=(which==='leave');
+  document.getElementById('stab-leave').classList.toggle('on',isL);
+  document.getElementById('stab-salary').classList.toggle('on',!isL);
+  document.getElementById('staffLeaveView').style.display=isL?'':'none';
+  document.getElementById('staffSalaryView').style.display=isL?'none':'';
+  if(!isL){
+    if(SAL_UNLOCKED){showSalContent();}
+    else{document.getElementById('salLock').style.display='';document.getElementById('salContent').style.display='none';setTimeout(function(){const p=document.getElementById('salPass');if(p)p.focus();},80);}
+  }
+}
+function salUnlock(){
+  const p=document.getElementById('salPass'),err=document.getElementById('salErr');
+  if(p.value===SAL_PASS){SAL_UNLOCKED=true;sessionStorage.setItem('hannal_gate_salary','1');p.value='';err.textContent='';showSalContent();}
+  else{err.textContent='Sai mật khẩu, thử lại nha';p.value='';p.focus();}
+}
+document.addEventListener('keydown',function(e){if(e.key==='Enter'&&document.activeElement&&document.activeElement.id==='salPass')salUnlock();});
+function showSalContent(){
+  document.getElementById('salLock').style.display='none';
+  document.getElementById('salContent').style.display='';
+  ensureSalOpts();renderSalary();
+}
+function ensureSalOpts(){
+  const ms=document.getElementById('salMonth'),ys=document.getElementById('salYear');
+  if(ms&&!ms.options.length){const now=new Date();ms.innerHTML=Array.from({length:12},function(_,i){return '<option value="'+(i+1)+'">Tháng '+(i+1)+'</option>';}).join('');ms.value=String(now.getMonth()+1);}
+  if(ys&&!ys.options.length){const y=new Date().getFullYear();let a=[];for(let k=y-1;k<=y+1;k++)a.push(k);ys.innerHTML=a.map(function(k){return '<option value="'+k+'">'+k+'</option>';}).join('');ys.value=String(y);}
+}
+
+// bảng hoa hồng tháng của NV: Linh→kol_monthly, Nhi→kol_monthly_nhi (suy từ tên file KOL)
+function comTableFor(emp){
+  if(emp.comTable)return emp.comTable;
+  const k=(emp.kol||'').toLowerCase();
+  const m=k.match(/hannalstore97_kol_([a-z0-9]+)\.html/);
+  if(m)return 'kol_monthly_'+m[1];
+  return 'kol_monthly';
+}
+function salTierRate(c){if(c<20000000)return 0;if(c<50000000)return 0.01;if(c<=100000000)return 0.015;return 0.02;}
+function salTierLabel(r){return r===0?'0%':r===0.01?'1%':r===0.015?'1,5%':'2%';}
+
+async function fetchCom(emp,month,year){
+  const key=emp.id+'|'+year+'|'+month,tbl=comTableFor(emp);
+  try{
+    const rows=await sbSelect(tbl,'select=com&month=eq.'+month+'&year=eq.'+year);
+    const kolCom=(rows||[]).reduce(function(s,r){return s+(+r.com||0);},0);
+    const rate=salTierRate(kolCom);
+    SAL_COM[key]={com:Math.round(kolCom*rate),rate:rate,kolCom:kolCom,err:false};
+  }catch(e){SAL_COM[key]={com:0,rate:0,kolCom:0,err:true};}
+  return SAL_COM[key];
+}
+
+// dữ liệu lương nhập tay (lưu trong STAFF → localStorage)
+function salRec(emp,year,month){
+  emp.salary=emp.salary||{};
+  const k=year+'-'+String(month).padStart(2,'0');
+  if(emp.salary[k])return emp.salary[k];
+  let base='',allow=SAL_ALLOW_DEFAULT;
+  const keys=Object.keys(emp.salary).filter(function(x){return x<k;}).sort();
+  if(keys.length){const prev=emp.salary[keys[keys.length-1]];base=(prev.base||'');allow=(prev.allow!=null?prev.allow:SAL_ALLOW_DEFAULT);}
+  return {base:base,allow:allow,perf:'',holiday:'',m13:''};
+}
+function salSet(empIdx,year,month,field,val){
+  const emp=STAFF[empIdx];emp.salary=emp.salary||{};
+  const k=year+'-'+String(month).padStart(2,'0');
+  const rec=Object.assign({base:'',allow:SAL_ALLOW_DEFAULT,perf:'',holiday:'',m13:''},salRec(emp,year,month),emp.salary[k]||{});
+  rec[field]=(val===''?'':(parseInt(String(val).replace(/[^\d]/g,''),10)||0));
+  emp.salary[k]=rec;saveStaff();renderSalary();
+}
+
+// ngày nghỉ lố phép phát sinh trong THÁNG này (mỗi ngày lố chỉ trừ 1 lần, đúng tháng làm vượt quota năm)
+// Phép đã TÍCH đến hết tháng M của năm Y (năm vào làm: tích dần theo tháng; năm sau: đủ từ đầu năm)
+function accruedByEndOfMonth(emp,year,month){
+  const s=_pd(emp.start); if(!s.y||year<s.y) return 0;
+  if(year>s.y) return leaveForYear(emp,year);
+  const m=Math.max(0, month - s.m);
+  return Math.min(leaveForYear(emp,year), Math.floor(emp.base*m/12));
+}
+// Số ngày nghỉ CHƯA CÓ PHÉP (bị trừ lương) phát sinh trong tháng M:
+//  duyệt từng tháng, phép đã tích được dùng để "che" ngày nghỉ; phần vượt phép đã tích → trừ lương đúng tháng đó.
+function excessLeaveThisMonth(emp,year,month){
+  const arr=(emp.leaves&&emp.leaves[year])?emp.leaves[year]:[];
+  const byMonth={};
+  arr.forEach(function(l){const mm=_pd(l.date).m;byMonth[mm]=(byMonth[mm]||0)+1;});
+  let paidUsed=0, unpaidThisMonth=0;
+  for(let mm=1; mm<=month; mm++){
+    const taken=byMonth[mm]||0; if(!taken)continue;
+    const avail=Math.max(0, accruedByEndOfMonth(emp,year,mm)-paidUsed);
+    const paid=Math.min(taken,avail);
+    paidUsed+=paid;
+    if(mm===month) unpaidThisMonth=taken-paid;
+  }
+  return {days:unpaidThisMonth, leaveDays:(byMonth[month]||0), accrued:accruedByEndOfMonth(emp,year,month)};
+}
+
+function money(n){return (Math.round(n)||0).toLocaleString('vi-VN')+'₫';}
+
+function renderSalary(){
+  ensureSalOpts();
+  const month=+document.getElementById('salMonth').value,year=+document.getElementById('salYear').value;
+  const box=document.getElementById('salList');
+  if(!STAFF.length){box.innerHTML='<div style="color:#9A8070;text-align:center;padding:40px">Chưa có nhân viên.</div>';return;}
+  box.innerHTML=STAFF.map(function(e,i){return salCardHtml(e,i,year,month);}).join('');
+  STAFF.forEach(function(e,idx){
+    const key=e.id+'|'+year+'|'+month;
+    if(!SAL_COM[key]){fetchCom(e,month,year).then(function(){updateComCell(e,idx,year,month);});}
+    else{updateComCell(e,idx,year,month);}
+  });
+}
+
+function salCardHtml(e,i,year,month){
+  const rec=salRec(e,year,month),key=e.id+'|'+year+'|'+month,cc=SAL_COM[key],ex=excessLeaveThisMonth(e,year,month);
+  const base=+rec.base||0,allow=(rec.allow!=null&&rec.allow!==''?+rec.allow:SAL_ALLOW_DEFAULT);
+  const perf=+rec.perf||0,holiday=+rec.holiday||0,m13=+rec.m13||0,com=cc?cc.com:0;
+  const dayRate=Math.round(base/SAL_WORKDAYS),deduct=ex.days*dayRate,net=base+allow+com+perf+holiday+m13-deduct;
+  const comCell=cc?(cc.err?'<span class="sal-com-warn" id="comv-'+i+'">chưa có bảng dữ liệu tháng</span>':'<span class="amt auto" id="comv-'+i+'">'+money(com)+'</span>'):'<span class="sal-com-loading" id="comv-'+i+'">đang tải…</span>';
+  const comSub=(cc&&!cc.err)?'<small>tổng HH KOL '+money(cc.kolCom)+' · bậc '+salTierLabel(cc.rate)+'</small>':'';
+  return '<div class="sal-card">'
+    +'<div class="sal-hd"><div class="sal-hd-l"><div class="st-ava">'+esc((e.name||'?').charAt(0).toUpperCase())+'</div>'
+    +'<div><div class="st-name">'+esc(e.name)+'</div><div class="st-meta">Lương tháng '+month+'/'+year+'</div></div></div>'
+    +'<div class="sal-net"><div class="nl">Thực nhận</div><div class="nv" id="net-'+i+'">'+money(net)+'</div></div></div>'
+    +'<div class="sal-body"><div class="sal-grid">'
+    +salInputLine('Lương cứng',i,'base',rec.base,year,month)
+    +salInputLine('Phụ cấp',i,'allow',(rec.allow!=null&&rec.allow!==''?rec.allow:SAL_ALLOW_DEFAULT),year,month,'mặc định 120.000₫/tháng')
+    +'<div class="sal-line"><div class="lab">Hoa hồng KOL '+comSub+'</div>'+comCell+'</div>'
+    +salInputLine('Thưởng thêm hiệu suất',i,'perf',rec.perf,year,month)
+    +salInputLine('Thưởng Lễ / Tết',i,'holiday',rec.holiday,year,month)
+    +salInputLine('Lương tháng 13',i,'m13',rec.m13,year,month)
+    +(ex.days>0?'<div class="sal-line"><div class="lab">Trừ nghỉ chưa có phép<small>'+ex.days+' ngày × '+money(dayRate)+' (lương cứng ÷ '+SAL_WORKDAYS+') · nghỉ '+ex.leaveDays+' ngày trong tháng · phép đã tích đến hết tháng: '+ex.accrued+' ngày</small></div><span class="amt minus" id="ded-'+i+'">− '+money(deduct)+'</span></div>':'')
+    +'</div>'
+    +'<div class="sal-tot"><div class="lab">Tổng thực nhận '+month+'/'+year+'</div><div class="amt" id="tot-'+i+'">'+money(net)+'</div></div>'
+    +'<div class="sal-confirm-row">'+salConfirmedBadge(e,year,month)+'<button class="btn-confirm" onclick="confirmSalary('+i+')">✓ Xác nhận & lưu lịch sử</button></div>'
+    +'</div></div>';
+}
+function salInputLine(label,i,field,val,year,month,sub){
+  const v=(val===''||val==null)?'':(+val).toLocaleString('vi-VN');
+  return '<div class="sal-line"><div class="lab">'+label+(sub?'<small>'+sub+'</small>':'')+'</div>'
+    +'<input class="sal-inp" inputmode="numeric" value="'+v+'" placeholder="0" onchange="salSet('+i+','+year+','+month+',\''+field+'\',this.value)"></div>';
+}
+function updateComCell(emp,i,year,month){
+  if(i<0)return;
+  const key=emp.id+'|'+year+'|'+month,cc=SAL_COM[key],ex=excessLeaveThisMonth(emp,year,month),rec=salRec(emp,year,month);
+  const base=+rec.base||0,allow=(rec.allow!=null&&rec.allow!==''?+rec.allow:SAL_ALLOW_DEFAULT);
+  const perf=+rec.perf||0,holiday=+rec.holiday||0,m13=+rec.m13||0,com=cc?cc.com:0;
+  const deduct=ex.days*Math.round(base/SAL_WORKDAYS),net=base+allow+com+perf+holiday+m13-deduct;
+  const cell=document.getElementById('comv-'+i);
+  if(cell){if(cc&&cc.err){cell.outerHTML='<span class="sal-com-warn" id="comv-'+i+'">chưa có bảng dữ liệu tháng</span>';}else{cell.className='amt auto';cell.textContent=money(com);}}
+  const nt=document.getElementById('net-'+i),tt=document.getElementById('tot-'+i);
+  if(nt)nt.textContent=money(net);if(tt)tt.textContent=money(net);
+}
+function refreshSalaryCom(){
+  const month=+document.getElementById('salMonth').value,year=+document.getElementById('salYear').value;
+  STAFF.forEach(function(e){delete SAL_COM[e.id+'|'+year+'|'+month];});
+  renderSalary();
+}
+
+// ═══ MODAL + LỊCH SỬ ═════════════════════════════════════════════
+const LEAVE_LOG_KEY='hannal_leave_log_v1', SAL_LOG_KEY='hannal_salary_log_v1';
+function loadLog(k){try{const a=JSON.parse(localStorage.getItem(k));return Array.isArray(a)?a:[];}catch(_){return [];}}
+function saveLog(k,a){try{localStorage.setItem(k,JSON.stringify(a));}catch(_){}}
+function _uid(p){return p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+function logLeave(action,emp,date,note){const a=loadLog(LEAVE_LOG_KEY);a.push({id:_uid('L'),ts:Date.now(),empId:emp.id,empName:emp.name,action:action,date:date,note:note||''});saveLog(LEAVE_LOG_KEY,a);}
+function logSalary(snap){snap.id=snap.id||_uid('S');const a=loadLog(SAL_LOG_KEY);a.push(snap);saveLog(SAL_LOG_KEY,a);}
+function _fmtTs(ts){const d=new Date(ts),p=function(n){return String(n).padStart(2,'0');};return p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear()+' '+p(d.getHours())+':'+p(d.getMinutes());}
+
+// modal xác nhận chung
+let _cfxCb=null;
+function cfxAsk(o){
+  document.getElementById('cfxTitle').textContent=o.title||'Xác nhận';
+  document.getElementById('cfxMsg').innerHTML=o.msg||'';
+  const w=document.getElementById('cfxWarn');
+  if(o.warn){w.style.display='';w.innerHTML=o.warn;}else{w.style.display='none';}
+  const ok=document.getElementById('cfxOk');
+  ok.textContent=o.okLabel||'Xác nhận';ok.className='cfx-ok'+(o.okClass?' '+o.okClass:'');
+  _cfxCb=o.cb||null;document.getElementById('cfxModal').style.display='flex';
+}
+function cfxClose(){document.getElementById('cfxModal').style.display='none';_cfxCb=null;}
+function cfxConfirm(){const cb=_cfxCb;cfxClose();if(typeof cb==='function')cb();}
+function histClose(){document.getElementById('histModal').style.display='none';}
+
+// lịch sử phép
+function openLeaveHistory(){
+  const a=loadLog(LEAVE_LOG_KEY).slice().sort(function(x,y){return y.ts-x.ts;});
+  document.getElementById('histTitle').textContent='📜 Lịch sử thay đổi phép';
+  const body=document.getElementById('histBody');
+  body.innerHTML=a.length?a.map(function(r){
+    const isAdd=r.action==='add';
+    return '<div class="hist-item"><div class="hist-dot '+(isAdd?'add':'remove')+'">'+(isAdd?'＋':'✕')+'</div>'
+      +'<div class="hist-main"><div class="hist-l1"><span class="who">'+esc(r.empName)+'</span> '+(isAdd?'thêm':'<b style="color:var(--red-fg)">xoá</b>')+' ngày nghỉ <b>'+_dmy(r.date)+'</b></div>'
+      +'<div class="hist-l2">'+_fmtTs(r.ts)+(r.note?' · lý do: '+esc(r.note):'')+'</div></div>'
+      +'<span class="hist-del" title="Xoá dòng này (cần mật khẩu chủ shop)" onclick="askDelHist(\'leave\',\''+(r.id||'')+'\',\''+r.ts+'\')">✕</span></div>';
+  }).join(''):'<div class="hist-empty">Chưa có thay đổi nào được ghi lại.</div>';
+  document.getElementById('histModal').style.display='flex';
+}
+
+// xác nhận & lịch sử lương
+async function confirmSalary(i){
+  const emp=STAFF[i];
+  const month=+document.getElementById('salMonth').value, year=+document.getElementById('salYear').value;
+  const key=emp.id+'|'+year+'|'+month;
+  if(!SAL_COM[key]){await fetchCom(emp,month,year);}
+  const cc=SAL_COM[key]||{com:0,rate:0,kolCom:0,err:true};
+  const rec=salRec(emp,year,month);
+  const base=+rec.base||0,allow=(rec.allow!=null&&rec.allow!==''?+rec.allow:SAL_ALLOW_DEFAULT);
+  const perf=+rec.perf||0,holiday=+rec.holiday||0,m13=+rec.m13||0,com=cc.com;
+  const ex=excessLeaveThisMonth(emp,year,month);
+  const dayRate=Math.round(base/SAL_WORKDAYS),deduct=ex.days*dayRate,net=base+allow+com+perf+holiday+m13-deduct;
+  cfxAsk({title:'Xác nhận lương '+month+'/'+year,
+    msg:'Chốt lương <b>'+esc(emp.name)+'</b> tháng '+month+'/'+year+' — thực nhận <b>'+money(net)+'</b>?',
+    warn:'Bản chốt được lưu vào Lịch sử lương để xem lại. Chốt lại sau khi sửa số sẽ tạo bản ghi mới (bản cũ vẫn còn trong lịch sử).',
+    okLabel:'✓ Xác nhận & lưu', okClass:'good',
+    cb:function(){
+      logSalary({ts:Date.now(),empId:emp.id,empName:emp.name,year:year,month:month,
+        base:base,allow:allow,com:com,kolCom:cc.kolCom,rate:cc.rate,comErr:!!cc.err,
+        perf:perf,holiday:holiday,m13:m13,exDays:ex.days,deduct:deduct,net:net});
+      emp.salaryConfirmed=emp.salaryConfirmed||{};
+      emp.salaryConfirmed[year+'-'+String(month).padStart(2,'0')]={ts:Date.now(),net:net};
+      saveStaff();renderSalary();
+    }});
+}
+function salConfirmedBadge(emp,year,month){
+  const c=emp.salaryConfirmed&&emp.salaryConfirmed[year+'-'+String(month).padStart(2,'0')];
+  return c?'<span class="sal-cfm-badge">✓ Đã chốt '+_fmtTs(c.ts)+'</span>':'<span class="sal-cfm-badge none">Chưa chốt</span>';
+}
+function openSalaryHistory(){
+  const a=loadLog(SAL_LOG_KEY).slice().sort(function(x,y){return y.ts-x.ts;});
+  document.getElementById('histTitle').textContent='📜 Lịch sử lương đã chốt';
+  const body=document.getElementById('histBody');
+  body.innerHTML=a.length?a.map(function(r){
+    const parts=['Cứng '+money(r.base),'PC '+money(r.allow),'HH '+money(r.com)];
+    if(r.perf)parts.push('HS '+money(r.perf));
+    if(r.holiday)parts.push('Lễ/Tết '+money(r.holiday));
+    if(r.m13)parts.push('T13 '+money(r.m13));
+    if(r.deduct)parts.push('trừ phép '+money(r.deduct)+' ('+r.exDays+'n)');
+    return '<div class="hist-item"><div class="hist-dot salary">₫</div>'
+      +'<div class="hist-main"><div class="hist-l1"><span class="who">'+esc(r.empName)+'</span> · lương tháng <b>'+r.month+'/'+r.year+'</b></div>'
+      +'<div class="hist-l2">chốt '+_fmtTs(r.ts)+' · '+parts.join(' · ')+'</div></div>'
+      +'<div class="hist-amt">'+money(r.net)+'</div>'
+      +'<span class="hist-del" title="Xoá dòng này (cần mật khẩu chủ shop)" onclick="askDelHist(\'salary\',\''+(r.id||'')+'\',\''+r.ts+'\')">✕</span></div>';
+  }).join(''):'<div class="hist-empty">Chưa có bản lương nào được chốt.</div>';
+  document.getElementById('histModal').style.display='flex';
+}
+// Xoá 1 dòng lịch sử — chỉ chủ shop (mật khẩu 0702) mới xoá được, để nhân viên không phá dấu vết
+function askDelHist(kind,id,ts){
+  if(!SAL_UNLOCKED){
+    const p=prompt('Nhập mật khẩu chủ shop để xoá dòng lịch sử này:');
+    if(p===null)return;
+    if(p!==SAL_PASS){alert('Sai mật khẩu — không xoá được.');return;}
+    SAL_UNLOCKED=true;sessionStorage.setItem('hannal_gate_salary','1');
+  }
+  histClose();
+  cfxAsk({title:'Xoá dòng lịch sử?',
+    msg:'Xoá dòng này khỏi lịch sử? Dùng khi bạn <b>lỡ ghi nhầm</b>.',
+    warn:'⚠ Chỉ nên xoá khi ghi nhầm. Xoá rồi không khôi phục được.',
+    okLabel:'🗑 Xoá dòng này', okClass:'danger',
+    cb:function(){
+      const logKey=(kind==='leave')?LEAVE_LOG_KEY:SAL_LOG_KEY;
+      const a=loadLog(logKey).filter(function(r){return !((r.id&&r.id===id)||(!r.id&&String(r.ts)===String(ts)));});
+      saveLog(logKey,a);
+      if(kind==='leave')openLeaveHistory();else openSalaryHistory();
+    }});
+}
 </script>
 </body>
 </html>
