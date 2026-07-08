@@ -1376,9 +1376,25 @@ function buildPickFromPages(pages){
   });});
   return inv;
 }
+function tkComboCount(t){
+  // Combo "N cái": "Combo 2c", "Combo 2 cái", "Combo 2" → N (N>=2). Mặc định 1.
+  let m=(t||'').match(/combo\s*(\d+)\s*c(?:ái|ai)?\b/i)||(t||'').match(/combo\s*(\d+)\b/i);
+  return m?Math.max(1,parseInt(m[1])):1;
+}
 function buildPickFromGroups(groups){
   const inv=initPickInv();
-  groups.forEach(({pages:gp})=>{const combined=gp.map(p=>p.text).join(' ');getTkItems(combined).forEach(it=>addPickItem(inv,it.code,it.color,it.size,it.qty));});
+  groups.forEach(({pages:gp})=>{
+    const combined=gp.map(p=>p.text).join(' ');
+    const items=getTkItems(combined);
+    const cmb=tkComboCount(combined);
+    items.forEach(it=>{
+      let q=it.qty||1;
+      // Combo Nc (VD "Combo 2c") = N sản phẩm — nhãn TikTok chỉ ghi Qty 1 nên phải nhân lên.
+      // Chỉ nhân khi đơn có ĐÚNG 1 dòng sản phẩm và không phải CB01 (CB01 tự nó là 1 sản phẩm).
+      if(cmb>=2 && items.length===1 && it.code!=='CB01') q=q*cmb;
+      addPickItem(inv,it.code,it.color,it.size,q);
+    });
+  });
   return inv;
 }
 
