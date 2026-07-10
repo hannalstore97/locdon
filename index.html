@@ -1054,13 +1054,11 @@ function openKolPage(){
   }
   window.open(url,'_blank','noopener');
 }
-function goPage(p,ev){
-  ev=ev||(typeof event!=='undefined'?event:null);
+function goPage(p){
   document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
-  const pg=document.getElementById('page-'+p);if(pg)pg.classList.add('active');
-  if(ev&&ev.currentTarget&&ev.currentTarget.classList)ev.currentTarget.classList.add('active');
-  else document.querySelectorAll('.nav-item').forEach(el=>{if((el.getAttribute('onclick')||'').includes("goPage('"+p+"'"))el.classList.add('active');});
+  document.getElementById('page-'+p).classList.add('active');
+  event.currentTarget.classList.add('active');
   // Auto-render nếu đã có data (không cần bấm nút load)
   if(p==='dash') loadDash();
   if(p==='ord'&&!ORD_DATA.length) loadOrdLots();
@@ -1809,22 +1807,7 @@ function setPlatform(p){
 }
 function triggerFile(){document.getElementById('fileInput').click();}
 function onFile(inp){
-  if(!inp.files?.[0])return;
-  const f=inp.files[0];
-  // Chặn ngay file không phải PDF (ảnh, Excel, Word…) — báo tiếng Việt rõ ràng thay vì để pdf.js văng lỗi khó hiểu
-  const isPdf=/\.pdf$/i.test(f.name)||f.type==='application/pdf';
-  if(!isPdf){
-    F=null;
-    document.getElementById('dropIco').textContent='⚠️';
-    document.getElementById('dropTitle').textContent='File không phải PDF';
-    document.getElementById('dropSub').style.display='';
-    document.getElementById('fileChip').style.display='none';
-    document.getElementById('btnRun').disabled=true;
-    document.getElementById('fileInput').value='';
-    showErr('File “'+f.name+'” không phải PDF. Hãy tải file nhãn PDF từ Shopee/TikTok rồi thử lại.');
-    return;
-  }
-  F=f;
+  if(!inp.files?.[0])return;F=inp.files[0];
   document.getElementById('dropIco').textContent='📄';
   document.getElementById('dropTitle').textContent='File đã chọn';
   document.getElementById('dropSub').style.display='none';
@@ -1855,10 +1838,6 @@ async function run(){
   try{
     const buf=await F.arrayBuffer();
     const auto=await detectPlat(buf);
-    if(!auto){
-      // Không thấy dấu hiệu Shopee/TikTok trong file → nhiều khả năng up nhầm file (không phải nhãn đơn)
-      lg('warn','⚠️ Không nhận ra dấu hiệu Shopee/TikTok trong file này. Nếu kết quả bên dưới trống hoặc toàn "Khác", có thể bạn đã chọn nhầm file — hãy kiểm tra lại nhãn đơn.');
-    }
     if(auto&&auto!==PLAT){
       lg('info',`⚙️ Tự nhận diện file ${auto.toUpperCase()} (nút đang để ${PLAT.toUpperCase()}) → dùng parser ${auto.toUpperCase()}`);
       PLAT=auto;const isTk=auto==='tiktok';
@@ -1868,24 +1847,12 @@ async function run(){
     }
     const result=PLAT==='shopee'?await runShopee(buf,F.name):await runTiktok(buf,F.name);
     RPDF=result.pdfBytes;RFNAME=result.name;
-    // Đếm số trang nhận diện được (khác nhóm "Khác"): nếu = 0 mà file vẫn có trang → cảnh báo up nhầm
-    const recognized=Object.entries(result.st||{}).reduce((s,[lb,n])=>s+((lb==='Other'||lb==='Multi')?0:(n||0)),0);
-    if(result.total>0 && recognized===0){
-      showErr('Đã đọc được '+result.total+' trang nhưng KHÔNG nhận ra sản phẩm Shopee/TikTok nào — nhiều khả năng đây không phải file nhãn đơn. Kiểm tra lại file trước khi tải/ghi.');
-    }
     lg('ok',`✓ Xong → ${RFNAME}`);
     document.getElementById('resFn').textContent=RFNAME;
     showStats(result.st,result.total);
     await showPickTable();
     document.getElementById('btnDl').style.display='inline-flex';
-  }catch(e){
-    // Đổi thông báo kỹ thuật của pdf.js thành tiếng Việt dễ hiểu cho nhân viên
-    const raw=(e&&e.message)||'';
-    const friendly=/invalid pdf|pdf structure|not a pdf|pdf header|xref|empty|corrupt|password|encrypt/i.test(raw)
-      ? 'File không đọc được — có vẻ không phải PDF hợp lệ (hoặc file hỏng/khoá mật khẩu). Hãy tải lại nhãn PDF gốc từ Shopee/TikTok.'
-      : ('Lỗi xử lý file: '+raw);
-    lg('error',friendly);showErr(friendly);console.error(e);
-  }
+  }catch(e){lg('error','Lỗi: '+e.message);showErr(e.message);console.error(e);}
   finally{loadingSort(false);document.getElementById('btnRow').style.display='flex';}
 }
 function dl(){if(!RPDF)return;const blob=new Blob([RPDF],{type:'application/pdf'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=RFNAME;a.click();URL.revokeObjectURL(a.href);}
@@ -2296,11 +2263,7 @@ function khoSaveCount(pk,dv){
   // đẩy lên Supabase để các máy khác cũng thấy (không chặn UI; local đã lưu nên vẫn chạy khi offline)
   try{
     const upRows=rows.map(r=>({prod:pk,date:dstr,color:r.color,size:r.size,counted:r.counted,system_val:r.system}));
-    sbUpsert('kho_counts',upRows,'prod,date,color,size').catch(e=>{
-      console.warn('sync kho_counts:',e&&e.message);
-      // Đã lưu trên máy này rồi (số sẽ KHÔNG mất khi quay lại), chỉ là chưa đẩy lên đám mây cho máy khác thấy
-      toast('⚠ Đã lưu trên máy này, nhưng đồng bộ đám mây lỗi — máy khác có thể chưa thấy số mới.','err');
-    });
+    sbUpsert('kho_counts',upRows,'prod,date,color,size').catch(e=>console.warn('sync kho_counts:',e&&e.message));
   }catch(_){}
   toast(`✓ Đã lưu kiểm kho ${cfg.name} ngày ${dstr} · cập nhật ${n} ô vào tồn kho nhà`,'ok');
   renderKhoHistory();
@@ -2547,11 +2510,10 @@ function renderDash(data){
     const dcfg=INV_PROD_CFG[pk]||{};
     const colorCounts={};skus.forEach(r=>{colorCounts[r.color]=(colorCounts[r.color]||0)+1;});
     skus.forEach((r,i)=>{
-      const hutN=Number(r.hut)||0;
-      const hutTxt=hutN>0?String(hutN):'—';
-      const hutCls=hutN>0?'hut-red':'';
+      const hutTxt=String(r.hut||'—');
+      const hutCls=hutTxt.includes('-')?'hut-red':'';
       const dlCls=deadlineClass(r.deadline);
-      const rowCls=hutN>0?'dr':String(r.deadline).includes('trễ')?'dr':deadlineClass(r.deadline)==='dl-org'?'do':deadlineClass(r.deadline)==='dl-yel'?'dy':'';
+      const rowCls=hutTxt.includes('-')?'dr':String(r.deadline).includes('trễ')?'dr':deadlineClass(r.deadline)==='dl-org'?'do':deadlineClass(r.deadline)==='dl-yel'?'dy':'';
       const firstOfColor=(i===0)||(skus[i-1].color!==r.color);
       const cbg=(dcfg.clrBg&&dcfg.clrBg[r.color])||'#2A211C';
       const cfg2=(dcfg.clrFg&&dcfg.clrFg[r.color])||'#DCC6AA';
@@ -2817,10 +2779,9 @@ async function createDistLots(pk,nLots){
 // ═══ SIZE ANALYSIS — từ DASH_DATA ════════════════════════════════
 let curSizeProd='QNB';
 function setSizeTab(prod,el){
-  if(!document.getElementById('sizeTblBody'))return; // giao diện bảng Size không có trong bản này — bỏ qua an toàn
   curSizeProd=prod;
   document.querySelectorAll('.size-tab').forEach(t=>t.classList.remove('on'));
-  if(el)el.classList.add('on');
+  el.classList.add('on');
   if(!SIZE_DATA){
     document.getElementById('sizeTblBody').innerHTML='<tr><td colspan="6" style="text-align:center;color:#9A8070;padding:20px">Vào Dashboard → Cập nhật dữ liệu trước</td></tr>';
     return;
@@ -2828,7 +2789,6 @@ function setSizeTab(prod,el){
   renderSizeTable(prod);
 }
 function renderSizeTable(pk){
-  if(!document.getElementById('sizeTblBody')||!document.getElementById('sizeTblHead'))return; // giao diện bảng Size không có trong bản này
   const blk=SIZE_DATA?.[pk];
   if(!blk){document.getElementById('sizeTblBody').innerHTML='';return;}
   const skus=blk.skus||[];
@@ -2868,7 +2828,6 @@ async function loadCeo(){
 let CEO_DATA=null;
 function renderCeo(data){
   if(!data){renderCeoFromDash(DASH_DATA);return;}
-  if(!document.getElementById('ceoKpi')||!document.getElementById('ceoGrid'))return; // giao diện CEO không có trong bản này — bỏ qua an toàn
   const {kpi,prods}=data;
   // KPI bar
   document.getElementById('ceoKpi').innerHTML=`
@@ -2971,13 +2930,7 @@ async function computeInvData(){
   // Đồng bộ số kiểm kho từ Supabase → mọi máy đều thấy (nếu bảng kho_counts chưa tạo hoặc offline thì dùng bản local)
   try{
     const kc=await sbSelect('kho_counts','select=prod,date,color,size,counted');
-    const _toDMY=v=>{v=String(v||'');return v.includes('/')?v:(v?v.split('-').reverse().join('/'):'');};
-    (kc||[]).forEach(r=>{
-      if(!r||!r.prod||!r.date)return;
-      const key=r.prod+'|'+_toDMY(r.date)+'|'+r.color+'|'+r.size;   // ép ngày về DD/MM/YYYY cho khớp khoá cục bộ
-      // Chỉ nhận số từ server khi máy CHƯA có số đếm cho ô này → tránh số vừa đếm bị bản cũ trên server ghi đè ("nhảy về cũ")
-      if(KHO_COUNTS[key]==null)KHO_COUNTS[key]=r.counted;
-    });
+    (kc||[]).forEach(r=>{if(r&&r.prod&&r.date)KHO_COUNTS[r.prod+'|'+r.date+'|'+r.color+'|'+r.size]=r.counted;});
     saveKhoCounts();
   }catch(_){ /* bảng chưa tạo hoặc mất mạng → dùng KHO_COUNTS trong máy */ }
   INV_DATA={};
@@ -3409,7 +3362,7 @@ function renderSalesOverview(){
 }
 
 // So sánh ngày dd/mm/yyyy theo thứ tự thời gian
-function salesDateCmp(a,b){const norm=x=>{x=String(x||'');if(x.includes('/')){const p=x.split('/');return (p[2]||'')+((p[1]||'').padStart(2,'0'))+((p[0]||'').padStart(2,'0'));}return x.replace(/-/g,'');};const A=norm(a),B=norm(b);return A<B?-1:A>B?1:0;}
+function salesDateCmp(a,b){const A=a.split('/').reverse().join(''),B=b.split('/').reverse().join('');return A<B?-1:A>B?1:0;}
 function salesInRange(dateStr,from,to){let d=dateStr;if(d.includes('/')){const p=d.split('/');d=`${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;}return (!from||d>=from)&&(!to||d<=to);}
 
 // Bảng chi tiết chuẩn (Màu dọc | Size | các ngày | cột cuối). lastMode: 'sum' (Tổng) hoặc 'latest' (Tồn nay)
@@ -3459,7 +3412,7 @@ function computeKhoRows(pk,from,to){
   const cfg=SALES_PROD_CFG[pk];
   const base=SEED_KHO_BASE[pk]||{};
   const ANCHOR='2026-06-01';
-  const toYMD=s=>{s=String(s||'');if(s.includes('-')&&!s.includes('/'))return s;const p=s.split('/');return p.length===3?`${p[2]}-${(p[1]||'').padStart(2,'0')}-${(p[0]||'').padStart(2,'0')}`:s;};
+  const toYMD=s=>{const p=s.split('/');return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;};
   const eff=(rows,ovr)=>{const m={};rows.forEach(r=>{const k=r.date+'|'+r.color+'|'+r.size;m[k]=(m[k]||0)+(r.qty||0);});Object.keys(ovr||{}).forEach(fk=>{const p=fk.split('|');if(p[0]!==pk)return;m[p.slice(1).join('|')]=ovr[fk];});return m;};
   const ordMap=eff(SALES_ALL.filter(r=>r.prod===pk),EDITS.ord);
   const arrMap=eff(getArrRows(pk),EDITS.arr);
@@ -3478,7 +3431,7 @@ function computeKhoRows(pk,from,to){
       cur[k]=(cur[k]||0)-(ordMap[dk]||0)+(arrMap[dk]||0);
       const ok=pk+'|'+d+'|'+c+'|'+s;
       if(khoOvr[ok]!=null)cur[k]=khoOvr[ok];
-      if(khoCnt[ok]!=null)cur[k]=khoCnt[ok];
+      if(khoCnt[ok]!=null)cur[k]=khoCnt[ok]-(ordMap[dk]||0)+(arrMap[dk]||0);   // số đếm = tồn LÚC đếm (đầu ngày) → vẫn trừ đơn đi + cộng hàng về nhập cùng ngày
     }));
     if(!from||toYMD(d)>=from){
       cfg.colors.forEach(c=>cfg.sizes.forEach(s=>{const ok=pk+'|'+d+'|'+c+'|'+s;const v=cur[c+'|'+s]||0;if(v!==0||khoOvr[ok]!=null||khoCnt[ok]!=null)rows.push({date:d,prod:pk,color:c,size:s,qty:v});}));
@@ -3490,16 +3443,16 @@ function computeKhoRows(pk,from,to){
 // Tồn kho nhà (tồn nay hoặc tới ngày toParam) mỗi SKU — dùng cho Quản lý kho & Kiểm kho
 function khoNhaNow(pk,toParam){
   const cfg=SALES_PROD_CFG[pk];const base=SEED_KHO_BASE[pk]||{};
-  const toYMD=s=>{s=String(s||'');if(s.includes('-')&&!s.includes('/'))return s;const p=s.split('/');return p.length===3?`${p[2]}-${(p[1]||'').padStart(2,'0')}-${(p[0]||'').padStart(2,'0')}`:s;};
+  const toYMD=s=>{const p=s.split('/');return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;};
   const today=toParam||new Date().toISOString().split('T')[0];
   const eff=(rows,ovr)=>{const m={};rows.forEach(r=>{const k=r.date+'|'+r.color+'|'+r.size;m[k]=(m[k]||0)+(r.qty||0);});Object.keys(ovr||{}).forEach(fk=>{const p=fk.split('|');if(p[0]!==pk)return;m[p.slice(1).join('|')]=ovr[fk];});return m;};
   const ordMap=eff(SALES_ALL.filter(r=>r.prod===pk),EDITS.ord);
   const arrMap=eff(getArrRows(pk),EDITS.arr);
   const khoOvr=EDITS.kho||{},khoCnt=KHO_COUNTS||{};
   const dset=new Set();Object.keys(ordMap).forEach(k=>dset.add(k.split('|')[0]));Object.keys(arrMap).forEach(k=>dset.add(k.split('|')[0]));Object.keys(khoOvr).forEach(fk=>{const p=fk.split('|');if(p[0]===pk)dset.add(p[1]);});Object.keys(khoCnt).forEach(fk=>{const p=fk.split('|');if(p[0]===pk)dset.add(p[1]);});
-  const active=[...dset].filter(d=>toYMD(d)<=today).sort(salesDateCmp);
+  const active=[...dset].filter(d=>{const y=toYMD(d);return y>='2026-06-01'&&y<=today;}).sort(salesDateCmp);
   const cur={};cfg.colors.forEach(c=>cfg.sizes.forEach(s=>cur[c+'|'+s]=((base[c]||{})[s])||0));
-  active.forEach(d=>{cfg.colors.forEach(c=>cfg.sizes.forEach(s=>{const k=c+'|'+s;cur[k]=cur[k]-(ordMap[d+'|'+k]||0)+(arrMap[d+'|'+k]||0);const ok=pk+'|'+d+'|'+c+'|'+s;if(khoOvr[ok]!=null)cur[k]=khoOvr[ok];if(khoCnt[ok]!=null)cur[k]=khoCnt[ok];}));});
+  active.forEach(d=>{cfg.colors.forEach(c=>cfg.sizes.forEach(s=>{const k=c+'|'+s,dk=d+'|'+k;cur[k]=cur[k]-(ordMap[dk]||0)+(arrMap[dk]||0);const ok=pk+'|'+d+'|'+c+'|'+s;if(khoOvr[ok]!=null)cur[k]=khoOvr[ok];if(khoCnt[ok]!=null)cur[k]=khoCnt[ok]-(ordMap[dk]||0)+(arrMap[dk]||0);}));});
   return cur;
 }
 
