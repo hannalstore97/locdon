@@ -1259,13 +1259,13 @@ function getTkItems(raw){
   let t=raw.replace(/\u00A0/g,' ').replace(/Comb\s+o/gi,'Combo').replace(/\s+/g,' ').trim();
   const res=[];let m;
   const r0=new RegExp(`([^\\d,\\n][^,\\n]{0,8}),\\s*${SZP}\\s+(NBD|NB01|GY3|CB01|JS01)\\s+(\\d+)`,'gi');
-  while((m=r0.exec(t))!==null){const color=m[1].trim(),size=nSize(m[2]),code=m[3].toUpperCase(),qty=parseInt(m[4]);if(size&&qty>0&&!res.some(r=>r.code===code&&r.size===size))res.push({code,color,size,qty});}
+  while((m=r0.exec(t))!==null){const color=m[1].trim(),size=nSize(m[2]),code=m[3].toUpperCase(),qty=parseInt(m[4]);if(size&&qty>0&&!res.some(r=>r.code===code&&r.size===size&&pColor(r.color)===pColor(color)))res.push({code,color,size,qty});}
   // Thứ tự ĐẢO "Size, Màu CODE qty" (VD Bodysuit "M, Đen JS01 1" — TikTok đặt option size trước màu)
   const r0b=new RegExp(`${SZP}\\s*,\\s*(Đen|Den|Nude|Nâu|Nau|Da|Be|Brown|Black|Skin)\\s+(NBD|NB01|GY3|CB01|JS01)\\s+(\\d+)`,'gi');
-  while((m=r0b.exec(t))!==null){const size=nSize(m[1]),color=m[2].trim(),code=m[3].toUpperCase(),qty=parseInt(m[4]);if(size&&qty>0&&!res.some(r=>r.code===code&&r.size===size))res.push({code,color,size,qty});}
+  while((m=r0b.exec(t))!==null){const size=nSize(m[1]),color=m[2].trim(),code=m[3].toUpperCase(),qty=parseInt(m[4]);if(size&&qty>0&&!res.some(r=>r.code===code&&r.size===size&&pColor(r.color)===pColor(color)))res.push({code,color,size,qty});}
   if(res.length)return res;
   const r1=new RegExp(`\\b(NBD|NB01|GY3|CB01|JS01)\\s+([^,]{1,30}?),\\s*${SZP}(?:\\s*[x×]\\s*(\\d+)|\\s*,?\\s*(?:SL|Qty)\\s*:?\\s*(\\d+))?`,'gi');
-  while((m=r1.exec(t))!==null){const code=m[1].toUpperCase(),color=m[2].trim(),size=nSize(m[3]),qty=parseInt(m[4]||m[5]||'1');if(size&&qty>0&&!res.some(r=>r.code===code&&r.size===size))res.push({code,color,size,qty});}
+  while((m=r1.exec(t))!==null){const code=m[1].toUpperCase(),color=m[2].trim(),size=nSize(m[3]),qty=parseInt(m[4]||m[5]||'1');if(size&&qty>0&&!res.some(r=>r.code===code&&r.size===size&&pColor(r.color)===pColor(color)))res.push({code,color,size,qty});}
   // Fallback cuối: token có thể bị pdf.js tách rời (VD "M, Đen" xa "JS01").
   // Tìm CODE + cặp (màu,size) ở BẤT KỲ vị trí, BẤT KỲ thứ tự — chỉ chạy khi các mẫu trên trượt.
   if(!res.length){
