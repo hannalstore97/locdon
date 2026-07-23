@@ -23,19 +23,6 @@ body{font-family:'Poppins',sans-serif;background:#FAF8F4;color:#2A211C;line-heig
 .tab{font-family:'Montserrat';font-size:11px;font-weight:700;letter-spacing:.03em;padding:11px 16px;cursor:pointer;color:rgba(220,198,170,.5);border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap}
 .tab.on{color:#DCC6AA;border-bottom:2px solid #BE735E}
 
-/* ═══ Màn khoá mật khẩu ═══ */
-#lockGate{position:fixed;inset:0;z-index:999999;background:#2A211C;display:flex;align-items:center;justify-content:center;padding:24px}
-#lockGate .lg-box{width:100%;max-width:320px;text-align:center}
-#lockGate .lg-logo{font-family:'Montserrat';font-size:11px;font-weight:800;letter-spacing:3px;color:#BE735E;margin-bottom:22px}
-#lockGate .lg-title{font-family:'Montserrat';font-size:22px;font-weight:900;color:#F7F3EB;margin-bottom:6px}
-#lockGate .lg-sub{font-size:12px;color:rgba(220,198,170,.55);margin-bottom:22px}
-#lockGate input{width:100%;padding:14px 16px;border-radius:12px;border:1px solid rgba(220,198,170,.25);background:#3D2E26;color:#F7F3EB;font-size:18px;text-align:center;letter-spacing:6px;font-family:'Montserrat';outline:none;margin-bottom:12px}
-#lockGate input:focus{border-color:#BE735E}
-#lockGate button{width:100%;padding:13px;border-radius:12px;border:none;background:#BE735E;color:#fff;font-family:'Montserrat';font-size:12px;font-weight:800;letter-spacing:1px;cursor:pointer;text-transform:uppercase}
-#lockGate button:hover{background:#a35f4d}
-#lockGate .lg-err{color:#e7b98a;font-size:12px;margin-top:12px;min-height:16px}
-#lockGate.shake{animation:lgShake .4s}
-@keyframes lgShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
 .tab:hover:not(.on){color:rgba(220,198,170,.8)}
 .page{display:none;padding:0 24px}
 .page.on{display:block}
@@ -279,39 +266,6 @@ td.act{text-align:right;width:36px}.del{border:none;background:none;color:#c9b8a
 </style>
 </head>
 <body>
-<div id="lockGate">
-  <div class="lg-box">
-    <div class="lg-logo">HANNALSTORE97</div>
-    <div class="lg-title">🔒 KOL của Nhi</div>
-    <div class="lg-sub">Nhập mật khẩu để xem trang này</div>
-    <input type="password" id="lgInput" inputmode="numeric" placeholder="••••" autocomplete="off">
-    <button id="lgBtn">Mở khoá</button>
-    <div class="lg-err" id="lgErr"></div>
-  </div>
-</div>
-<script>
-(function(){
-  var PASS='0206', KEY='hannal_gate_Nhi';
-  var gate=document.getElementById('lockGate');
-  var inp=document.getElementById('lgInput');
-  var btn=document.getElementById('lgBtn');
-  var err=document.getElementById('lgErr');
-  function unlock(){ gate.style.display='none'; document.body.style.overflow=''; }
-  if(sessionStorage.getItem(KEY)==='1'){ unlock(); }
-  else { document.body.style.overflow='hidden'; setTimeout(function(){ if(inp) inp.focus(); },100); }
-  function tryPass(){
-    if(inp.value===PASS){ sessionStorage.setItem(KEY,'1'); unlock(); }
-    else {
-      err.textContent='Sai mật khẩu, thử lại nha';
-      inp.value=''; inp.focus();
-      gate.classList.add('shake');
-      setTimeout(function(){ gate.classList.remove('shake'); },400);
-    }
-  }
-  btn.addEventListener('click',tryPass);
-  inp.addEventListener('keydown',function(e){ if(e.key==='Enter') tryPass(); });
-})();
-</script>
 <div class="wrap">
   <div class="head">
     <div class="topline"><div class="eyebrow">HANNALSTORE97 · Hoa hồng nhân viên</div><span class="sbbadge" id="sbBadge">● Đang kết nối…</span></div>
@@ -419,7 +373,7 @@ td.act{text-align:right;width:36px}.del{border:none;background:none;color:#c9b8a
         <select class="aselect full" id="oneProd"></select>
       </div>
       <button class="btn addbtn" id="addOne">＋ Thêm KOL</button>
-      <div class="addhint">Ngày thêm tự động lấy hôm nay (04/07/2026). Chỉ <b>@tiktok</b> bắt buộc — Zalo/SĐT/Link có thể bổ sung sau.</div>
+      <div class="addhint">Ngày thêm tự động lấy hôm nay. Chỉ <b>@tiktok</b> bắt buộc — Zalo/SĐT/Link có thể bổ sung sau.</div>
       <div class="bulklink" id="bulkToggle">＋ Thêm nhanh nhiều tên (chỉ tên, dán danh sách)</div>
       <div class="bulkwrap" id="bulkWrap">
         <textarea id="bulk" placeholder="Mỗi tên 1 dòng…"></textarea>
@@ -457,7 +411,8 @@ const PRODUCTS=[
 const PMAP={};PRODUCTS.forEach(p=>PMAP[p.k]=p);
 const SEED_MONTHS=MONTHS, SEED_ALLM=Object.keys(SEED_MONTHS).map(Number);
 let ALLM=[];
-const TODAY='04/07/2026';
+function _fmtTodayDMY(){const d=new Date();const p=n=>String(n).padStart(2,'0');return p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear();}
+const TODAY=_fmtTodayDMY();
 // Bậc thang theo TỔNG HOA HỒNG KOL trong tháng
 function tierRate(kolCom){
   if(kolCom<20000000)return 0;

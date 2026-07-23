@@ -1209,12 +1209,12 @@ function getShopeeItems(raw){
     const code=/\bGY3\b/i.test(desc)?'GY3':/\bJS01\b/i.test(desc)?'JS01':/\bCB01\b/i.test(desc)?'CB01':/\bNB01\b/i.test(desc)?'NB01':/\bNBD\b/i.test(desc)?'NBD':null;
     // Combo 2 màu (vd "NBD Combo Đen + Nude") -> tách mỗi màu 1 đơn vị
     if(/combo/i.test(desc)&&code&&code!=='CB01'){
-      const size=nGroupSize(code,(desc.match(/,\s*([A-Za-z0-9/ ]+)$/)||[])[1]||'');
+      const size=nGroupSize(code,(desc.match(/,?\s*([A-Za-z0-9/ ]+)$/)||[])[1]||'');
       const uniq=[...new Set([...desc.matchAll(/Đen|Nude|Nâu|Da/gi)].map(x=>x[0].toLowerCase()))];
       uniq.forEach(c=>res.push({code,color:c,size,qty:1}));continue;
     }
-    // màu + size ở cuối dòng: "…Màu,Size"
-    const cs=desc.match(/(Đen|Nude|Nâu|Da)\s*,\s*([A-Za-z0-9/ ]+)$/i);
+    // màu + size ở cuối dòng: "…Màu,Size" HOẶC "…Màu Size" (một số nhãn SPX/Shopee không có dấu phẩy giữa màu và size, VD "GY3 ĐEN M")
+    const cs=desc.match(/(Đen|Nude|Nâu|Da)\s*,?\s*([A-Za-z0-9/ ]+)$/i);
     if(!cs){res.push({code:'OTHER',name:cleanOtherName(desc),color:'',size:'?',qty});continue;}
     if(code)res.push({code,color:cs[1],size:nGroupSize(code,cs[2]),qty});
     else res.push({code:'OTHER',name:cleanOtherName(desc),color:pColor(cs[1]),size:cs[2].toUpperCase().replace(/\s/g,''),qty});
