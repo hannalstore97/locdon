@@ -219,6 +219,9 @@ td.act{text-align:right;width:36px}.del{border:none;background:none;color:#c9b8a
 .rep-item .rin{font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rep-item .rin .at{color:#BE735E}
 .rep-item .rid{color:#b09a86;font-size:10.5px;white-space:nowrap}
+.rep-link{font-size:11px;font-weight:600;color:#BE735E;text-decoration:none;white-space:nowrap;flex-shrink:0}
+.rep-link:hover{text-decoration:underline}
+.rep-link.mut{color:#c7b6a4;font-weight:400;font-style:italic}
 .rep-rdots{display:inline-flex;gap:3px;flex-shrink:0}
 .rep-prodgroup{margin-bottom:14px}
 .rep-empty{padding:14px 10px;text-align:center;font-size:11.5px;color:#b09a86;font-style:italic}
@@ -234,6 +237,10 @@ td.act{text-align:right;width:36px}.del{border:none;background:none;color:#c9b8a
 .good-btn.on{background:#2D7A4F;border-color:#2D7A4F;color:#fff}
 .good-btn.sm{padding:3px 9px;font-size:9.5px;flex-shrink:0}
 .good-badge{font-family:'Montserrat';font-size:8.5px;font-weight:800;padding:2px 8px;border-radius:20px;background:#EAF5ED;color:#2f7d4d;white-space:nowrap}
+.posted-btn{font-family:'Montserrat';font-size:10.5px;font-weight:700;border:1px solid #E0D2C0;background:#fff;color:#b09a86;cursor:pointer;padding:5px 10px;border-radius:20px;white-space:nowrap;transition:all .15s}
+.posted-btn:hover{border-color:#3E7FB0;color:#2E6690}
+.posted-btn.on{background:#2E6690;border-color:#2E6690;color:#fff}
+.posted-btn.sm{padding:3px 9px;font-size:9.5px;flex-shrink:0}
 
 /* tab KOL chuyển đổi tốt */
 .good-summary{display:flex;align-items:baseline;gap:9px;background:#fff;border:1px solid #E8D9C8;border-radius:14px;padding:15px 17px;margin-top:18px}
@@ -262,7 +269,7 @@ td.act{text-align:right;width:36px}.del{border:none;background:none;color:#c9b8a
 .kc-mtag.a{background:#BE735E;color:#fff}
 /* KOL list table */
 .koltbl-wrap{margin-top:12px;overflow-x:auto;border:1px solid #E8D9C8;border-radius:12px;background:#fff}
-.koltbl{width:100%;border-collapse:collapse;font-size:12.5px;min-width:980px}
+.koltbl{width:100%;border-collapse:collapse;font-size:12.5px;min-width:1080px}
 .koltbl thead th{background:#F7F3EB;text-align:left;font-family:'Montserrat';font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#BE735E;padding:11px 13px;white-space:nowrap;border-bottom:1px solid #E8D9C8}
 .koltbl td{padding:10px 13px;border-bottom:1px solid #F0EBE3;vertical-align:middle;color:#2A211C}
 .koltbl tbody tr:last-child td{border-bottom:none}
@@ -424,7 +431,7 @@ td.act{text-align:right;width:36px}.del{border:none;background:none;color:#c9b8a
     <div class="koltbl-wrap">
       <table class="koltbl">
         <thead><tr>
-          <th>@TikTok</th><th>Tên Zalo</th><th>SĐT</th><th>Link TikTok</th><th>Sản phẩm</th><th>Tháng</th><th>Nhắc lên bài</th><th>Chuyển đổi tốt</th><th>Ngày thêm</th><th>Nguồn</th><th></th>
+          <th>@TikTok</th><th>Tên Zalo</th><th>SĐT</th><th>Link TikTok</th><th>Sản phẩm</th><th>Tháng</th><th>Nhắc lên bài</th><th>Đã lên bài</th><th>Chuyển đổi tốt</th><th>Ngày thêm</th><th>Nguồn</th><th></th>
         </tr></thead>
         <tbody id="regBody"></tbody>
       </table>
@@ -437,7 +444,7 @@ td.act{text-align:right;width:36px}.del{border:none;background:none;color:#c9b8a
     <div class="goodtbl-wrap">
       <table class="koltbl">
         <thead><tr>
-          <th>@TikTok</th><th>Tên Zalo</th><th>SĐT</th><th>Link TikTok</th><th>Sản phẩm</th><th>Đã nhắc</th><th>Ngày thêm</th>
+          <th>@TikTok</th><th>Tên Zalo</th><th>SĐT</th><th>Link TikTok</th><th>Sản phẩm</th><th>Đã nhắc</th><th>Đã lên bài</th><th>Ngày thêm</th>
         </tr></thead>
         <tbody id="goodBody"></tbody>
       </table>
@@ -488,7 +495,7 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 // registry: {name, prod, m:[months], src}  — tạm gán tất cả 'QNB'
-let REG=REG_SEED.map(r=>({name:r.n,prod:'QNB',m:r.m.slice(),src:'file',zalo:'',phone:'',link:'',addDate:'',remind:[false,false,false],good:false}));
+let REG=REG_SEED.map(r=>({name:r.n,prod:'QNB',m:r.m.slice(),src:'file',zalo:'',phone:'',link:'',addDate:'',remind:[false,false,false],good:false,posted:false}));
 let lastAdded=new Set();
 let OTHERS={}; // {handle(lowercase): tên nhân viên đang sở hữu} — KOL của nhân viên KHÁC
 let curMD='4', curMS='all';
@@ -629,6 +636,7 @@ function renderReg(){
     const remind=k.remind||[false,false,false];
     const remindBtns=[0,1,2].map(r=>`<button class="remind-btn ${remind[r]?'on':''}" onclick="toggleRemind(${k.idx},${r})" title="Nhắc lên bài lần ${r+1}${remind[r]?' — đã nhắc':''}">${r+1}</button>`).join('');
     const goodOn=!!k.good;
+    const postedOn=!!k.posted;
     return `<tr class="${isNew?'new':''}">
       <td class="kr-name"><span class="at">@</span>${esc(k.name)}${badge}</td>
       <td class="edcell" data-i="${k.idx}" data-f="zalo" title="Bấm để sửa Zalo">${k.zalo?esc(k.zalo):'<span class=\'edadd\'>+ Zalo</span>'}</td>
@@ -637,12 +645,13 @@ function renderReg(){
       <td><select class="kc-psel psel" data-i="${k.idx}">${prodOptions(k.prod)}</select></td>
       <td>${k.m.length?mtag(k.m):mut}</td>
       <td class="remind-cell">${remindBtns}</td>
+      <td><button class="posted-btn ${postedOn?'on':''}" onclick="togglePosted(${k.idx})" title="${postedOn?'Bấm để bỏ đánh dấu':'Đánh dấu KOL đã lên bài'}">${postedOn?'✓ Đã lên bài':'○ Chưa lên bài'}</button></td>
       <td><button class="good-btn ${goodOn?'on':''}" onclick="toggleGood(${k.idx})" title="${goodOn?'Bấm để bỏ đánh dấu':'Đánh dấu KOL chuyển đổi tốt'}">${goodOn?'★ Tốt':'☆ Đánh dấu'}</button></td>
       <td>${k.addDate?esc(k.addDate):mut}</td>
       <td>${srcTag}</td>
       <td><button class="kc-del del" data-i="${k.idx}" title="Xoá KOL">✕</button></td>
     </tr>`;
-  }).join('')||`<tr><td colspan="11" style="text-align:center;color:#b9a892;padding:22px;font-size:12px">${q?`Không tìm thấy "${esc(q)}"`:'Chưa có KOL nào. Thêm ở form phía trên.'}</td></tr>`;
+  }).join('')||`<tr><td colspan="12" style="text-align:center;color:#b9a892;padding:22px;font-size:12px">${q?`Không tìm thấy "${esc(q)}"`:'Chưa có KOL nào. Thêm ở form phía trên.'}</td></tr>`;
   document.querySelectorAll('.psel').forEach(s=>s.onchange=()=>{const k=REG[+s.dataset.i];k.prod=s.value;pushKolProd(k.name,s.value);renderDash();renderSum();renderReport();});
   document.querySelectorAll('.del').forEach(b=>b.onclick=()=>{const k=REG[+b.dataset.i];if(k)delKolDb(k.name);REG.splice(+b.dataset.i,1);renderReg();renderDash();renderSum();renderReport();renderGood();});
   bindInlineEdit();
@@ -658,6 +667,12 @@ function toggleRemind(i,r){
 function toggleGood(i){
   const k=REG[i];if(!k)return;
   k.good=!k.good;
+  pushKolExtra(k);
+  renderReg();renderReport();renderGood();
+}
+function togglePosted(i){
+  const k=REG[i];if(!k)return;
+  k.posted=!k.posted;
   pushKolExtra(k);
   renderReg();renderReport();renderGood();
 }
@@ -698,12 +713,13 @@ function bindInlineEdit(){
 
 function renderGood(){
   const body=$('goodBody');if(!body)return;
-  const good=REG.filter(k=>k.good);
+  const good=REG.map((k,i)=>({...k,idx:i})).filter(k=>k.good);
   $('goodCnt').textContent=good.length;
   const mut='<span class="mut">—</span>';
   body.innerHTML=good.map(k=>{
     const remind=k.remind||[false,false,false];
     const doneCount=remind.filter(Boolean).length;
+    const postedOn=!!k.posted;
     return `<tr>
       <td class="kr-name"><span class="at">@</span>${esc(k.name)}</td>
       <td>${k.zalo?esc(k.zalo):mut}</td>
@@ -711,9 +727,10 @@ function renderGood(){
       <td>${k.link?`<a href="${esc(k.link)}" target="_blank" rel="noopener">🔗 Mở</a>`:mut}</td>
       <td>${ptag(k.prod)}</td>
       <td>${doneCount}/3</td>
+      <td><button class="posted-btn sm ${postedOn?'on':''}" onclick="togglePosted(${k.idx})" title="${postedOn?'Bấm để bỏ đánh dấu':'Đánh dấu KOL đã lên bài'}">${postedOn?'✓ Đã lên bài':'○ Chưa lên bài'}</button></td>
       <td>${k.addDate?esc(k.addDate):mut}</td>
     </tr>`;
-  }).join('')||`<tr><td colspan="7" style="text-align:center;color:#b9a892;padding:22px;font-size:12px">Chưa có KOL nào được đánh dấu chuyển đổi tốt.</td></tr>`;
+  }).join('')||`<tr><td colspan="8" style="text-align:center;color:#b9a892;padding:22px;font-size:12px">Chưa có KOL nào được đánh dấu chuyển đổi tốt.</td></tr>`;
 }
 let repOpen=false;
 function renderReport(){
@@ -735,11 +752,14 @@ function renderReport(){
       const remind=r.remind||[false,false,false];
       const rdots=[0,1,2].map(i=>`<button class="remind-btn sm ${remind[i]?'on':''}" onclick="toggleRemind(${r.idx},${i})" title="Nhắc lên bài lần ${i+1}${remind[i]?' — đã nhắc':''}">${i+1}</button>`).join('');
       const goodOn=!!r.good;
+      const postedOn=!!r.posted;
       return `
       <div class="rep-item">
         <span class="rin"><span class="at">@</span>${esc(r.name)}</span>
         ${ptag(r.prod)}
+        ${r.link?`<a href="${esc(r.link)}" target="_blank" rel="noopener" class="rep-link">🔗 Mở</a>`:'<span class="rep-link mut">🔗 Chưa có link</span>'}
         <span class="rep-rdots">${rdots}</span>
+        <button class="posted-btn sm ${postedOn?'on':''}" onclick="togglePosted(${r.idx})" title="${postedOn?'Bấm để bỏ đánh dấu':'Đánh dấu KOL đã lên bài'}">${postedOn?'✓ Đã lên bài':'○ Chưa lên bài'}</button>
         <button class="good-btn sm ${goodOn?'on':''}" onclick="toggleGood(${r.idx})" title="${goodOn?'Bấm để bỏ đánh dấu':'Đánh dấu KOL chuyển đổi tốt'}">${goodOn?'★ Tốt':'☆ Đánh dấu'}</button>
         <span class="rid">${r.addDate?esc(r.addDate):''}</span>
       </div>`;
@@ -767,7 +787,7 @@ function addKols(list,prod,info){
     if(ex.has(n)){dup++;return;}
     if(OTHERS[n]){blocked.push({n,owner:OTHERS[n]});return;} // KOL đang của nhân viên khác → chặn
     ex.add(n);
-    const k={name:n,prod:prod,m:[],src:'manual',addDate:TODAY,zalo:(info&&info.zalo)||'',phone:(info&&info.phone)||'',link:(info&&info.link)||'',remind:[false,false,false],good:false};
+    const k={name:n,prod:prod,m:[],src:'manual',addDate:TODAY,zalo:(info&&info.zalo)||'',phone:(info&&info.phone)||'',link:(info&&info.link)||'',remind:[false,false,false],good:false,posted:false};
     REG.unshift(k);fresh.push(k);lastAdded.add(n);added++;
   });
   const m=$('addMsg');
@@ -929,7 +949,7 @@ function setSbBadge(){
 // lưu (không chặn UI; lỗi thì bỏ qua, giữ trên máy)
 async function pushKol(k){try{if(!SB_OK)return;await sbUpsert('kol_list',[{name:k.name,employee:EMP,prod:k.prod,zalo:k.zalo||'',phone:k.phone||'',link:k.link||'',add_date:k.addDate||'',source:k.src}],'name');}catch(e){}}
 async function pushKolProd(name,prod){try{if(!SB_OK)return;await sbUpsert('kol_list',[{name,employee:EMP,prod}],'name');}catch(e){}}
-async function pushKolExtra(k){try{if(!SB_OK)return;const r=k.remind||[false,false,false];await sbUpsert('kol_list',[{name:k.name,employee:EMP,remind1:!!r[0],remind2:!!r[1],remind3:!!r[2],good_conv:!!k.good}],'name');}catch(e){}}
+async function pushKolExtra(k){try{if(!SB_OK)return;const r=k.remind||[false,false,false];await sbUpsert('kol_list',[{name:k.name,employee:EMP,remind1:!!r[0],remind2:!!r[1],remind3:!!r[2],good_conv:!!k.good,posted:!!k.posted}],'name');}catch(e){}}
 async function delKolDb(name){try{if(!SB_OK)return;await sbDel('kol_list',`name=eq.${encodeURIComponent(name)}`);}catch(e){}}
 async function pushMonth(month,matched){try{if(!SB_OK)return;await sbDel('kol_monthly',`month=eq.${month}&year=eq.2026`);const rows=matched.map(k=>({month,year:2026,name:k.n,gmv:k.g,refund:k.rf||0,com:k.c,orders:k.o}));if(rows.length)await sbUpsert('kol_monthly',rows);}catch(e){}}
 async function delMonthDb(month){try{if(!SB_OK)return;await sbDel('kol_monthly',`month=eq.${month}&year=eq.2026`);}catch(e){}}
@@ -942,7 +962,7 @@ async function loadFromSupabase(){
     // KOL của các nhân viên KHÁC → để cảnh báo trùng khi nhập
     try{const others=await sbSel('kol_list',`select=name,employee&employee=neq.${EMP}`);OTHERS={};(others||[]).forEach(r=>{if(r&&r.name)OTHERS[r.name.toLowerCase()]=r.employee||'nhân viên khác';});}catch(_){OTHERS={};}
     if(Array.isArray(kl)&&kl.length){
-      REG=kl.map(r=>({name:r.name,prod:r.prod||'QNB',m:[],src:r.source||'file',zalo:r.zalo||'',phone:r.phone||'',link:r.link||'',addDate:r.add_date||'',remind:[!!r.remind1,!!r.remind2,!!r.remind3],good:!!r.good_conv}));
+      REG=kl.map(r=>({name:r.name,prod:r.prod||'QNB',m:[],src:r.source||'file',zalo:r.zalo||'',phone:r.phone||'',link:r.link||'',addDate:r.add_date||'',remind:[!!r.remind1,!!r.remind2,!!r.remind3],good:!!r.good_conv,posted:!!r.posted}));
     }else if(REG.length){
       // seed danh sách lần đầu (chỉ khi có sẵn trong file)
       await sbUpsert('kol_list',REG.map(k=>({name:k.name,employee:EMP,prod:k.prod,zalo:'',phone:'',link:'',add_date:'',source:'file'})),'name');
