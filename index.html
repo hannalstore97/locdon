@@ -1078,6 +1078,24 @@ async function sbSelect(view,params=''){
   if(!res.ok)throw new Error(`Supabase ${res.status}: ${await res.text()}`);
   return res.json();
 }
+// Supabase/PostgREST mặc định chỉ trả về tối đa ~1000 dòng/lần GET (dù không báo lỗi) —
+// bảng càng ghi dồn lâu (VD sales_log ghi mỗi ngày) càng dễ vượt ngưỡng này, khiến dữ liệu
+// MỚI NHẤT (hôm nay) bị cắt mất khi đọc lại dù ghi vào DB đã thành công. Dùng hàm này để
+// phân trang lấy ĐỦ toàn bộ dòng, tránh "ghi thì báo đúng số nhưng đọc lại bị thiếu".
+async function sbSelectAll(view,params='',pageSize=1000){
+  let all=[],from=0;
+  while(true){
+    const res=await fetch(`${SB_URL}/rest/v1/${view}?${params}`,{
+      headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Accept':'application/json','Range-Unit':'items','Range':`${from}-${from+pageSize-1}`}
+    });
+    if(!res.ok&&res.status!==206)throw new Error(`Supabase ${res.status}: ${await res.text()}`);
+    const page=await res.json();
+    all=all.concat(page);
+    if(page.length<pageSize)break;
+    from+=pageSize;
+  }
+  return all;
+}
 async function sbInsert(table,rows){
   const res=await fetch(`${SB_URL}/rest/v1/${table}`,{
     method:'POST',
@@ -1258,7 +1276,7 @@ function getTkOrderId(text){
 function getTkItems(raw){
   let t=raw.replace(/\u00A0/g,' ').replace(/Comb\s+o/gi,'Combo').replace(/\s+/g,' ').trim();
   const res=[];let m;
-  const r0=new RegExp(`([^\\d,\\n][^,\\n]{0,8}),\\s*${SZP}\\s+(NBD|NB01|GY3|CB01|JS01)\\s+(\\d+)`,'gi');
+  const r0=new RegExp(`(Đen|Den|Nude|Nâu|Nau|Da|Be|Brown|Black|Skin)[^,\\n]{0,20},\\s*${SZP}\\s+(NBD|NB01|GY3|CB01|JS01)\\s+(\\d+)`,'gi');
   while((m=r0.exec(t))!==null){const color=m[1].trim(),size=nSize(m[2]),code=m[3].toUpperCase(),qty=parseInt(m[4]);if(size&&qty>0&&!res.some(r=>r.code===code&&r.size===size&&pColor(r.color)===pColor(color)))res.push({code,color,size,qty});}
   // Thứ tự ĐẢO "Size, Màu CODE qty" (VD Bodysuit "M, Đen JS01 1" — TikTok đặt option size trước màu)
   const r0b=new RegExp(`${SZP}\\s*,\\s*(Đen|Den|Nude|Nâu|Nau|Da|Be|Brown|Black|Skin)\\s+(NBD|NB01|GY3|CB01|JS01)\\s+(\\d+)`,'gi');
@@ -1465,7 +1483,7 @@ function renderPickTable(prod,label,cls){
 }
 async function loadPickStock(){
   try{
-    const [sl,ol]=await Promise.all([sbSelect('sales_log','order=date.asc'),sbSelect('ord_lots','order=prod.asc')]);
+    const [sl,ol]=await Promise.all([sbSelectAll('sales_log','order=date.asc'),sbSelect('ord_lots','order=prod.asc')]);
     SALES_ALL=[...SEED_SALES,...sl].map(normSalesRow).filter(r=>r.date);
     const toDMY=v=>{v=String(v||'');return v.includes('/')?v:(v?v.split('-').reverse().join('/'):'');};
     const t=new Date();const todayDMY=`${String(t.getDate()).padStart(2,'0')}/${String(t.getMonth()+1).padStart(2,'0')}/${t.getFullYear()}`;const todayYMD=t.toISOString().split('T')[0];
@@ -1694,7 +1712,16 @@ async function onHtFiles(input){
         const pg=await pdf.getPage(i);const tc=await pg.getTextContent();
         const text=tc.items.map(s=>s.str).join(' ');
         const items=getExpressItems(text);
-        if(items.length)items.forEach(it=>addPickItem(HT_INV,it.code,it.color,it.size,it.qty));
+        if(items.length){
+          // Đơn Combo (VD "Combo 2c") — nhãn chỉ in Qty:1 dù gói có N sản phẩm, phải nhân lên
+          // giống hệt logic ở luồng Sort chính (buildPickFromGroups), nếu không sẽ đếm thiếu.
+          const cmb=tkComboCount(text);
+          items.forEach(it=>{
+            let q=it.qty||1;
+            if(cmb>=2&&items.length===1&&it.code!=='CB01')q=q*cmb;
+            addPickItem(HT_INV,it.code,it.color,it.size,q);
+          });
+        }
         else unread++;
         totalPages++;
       }
@@ -2916,7 +2943,7 @@ async function computeInvData(){
   const from7=mk(7),from30=mk(30),from60=mk(60);
   const [snapRows,salesRows,ordRowsAll,targetRows]=await Promise.all([
     sbSelect('kho_snapshot','order=counted_at.desc'),
-    sbSelect('sales_log','order=date.asc'),
+    sbSelectAll('sales_log','order=date.asc'),
     sbSelect('ord_lots','order=prod.asc'),
     sbSelect('kho_target'),
   ]);
@@ -3268,7 +3295,7 @@ async function loadSales(){
   showLoading('Tải dữ liệu đi đơn...');
   try{
     // Lấy sales_log trong khoảng ngày — format date là dd/mm/yyyy
-    const rows=await sbSelect('sales_log',`order=date.asc,prod.asc`);
+    const rows=await sbSelectAll('sales_log',`order=date.asc,prod.asc`);
     // Lấy lô hàng "Đã về nhà" từ Order Hàng → cộng vào hàng mới về
     try{
       const ol=await sbSelect('ord_lots','order=prod.asc');
