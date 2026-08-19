@@ -1215,6 +1215,7 @@ function cleanOtherName(d){
 function getShopeeItems(raw){
   // chuẩn hoá NFC để khớp chữ tiếng Việt do pdf.js trả về ở dạng tổ hợp
   const t=(raw||'').replace(/\u00A0/g,' ').replace(/Comb\s*o/gi,'Combo').replace(/Nud\s+e/gi,'Nude')
+                   .replace(/\b(NBD|NB01|GY3|JS01|CB01)(Combo)/gi,'$1 $2')
                    .replace(/\s+/g,' ').normalize('NFC').trim();
   // chỉ đọc trong vùng "Nội dung hàng" (nếu tìm được), tránh bắt nhầm địa chỉ
   const region=(t.match(/Nội dung hàng[\s\S]*?(?=Người gửi|Tiền thu|$)/)||[t])[0];
