@@ -241,7 +241,7 @@ html,body{height:100%;font-family:var(--f-body);-webkit-font-smoothing:antialias
 .pick-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .pick-block{border:1px solid rgba(220,198,170,.5);border-radius:9px;overflow:hidden}
 .pick-blk-hdr{padding:7px 11px;font-family:var(--f-head);font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--tan)}
-.ph-nbd{background:var(--dark)}.ph-nbl{background:#3d2a1c}.ph-js01{background:var(--brown)}.ph-gy3{background:#1e2030}.ph-other{background:#555}
+.ph-nbd{background:var(--dark)}.ph-nbl{background:#3d2a1c}.ph-js01{background:var(--brown)}.ph-gy3{background:#1e2030}.ph-cloud{background:#4a3a68}.ph-other{background:#555}
 .pick-tbl{width:100%;border-collapse:collapse;font-size:11px}
 .pick-tbl th{padding:5px 7px;text-align:center;background:var(--cream);font-family:var(--f-head);font-size:8px;font-weight:700;color:var(--brown);border-bottom:1px solid rgba(220,198,170,.4)}
 .pick-tbl th.l{text-align:left;padding-left:10px}
@@ -339,7 +339,7 @@ select:focus,input[type=text]:focus,input[type=date]:focus{border-color:var(--te
 .dash-prod-block{background:var(--white);border:1px solid rgba(220,198,170,.5);border-radius:14px;overflow:hidden;margin-bottom:14px}
 .dash-prod-title{display:grid;grid-template-columns:1fr auto;align-items:stretch}
 .dash-prod-name{padding:10px 16px;font-family:var(--f-head);font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--tan)}
-.dp-nbd{background:#BE735E}.dp-nbl{background:var(--green)}.dp-bsl{background:var(--brown)}.dp-gy3{background:var(--dark)}
+.dp-nbd{background:#BE735E}.dp-nbl{background:var(--green)}.dp-bsl{background:var(--brown)}.dp-gy3{background:var(--dark)}.dp-cloud{background:#7a5fa8}
 .dash-action{padding:8px 16px;font-size:12px;font-weight:600;display:flex;align-items:center}
 .da-red{background:var(--red-bg);color:var(--red-fg)}.da-org{background:var(--org-bg);color:var(--org-fg)}
 .da-yel{background:var(--yel-bg);color:var(--yel-fg)}.da-grn{background:var(--grn-bg);color:var(--grn-fg)}
@@ -571,7 +571,7 @@ select:focus,input[type=text]:focus,input[type=date]:focus{border-color:var(--te
       </div>
       <div class="mode-badge" id="modeBadge">
         <span class="mode-dot" id="modeDot"></span>
-        <span class="mode-txt" id="modeTxt">Chế độ: Shopee · NBD / NB01 / GY3 / JS01</span>
+        <span class="mode-txt" id="modeTxt">Chế độ: Shopee · NBD / NB01 / GY3 / JS01 / CLOUD</span>
       </div>
       <div class="drop" id="dropZone" onclick="triggerFile()">
         <div class="drop-ring"><span id="dropIco">📤</span></div>
@@ -691,6 +691,7 @@ select:focus,input[type=text]:focus,input[type=date]:focus{border-color:var(--te
     <button class="kho-tab" onclick="setOrdTab('NBL',this)">NB Lót</button>
     <button class="kho-tab" onclick="setOrdTab('BSL',this)">Bodysuit</button>
     <button class="kho-tab" onclick="setOrdTab('GY3',this)">Gym3</button>
+    <button class="kho-tab" onclick="setOrdTab('CLD',this)">Cloud</button>
   </div>
 
   <!-- Form thêm đợt mới -->
@@ -740,6 +741,7 @@ select:focus,input[type=text]:focus,input[type=date]:focus{border-color:var(--te
     <button class="kho-tab" onclick="setDashTab('NBL',this)">NB Lót</button>
     <button class="kho-tab" onclick="setDashTab('BSL',this)">Bodysuit</button>
     <button class="kho-tab" onclick="setDashTab('GY3',this)">Gym3</button>
+    <button class="kho-tab" onclick="setDashTab('CLD',this)">Cloud</button>
   </div>
   <div id="dashContent"><div style="color:#9A8070;font-size:13px;text-align:center;padding:40px">Bấm "Cập nhật dữ liệu" để tải</div></div>
   <div id="dashSummary" style="margin-top:8px"></div>
@@ -771,6 +773,7 @@ select:focus,input[type=text]:focus,input[type=date]:focus{border-color:var(--te
       <button class="kho-tab" onclick="setInvTab('NBL',this)">NB Lót</button>
       <button class="kho-tab" onclick="setInvTab('BSL',this)">Bodysuit</button>
       <button class="kho-tab" onclick="setInvTab('GY3',this)">Gym3</button>
+      <button class="kho-tab" onclick="setInvTab('CLD',this)">Cloud</button>
     </div>
     <div class="card" id="updateKhoCard" style="display:none">
       <div class="card-body" style="padding:18px 22px">
@@ -799,6 +802,7 @@ select:focus,input[type=text]:focus,input[type=date]:focus{border-color:var(--te
         <div class="kho-tab" onclick="setKhoTab('NBL',this)">NB Lót</div>
         <div class="kho-tab" onclick="setKhoTab('BSL',this)">Bodysuit</div>
         <div class="kho-tab" onclick="setKhoTab('GY3',this)">Gym3</div>
+        <div class="kho-tab" onclick="setKhoTab('CLD',this)">Cloud</div>
       </div>
       <div style="margin:6px 0 10px;display:flex;align-items:center;gap:8px">
         <span class="manual-lbl" style="margin:0">Ngày đếm kho</span>
@@ -853,6 +857,7 @@ select:focus,input[type=text]:focus,input[type=date]:focus{border-color:var(--te
     <button class="kho-tab" onclick="setSalesDetailProd('NBL',this)">NB Lót</button>
     <button class="kho-tab" onclick="setSalesDetailProd('BSL',this)">Bodysuit</button>
     <button class="kho-tab" onclick="setSalesDetailProd('GY3',this)">Gym3</button>
+    <button class="kho-tab" onclick="setSalesDetailProd('CLD',this)">Cloud</button>
   </div>
 
   <!-- Điền đơn đi theo ngày (lưới) -->
@@ -867,6 +872,7 @@ select:focus,input[type=text]:focus,input[type=date]:focus{border-color:var(--te
             <option value="NBL">NB Lót</option>
             <option value="BSL">Bodysuit</option>
             <option value="GY3">Gym3</option>
+            <option value="CLD">Cloud</option>
           </select>
         </div>
         <div id="manualGridHint" style="font-size:11px;color:#9A8070;padding-bottom:8px"></div>
@@ -888,7 +894,7 @@ select:focus,input[type=text]:focus,input[type=date]:focus{border-color:var(--te
         <div><div class="manual-lbl">Sản phẩm</div>
           <select id="arrProd" onchange="renderArrGrid()">
             <option value="QNB">Quần Nịt Bụng</option><option value="NBL">NB Lót</option>
-            <option value="BSL">Bodysuit</option><option value="GY3">Gym3</option>
+            <option value="BSL">Bodysuit</option><option value="GY3">Gym3</option><option value="CLD">Cloud</option>
           </select>
         </div>
         <div style="flex:1;min-width:180px"><div class="manual-lbl">Tên lô / ghi chú (vd: Hàng trả, Đợt 74)</div><input type="text" id="arrNote" placeholder="Hàng trả" style="width:100%"></div>
@@ -990,16 +996,17 @@ let F=null,RPDF=null,RFNAME='',PLAT='shopee',PICK_INV=null,DASH_DATA=null,SIZE_D
 const RULES={QNB:{min:3000,lead:20,name:'Quần Nịt Bụng',code:'NBD',cls:'dp-nbd'},
              NBL:{min:200, lead:20,name:'Quần NB Lót',  code:'NB01',cls:'dp-nbl'},
              BSL:{min:100, lead:20,name:'Bodysuite Lót', code:'JS01',cls:'dp-bsl'},
-             GY3:{min:500, lead:20,name:'Gym3',          code:'GY3', cls:'dp-gy3'}};
+             GY3:{min:500, lead:20,name:'Gym3',          code:'GY3', cls:'dp-gy3'},
+             CLD:{min:200, lead:20,name:'Cloud',          code:'CLOUD', cls:'dp-cloud'}};
 const SZ=['XS/S','XS','S','M/L','M','L','XL/2XL','XL/XXL','XL','XXL','2XL','3XL','4XL','5XL','6XL'];
 const SZP='(XS\\/S|M\\/L|XL\\/2XL|XL\\/XXL|XS|S|M|L|XL|XXL|2XL|3XL|4XL|5XL|6XL)';
-const PICK_SIZES={NBD:['XS/S','M/L','XL/2XL','3XL','4XL','5XL','6XL'],NB01:['XS/S','M/L','XL/2XL','3XL','4XL','5XL','6XL'],JS01:['S','M','L','XL','2XL','3XL'],GY3:['S','M']};
-const PICK_COLORS={NBD:['Đen','Da'],NB01:['Đen','Da'],JS01:['Đen','Nâu','Da'],GY3:['Đen','Nâu']};
+const PICK_SIZES={NBD:['XS/S','M/L','XL/2XL','3XL','4XL','5XL','6XL'],NB01:['XS/S','M/L','XL/2XL','3XL','4XL','5XL','6XL'],JS01:['S','M','L','XL','2XL','3XL'],GY3:['S','M'],CLOUD:['S','M','L']};
+const PICK_COLORS={NBD:['Đen','Da'],NB01:['Đen','Da'],JS01:['Đen','Nâu','Da'],GY3:['Đen','Nâu'],CLOUD:['Đen','Nâu','Hồng','Xanh']};
 // Tồn kho nhà cho cảnh báo lúc soạn hàng (map mã sort → mã Đi Đơn)
 let PICK_STOCK={},PICK_STOCK_READY=false;
 let HT_INV=null;   // đếm đơn hoả tốc / ngoại sàn (nhiều file PDF)
-const PICK_PMAP={NBD:'QNB',NB01:'NBL',JS01:'BSL',GY3:'GY3'};
-function pickColToSales(salesProd,c){c=(c||'').toLowerCase();if(c.includes('đen')||c.includes('den'))return 'ĐEN';if(c.includes('nâu')||c.includes('nau'))return 'NÂU';if(c.includes('nude')||c==='da')return salesProd==='BSL'?'DA':'Da';return c;}
+const PICK_PMAP={NBD:'QNB',NB01:'NBL',JS01:'BSL',GY3:'GY3',CLOUD:'CLD'};
+function pickColToSales(salesProd,c){c=(c||'').toLowerCase();if(c.includes('đen')||c.includes('den'))return 'ĐEN';if(c.includes('nâu')||c.includes('nau'))return 'NÂU';if(c.includes('hồng')||c.includes('hong'))return 'HỒNG';if(c.includes('xanh'))return 'XANH';if(c.includes('nude')||c==='da')return salesProd==='BSL'?'DA':'Da';return c;}
 
 // ═══ INIT ════════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded',async ()=>{
@@ -1157,7 +1164,7 @@ function hideLoading(){document.getElementById('loadingOverlay').style.display='
 // Chuyển flat rows từ Supabase → format DASH_DATA {QNB:{action,summary,skus,tot}}
 function sbRowsToDashData(rows){
   const data={};
-  ['QNB','NBL','BSL','GY3'].forEach(pk=>{
+  ['QNB','NBL','BSL','GY3','CLD'].forEach(pk=>{
     const prodRows=rows.filter(r=>r.prod===pk);
     if(!prodRows.length)return;
     const first=prodRows[0];
@@ -1185,6 +1192,8 @@ function nColor(c){
   if(c.includes('combo')) return 'COMBO';
   if(c.includes('đen')||c.includes('den')||c.includes('black')) return 'BLACK';
   if(c.includes('nâu')||c.includes('nau')||c.includes('brown')) return 'BROWN';
+  if(c.includes('hồng')||c.includes('hong')||c.includes('pink')) return 'PINK';
+  if(c.includes('xanh')||c.includes('blue')) return 'BLUE';
   if(c.includes('nude')||c.includes('da')||c.includes('be')||c.includes('skin')) return 'DA';
   return null;
 }
@@ -1197,25 +1206,25 @@ function nSize(s){
 }
 const szR=s=>{const i=SZ.indexOf(s);return i<0?999:i;};
 const srtG=g=>[...g].sort((a,b)=>szR(a.size)-szR(b.size));
-function mkB(){return{NBD:{BLACK:[],DA:[],COMBO:[]},NB01:{BLACK:[],DA:[],COMBO:[]},GY3:{BLACK:[],BROWN:[]},JS01:{BLACK:[],BROWN:[],DA:[]},CB01:[],MULTI:[],OTHER:[]};}
+function mkB(){return{NBD:{BLACK:[],DA:[],COMBO:[]},NB01:{BLACK:[],DA:[],COMBO:[]},GY3:{BLACK:[],BROWN:[]},JS01:{BLACK:[],BROWN:[],DA:[]},CLOUD:{BLACK:[],BROWN:[],PINK:[],BLUE:[]},CB01:[],MULTI:[],OTHER:[]};}
 function getTQ(t){const m=t.match(/T[oổ]ng\s*SL[^:]*:?\s*(\d+)/i);return m?parseInt(m[1]):null;}
 
 // ═══ SHOPEE PARSER (bản chuẩn: đọc theo dòng "N. … SL: q", chống lặp, tách combo) ═══
 function nGroupSize(code,rawSize){
   let s=(rawSize||'').toUpperCase().replace(/\s/g,'');
   if(s==='XXXL')s='3XL';
-  return pSize(s,(code==='JS01'||code==='GY3')?code:'NBD');
+  return pSize(s,(code==='JS01'||code==='GY3'||code==='CLOUD')?code:'NBD');
 }
 function cleanOtherName(d){
   return d.replace(/^S[aả]n\s*ph[aẩ]m\s*ph[uụ]\s*ki[eệ]n\s*th[oờ]i\s*trang\s*,?\s*/i,'')
           .replace(/\s*\|\s*Hannal[^,|]*/ig,'')
-          .replace(/[-\u2013,]?\s*(Đen|Nude|Nâu|Da)\s*,\s*[A-Za-z0-9/ ]+$/i,'')
+          .replace(/[-\u2013,]?\s*(Đen|Nude|Nâu|Da|Hồng|Xanh)\s*,\s*[A-Za-z0-9/ ]+$/i,'')
           .replace(/\s{2,}/g,' ').replace(/[-\u2013,\s]+$/,'').trim().slice(0,50);
 }
 function getShopeeItems(raw){
   // chuẩn hoá NFC để khớp chữ tiếng Việt do pdf.js trả về ở dạng tổ hợp
   const t=(raw||'').replace(/\u00A0/g,' ').replace(/Comb\s*o/gi,'Combo').replace(/Nud\s+e/gi,'Nude')
-                   .replace(/\b(NBD|NB01|GY3|JS01|CB01)(Combo)/gi,'$1 $2')
+                   .replace(/\b(NBD|NB01|GY3|JS01|CB01|CLOUD)(Combo)/gi,'$1 $2')
                    .replace(/\s+/g,' ').normalize('NFC').trim();
   // chỉ đọc trong vùng "Nội dung hàng" (nếu tìm được), tránh bắt nhầm địa chỉ
   const region=(t.match(/Nội dung hàng[\s\S]*?(?=Người gửi|Tiền thu|$)/)||[t])[0];
@@ -1225,15 +1234,15 @@ function getShopeeItems(raw){
     let desc=m[2].trim().replace(/,+$/,'');const qty=parseInt(m[3])||1;
     const sig=desc.toUpperCase().replace(/\s/g,'')+'#'+qty;
     if(seen.has(sig))continue;seen.add(sig);   // chống nhân đôi khi text-layer bị lặp
-    const code=/\bGY3\b/i.test(desc)?'GY3':/\bJS01\b/i.test(desc)?'JS01':/\bCB01\b/i.test(desc)?'CB01':/\bNB01\b/i.test(desc)?'NB01':/\bNBD\b/i.test(desc)?'NBD':null;
+    const code=/\bCLOUD\b/i.test(desc)?'CLOUD':/\bGY3\b/i.test(desc)?'GY3':/\bJS01\b/i.test(desc)?'JS01':/\bCB01\b/i.test(desc)?'CB01':/\bNB01\b/i.test(desc)?'NB01':/\bNBD\b/i.test(desc)?'NBD':null;
     // Combo 2 màu (vd "NBD Combo Đen + Nude") -> tách mỗi màu 1 đơn vị
     if(/combo/i.test(desc)&&code&&code!=='CB01'){
       const size=nGroupSize(code,(desc.match(/,?\s*([A-Za-z0-9/ ]+)$/)||[])[1]||'');
-      const uniq=[...new Set([...desc.matchAll(/Đen|Nude|Nâu|Da/gi)].map(x=>x[0].toLowerCase()))];
+      const uniq=[...new Set([...desc.matchAll(/Đen|Nude|Nâu|Da|Hồng|Xanh/gi)].map(x=>x[0].toLowerCase()))];
       uniq.forEach(c=>res.push({code,color:c,size,qty:1}));continue;
     }
     // màu + size ở cuối dòng: "…Màu,Size" HOẶC "…Màu Size" (một số nhãn SPX/Shopee không có dấu phẩy giữa màu và size, VD "GY3 ĐEN M")
-    const cs=desc.match(/(Đen|Nude|Nâu|Da)\s*,?\s*([A-Za-z0-9/ ]+)$/i);
+    const cs=desc.match(/(Đen|Nude|Nâu|Da|Hồng|Xanh)\s*,?\s*([A-Za-z0-9/ ]+)$/i);
     if(!cs){res.push({code:'OTHER',name:cleanOtherName(desc),color:'',size:'?',qty});continue;}
     if(code)res.push({code,color:cs[1],size:nGroupSize(code,cs[2]),qty});
     else res.push({code:'OTHER',name:cleanOtherName(desc),color:pColor(cs[1]),size:cs[2].toUpperCase().replace(/\s/g,''),qty});
@@ -1255,6 +1264,7 @@ function classifyShopee(pages){
     else if(it.code==='NB01'&&ck&&B.NB01[ck]!==undefined)push(B.NB01[ck]);
     else if(it.code==='GY3'&&ck&&B.GY3[ck]!==undefined)push(B.GY3[ck]);
     else if(it.code==='JS01'&&ck&&B.JS01[ck]!==undefined)push(B.JS01[ck]);
+    else if(it.code==='CLOUD'&&ck&&B.CLOUD[ck]!==undefined)push(B.CLOUD[ck]);
     else if(it.code==='CB01')push(B.CB01);
     else{if(!seen.has(idx)){B.OTHER.push(e);seen.add(idx);}logs.push({t:'warn',m:`T${idx+1}: OTHER (${it.code})`});oc++;}
   });
@@ -1263,7 +1273,7 @@ function classifyShopee(pages){
   return{B,logs};
 }
 function doSortShopee(B){
-  const ORD=[{lb:'NBD Đen',g:B.NBD.BLACK},{lb:'NBD Da',g:B.NBD.DA},{lb:'NBD Combo',g:B.NBD.COMBO},{lb:'NB01 Đen',g:B.NB01.BLACK},{lb:'NB01 Da',g:B.NB01.DA},{lb:'NB01 Combo',g:B.NB01.COMBO},{lb:'JS01 Đen',g:B.JS01.BLACK},{lb:'JS01 Nâu',g:B.JS01.BROWN},{lb:'JS01 Da',g:B.JS01.DA},{lb:'GY3 Đen',g:B.GY3.BLACK},{lb:'GY3 Nâu',g:B.GY3.BROWN},{lb:'CB01',g:B.CB01},{lb:'Multi',g:B.MULTI},{lb:'Other',g:B.OTHER}];
+  const ORD=[{lb:'NBD Đen',g:B.NBD.BLACK},{lb:'NBD Da',g:B.NBD.DA},{lb:'NBD Combo',g:B.NBD.COMBO},{lb:'NB01 Đen',g:B.NB01.BLACK},{lb:'NB01 Da',g:B.NB01.DA},{lb:'NB01 Combo',g:B.NB01.COMBO},{lb:'JS01 Đen',g:B.JS01.BLACK},{lb:'JS01 Nâu',g:B.JS01.BROWN},{lb:'JS01 Da',g:B.JS01.DA},{lb:'GY3 Đen',g:B.GY3.BLACK},{lb:'GY3 Nâu',g:B.GY3.BROWN},{lb:'Cloud Đen',g:B.CLOUD.BLACK},{lb:'Cloud Nâu',g:B.CLOUD.BROWN},{lb:'Cloud Hồng',g:B.CLOUD.PINK},{lb:'Cloud Xanh',g:B.CLOUD.BLUE},{lb:'CB01',g:B.CB01},{lb:'Multi',g:B.MULTI},{lb:'Other',g:B.OTHER}];
   const idx=[],st={};
   for(const{lb,g}of ORD){const s=srtG(g);idx.push(...s.map(x=>x.idx));st[lb]=s.length;}
   return{idx,st};
@@ -1277,21 +1287,21 @@ function getTkOrderId(text){
 function getTkItems(raw){
   let t=raw.replace(/\u00A0/g,' ').replace(/Comb\s+o/gi,'Combo').replace(/\s+/g,' ').trim();
   const res=[];let m;
-  const r0=new RegExp(`(Đen|Den|Nude|Nâu|Nau|Da|Be|Brown|Black|Skin)[^,\\n]{0,20},\\s*${SZP}\\s+(NBD|NB01|GY3|CB01|JS01)\\s+(\\d+)`,'gi');
+  const r0=new RegExp(`(Đen|Den|Nude|Nâu|Nau|Da|Be|Brown|Black|Skin|Hồng|Hong|Pink|Xanh|Blue)[^,\\n]{0,20},\\s*${SZP}\\s+(NBD|NB01|GY3|CB01|JS01|CLOUD)\\s+(\\d+)`,'gi');
   while((m=r0.exec(t))!==null){const color=m[1].trim(),size=nSize(m[2]),code=m[3].toUpperCase(),qty=parseInt(m[4]);if(size&&qty>0&&!res.some(r=>r.code===code&&r.size===size&&pColor(r.color)===pColor(color)))res.push({code,color,size,qty});}
   // Thứ tự ĐẢO "Size, Màu CODE qty" (VD Bodysuit "M, Đen JS01 1" — TikTok đặt option size trước màu)
-  const r0b=new RegExp(`${SZP}\\s*,\\s*(Đen|Den|Nude|Nâu|Nau|Da|Be|Brown|Black|Skin)\\s+(NBD|NB01|GY3|CB01|JS01)\\s+(\\d+)`,'gi');
+  const r0b=new RegExp(`${SZP}\\s*,\\s*(Đen|Den|Nude|Nâu|Nau|Da|Be|Brown|Black|Skin|Hồng|Hong|Pink|Xanh|Blue)\\s+(NBD|NB01|GY3|CB01|JS01|CLOUD)\\s+(\\d+)`,'gi');
   while((m=r0b.exec(t))!==null){const size=nSize(m[1]),color=m[2].trim(),code=m[3].toUpperCase(),qty=parseInt(m[4]);if(size&&qty>0&&!res.some(r=>r.code===code&&r.size===size&&pColor(r.color)===pColor(color)))res.push({code,color,size,qty});}
   if(res.length)return res;
-  const r1=new RegExp(`\\b(NBD|NB01|GY3|CB01|JS01)\\s+([^,]{1,30}?),\\s*${SZP}(?:\\s*[x×]\\s*(\\d+)|\\s*,?\\s*(?:SL|Qty)\\s*:?\\s*(\\d+))?`,'gi');
+  const r1=new RegExp(`\\b(NBD|NB01|GY3|CB01|JS01|CLOUD)\\s+([^,]{1,30}?),\\s*${SZP}(?:\\s*[x×]\\s*(\\d+)|\\s*,?\\s*(?:SL|Qty)\\s*:?\\s*(\\d+))?`,'gi');
   while((m=r1.exec(t))!==null){const code=m[1].toUpperCase(),color=m[2].trim(),size=nSize(m[3]),qty=parseInt(m[4]||m[5]||'1');if(size&&qty>0&&!res.some(r=>r.code===code&&r.size===size&&pColor(r.color)===pColor(color)))res.push({code,color,size,qty});}
   // Fallback cuối: token có thể bị pdf.js tách rời (VD "M, Đen" xa "JS01").
   // Tìm CODE + cặp (màu,size) ở BẤT KỲ vị trí, BẤT KỲ thứ tự — chỉ chạy khi các mẫu trên trượt.
   if(!res.length){
-    const codeM=t.match(/\b(JS01|NB01|NBD|GY3|CB01)\b/i);
+    const codeM=t.match(/\b(JS01|NB01|NBD|GY3|CB01|CLOUD)\b/i);
     if(codeM){
       const code=codeM[1].toUpperCase();
-      const COL='(Đen|Den|Nude|Nâu|Nau|Da|Be|Brown|Black|Skin)';
+      const COL='(Đen|Den|Nude|Nâu|Nau|Da|Be|Brown|Black|Skin|Hồng|Hong|Pink|Xanh|Blue)';
       let color,size,cs;
       if((cs=t.match(new RegExp(`${COL}\\s*,\\s*${SZP}`,'i')))){color=cs[1];size=nSize(cs[2]);}       // "Màu, Size"
       else if((cs=t.match(new RegExp(`${SZP}\\s*,\\s*${COL}`,'i')))){size=nSize(cs[1]);color=cs[2];}   // "Size, Màu"
@@ -1330,6 +1340,7 @@ function classifyTiktok(groups){
     else if(it.code==='NB01'&&ck&&B.NB01[ck]!==undefined)push(B.NB01[ck]);
     else if(it.code==='GY3'&&ck&&B.GY3[ck]!==undefined)push(B.GY3[ck]);
     else if(it.code==='JS01'&&ck&&B.JS01[ck]!==undefined)push(B.JS01[ck]);
+    else if(it.code==='CLOUD'&&ck&&B.CLOUD[ck]!==undefined)push(B.CLOUD[ck]);
     else if(it.code==='CB01')push(B.CB01);
     else{B.OTHER.push(e);logs.push({t:'warn',m:`${label}: OTHER`});oc++;}
   });
@@ -1337,7 +1348,7 @@ function classifyTiktok(groups){
   return{B,logs};
 }
 function doSortTiktok(B){
-  const ORD=[{lb:'NBD Đen',g:B.NBD.BLACK},{lb:'NBD Da',g:B.NBD.DA},{lb:'NBD Combo',g:B.NBD.COMBO},{lb:'NB01 Đen',g:B.NB01.BLACK},{lb:'NB01 Da',g:B.NB01.DA},{lb:'NB01 Combo',g:B.NB01.COMBO},{lb:'JS01 Đen',g:B.JS01.BLACK},{lb:'JS01 Nâu',g:B.JS01.BROWN},{lb:'JS01 Da',g:B.JS01.DA},{lb:'GY3 Đen',g:B.GY3.BLACK},{lb:'GY3 Nâu',g:B.GY3.BROWN},{lb:'CB01',g:B.CB01},{lb:'Multi',g:B.MULTI},{lb:'Other',g:B.OTHER}];
+  const ORD=[{lb:'NBD Đen',g:B.NBD.BLACK},{lb:'NBD Da',g:B.NBD.DA},{lb:'NBD Combo',g:B.NBD.COMBO},{lb:'NB01 Đen',g:B.NB01.BLACK},{lb:'NB01 Da',g:B.NB01.DA},{lb:'NB01 Combo',g:B.NB01.COMBO},{lb:'JS01 Đen',g:B.JS01.BLACK},{lb:'JS01 Nâu',g:B.JS01.BROWN},{lb:'JS01 Da',g:B.JS01.DA},{lb:'GY3 Đen',g:B.GY3.BLACK},{lb:'GY3 Nâu',g:B.GY3.BROWN},{lb:'Cloud Đen',g:B.CLOUD.BLACK},{lb:'Cloud Nâu',g:B.CLOUD.BROWN},{lb:'Cloud Hồng',g:B.CLOUD.PINK},{lb:'Cloud Xanh',g:B.CLOUD.BLUE},{lb:'CB01',g:B.CB01},{lb:'Multi',g:B.MULTI},{lb:'Other',g:B.OTHER}];
   const idx=[],st={};
   for(const{lb,g}of ORD){const sorted=[...g].sort((a,b)=>szR(a.size)-szR(b.size));for(const e of sorted)idx.push(...(e.indices||[e.idx]));st[lb]=sorted.length;}
   return{idx,st};
@@ -1351,8 +1362,8 @@ async function buildSortedPdf(srcBuf,pageIndices){
 // ═══ PICK TABLE ═════════════════════════════════════════════════
 function pSize(raw,prod){
   const s=(raw||'').toUpperCase().replace(/\s/g,'');
-  // GY3 và JS01 dùng size S, M, L riêng
-  if(prod==='GY3'||prod==='JS01'){
+  // GY3, JS01, CLOUD dùng size S, M, L riêng
+  if(prod==='GY3'||prod==='JS01'||prod==='CLOUD'){
     if(s==='S'||s==='XS') return 'S';
     if(s==='M') return 'M';
     if(s==='L') return 'L';
@@ -1375,11 +1386,13 @@ function pColor(raw){
   const s=(raw||'').toLowerCase();
   if(s.includes('đen')||s.includes('den')||s.includes('black')) return 'Đen';
   if(s.includes('nâu')||s.includes('nau')||s.includes('brown')) return 'Nâu';
+  if(s.includes('hồng')||s.includes('hong')||s.includes('pink')) return 'Hồng';
+  if(s.includes('xanh')||s.includes('blue')) return 'Xanh';
   if(s.includes('nude')||s.includes('da')||s.includes('skin')||s.includes('be')) return 'Da';
   return raw;
 }
 function initPickInv(){
-  const inv={NBD:{},NB01:{},JS01:{},GY3:{},OTHER:{}};
+  const inv={NBD:{},NB01:{},JS01:{},GY3:{},CLOUD:{},OTHER:{}};
   for(const[p,colors]of Object.entries(PICK_COLORS)){
     for(const c of colors){inv[p][c]={};for(const s of PICK_SIZES[p])inv[p][c][s]=0;}
   }
@@ -1401,6 +1414,7 @@ function addPickItem(inv,code,rawColor,rawSize,qty){
   else if(code==='NB01') addTo('NB01');
   else if(code==='JS01') addTo('JS01');
   else if(code==='GY3')  addTo('GY3');
+  else if(code==='CLOUD') addTo('CLOUD');
   else{const sz=pSize(rawSize,'OTHER');const k=`${code||'?'}·${col}·${sz}`;inv.OTHER[k]=(inv.OTHER[k]||0)+qty;}
 }
 function buildPickFromPages(pages){
@@ -1440,12 +1454,12 @@ function buildPickFromGroups(groups){
 function getGHNItems(raw){
   const t=(raw||'').replace(/\u00A0/g,' ').replace(/\s+/g,' ').normalize('NFC');
   const res=[];let m;
-  const re=new RegExp(`\\b(NBD|NB01|JS01|GY3|CB01)\\s+([A-Za-zÀ-ỹ+ ]{1,25}?)\\s*${SZP}\\s*:\\s*(\\d+)`,'gi');
+  const re=new RegExp(`\\b(NBD|NB01|JS01|GY3|CB01|CLOUD)\\s+([A-Za-zÀ-ỹ+ ]{1,25}?)\\s*${SZP}\\s*:\\s*(\\d+)`,'gi');
   while((m=re.exec(t))!==null){
     const code=m[1].toUpperCase();let colorRaw=(m[2]||'').trim();const size=nSize(m[3]);const qty=parseInt(m[4])||1;
     if(!size||qty<=0)continue;
     if(/combo/i.test(colorRaw)){
-      const uniq=[...new Set([...colorRaw.matchAll(/Đen|Den|Nude|Nâu|Nau|Da/gi)].map(x=>x[0].toLowerCase()))];
+      const uniq=[...new Set([...colorRaw.matchAll(/Đen|Den|Nude|Nâu|Nau|Da|Hồng|Hong|Xanh/gi)].map(x=>x[0].toLowerCase()))];
       uniq.forEach(c=>res.push({code,color:c,size,qty:1}));
     }else res.push({code,color:colorRaw,size,qty});
   }
@@ -1500,7 +1514,8 @@ async function showPickTable(){
     renderPickTable('NBD','Quần Nịt Bụng Dài — NBD','ph-nbd')+
     renderPickTable('NB01','Quần Nịt Bụng Lót — NB01','ph-nbl')+
     renderPickTable('JS01','Bodysuit Lót — JS01','ph-js01')+
-    renderPickTable('GY3','Jumpsuit — GY3','ph-gy3');
+    renderPickTable('GY3','Jumpsuit — GY3','ph-gy3')+
+    renderPickTable('CLOUD','Cloud — CLOUD','ph-cloud');
   const other=PICK_INV.OTHER,otherKeys=Object.keys(other).filter(k=>other[k]>0);
   if(otherKeys.length){
     document.getElementById('pickOther').style.display='block';
@@ -1736,10 +1751,10 @@ function renderHtTable(fileCount,totalPages,unread){
   const el=document.getElementById('htContent');if(!el)return;
   const btn=document.getElementById('htWriteBtn');
   if(!HT_INV){el.innerHTML='';if(btn)btn.disabled=true;return;}
-  const NAMES={NBD:'Quần NB Dài',NB01:'Quần NB Lót',JS01:'Bodysuit',GY3:'Gym3'};
+  const NAMES={NBD:'Quần NB Dài',NB01:'Quần NB Lót',JS01:'Bodysuit',GY3:'Gym3',CLOUD:'Cloud'};
   const chip=(t)=>`<span style="display:inline-block;background:var(--cream);border:1px solid #e8d9c8;border-radius:6px;padding:3px 8px;margin:2px;font-size:11px">${t}</span>`;
   let total=0,rowsHtml='';
-  ['NBD','NB01','JS01','GY3'].forEach(prod=>{
+  ['NBD','NB01','JS01','GY3','CLOUD'].forEach(prod=>{
     const colors=PICK_COLORS[prod],sizes=PICK_SIZES[prod];let cells='';
     colors.forEach(c=>sizes.forEach(s=>{const v=(HT_INV[prod][c]||{})[s]||0;if(v>0){cells+=chip(`<b>${c} ${s}</b> ×${v}`);total+=v;}}));
     if(cells)rowsHtml+=`<div style="margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:var(--brown);font-family:var(--f-head);margin-bottom:3px">${NAMES[prod]} — ${prod}</div>${cells}</div>`;
@@ -1780,11 +1795,11 @@ function addManualRow(){
   renderManualRows();
 }
 function renderManualRows(){
-  const prodOpts=[['NBD','Quần NB Dài'],['NB01','Quần NB Lót'],['JS01','Bodysuit'],['GY3','Gym3']];
+  const prodOpts=[['NBD','Quần NB Dài'],['NB01','Quần NB Lót'],['JS01','Bodysuit'],['GY3','Gym3'],['CLOUD','Cloud']];
   document.getElementById('manualRows').innerHTML=manualRows.map((r,i)=>`
     <div class="manual-grid" style="margin-bottom:6px">
       <div><div class="manual-lbl">Sản phẩm</div><select onchange="manualRows[${i}].prod=this.value">${prodOpts.map(([v,l])=>`<option value="${v}"${r.prod===v?' selected':''}>${l}</option>`).join('')}</select></div>
-      <div><div class="manual-lbl">Màu</div><select onchange="manualRows[${i}].color=this.value"><option>Đen</option><option>Nude</option><option>Nâu</option><option>Da</option></select></div>
+      <div><div class="manual-lbl">Màu</div><select onchange="manualRows[${i}].color=this.value"><option>Đen</option><option>Nude</option><option>Nâu</option><option>Da</option><option>Hồng</option><option>Xanh</option></select></div>
       <div><div class="manual-lbl">Size</div><select onchange="manualRows[${i}].size=this.value"><option>XS/S</option><option>M/L</option><option>XL/2XL</option><option>S</option><option>M</option><option>L</option><option>XL</option><option>2XL</option><option>3XL</option><option>4XL</option><option>5XL</option><option>6XL</option></select></div>
       <div><div class="manual-lbl">SL</div><input type="number" value="${r.qty}" min="1" style="width:100%;padding:7px 9px;border:1px solid rgba(220,198,170,.6);border-radius:7px;font-size:12px" onchange="manualRows[${i}].qty=parseInt(this.value)||1"></div>
       <div style="padding-bottom:0;display:flex;align-items:flex-end"><button class="btn btn-ghost" onclick="manualRows.splice(${i},1);renderManualRows()" style="font-size:11px;padding:7px 10px">✕</button></div>
@@ -1827,7 +1842,7 @@ function setPlatform(p){
   const badge=document.getElementById('modeBadge');badge.className='mode-badge'+(isTk?' tk':'');
   document.getElementById('modeDot').className='mode-dot'+(isTk?' tk':'');
   document.getElementById('modeTxt').className='mode-txt'+(isTk?' tk':'');
-  document.getElementById('modeTxt').textContent=isTk?'Chế độ: TikTok V2 · NBD/NB01/GY3/JS01':'Chế độ: Shopee · NBD/NB01/GY3/JS01';
+  document.getElementById('modeTxt').textContent=isTk?'Chế độ: TikTok V2 · NBD/NB01/GY3/JS01/CLOUD':'Chế độ: Shopee · NBD/NB01/GY3/JS01/CLOUD';
   document.getElementById('dropZone').className='drop'+(isTk?' tk':'');
   document.getElementById('dropTitle').textContent=isTk?'Bấm vào đây để chọn File TikTok':'Bấm vào đây để chọn File Shopee';
   document.getElementById('btnRun').className='btn-run'+(isTk?' tk':'');
@@ -1871,7 +1886,7 @@ async function run(){
       PLAT=auto;const isTk=auto==='tiktok';
       document.getElementById('btnShopee').className='plat-btn'+(isTk?'':' active-shopee');
       document.getElementById('btnTiktok').className='plat-btn'+(isTk?' active-tiktok':'');
-      const mt=document.getElementById('modeTxt');if(mt)mt.textContent=isTk?'Chế độ: TikTok V2 · NBD/NB01/GY3/JS01':'Chế độ: Shopee · NBD/NB01/GY3/JS01';
+      const mt=document.getElementById('modeTxt');if(mt)mt.textContent=isTk?'Chế độ: TikTok V2 · NBD/NB01/GY3/JS01/CLOUD':'Chế độ: Shopee · NBD/NB01/GY3/JS01/CLOUD';
     }
     const result=PLAT==='shopee'?await runShopee(buf,F.name):await runTiktok(buf,F.name);
     RPDF=result.pdfBytes;RFNAME=result.name;
@@ -1934,7 +1949,7 @@ function clearUI(){document.getElementById('logBd').innerHTML='';document.getEle
 const PFX={ok:'✓',error:'✗',warn:'⚠',multi:'◈',info:'·',debug:'→'};
 const CLS={ok:'lg-ok',error:'lg-err',warn:'lg-warn',multi:'lg-multi',info:'lg-info',debug:'lg-debug'};
 function lg(type,msg){const bd=document.getElementById('logBd');const ln=document.createElement('div');ln.className=`log-ln ${CLS[type]||'lg-info'}`;ln.innerHTML=`<span class="log-px">${PFX[type]||'·'}</span><span>${msg}</span>`;bd.appendChild(ln);bd.scrollTop=bd.scrollHeight;document.getElementById('logCt').textContent=bd.querySelectorAll('.log-ln').length+' dòng';}
-const BBG={'NBD Đen':'#2A211C','NBD Da':'#7a4530','NBD Combo':'#3d2a1c','NB01 Đen':'#1e1814','NB01 Da':'#6b3824','JS01 Đen':'#5B4636','JS01 Nâu':'#4a3020','JS01 Da':'#8a6040','GY3 Đen':'#1e2030','GY3 Nâu':'#5B4636','CB01':'#2a4030','Multi':'#3d2a50','Other':'#4a4540'};
+const BBG={'NBD Đen':'#2A211C','NBD Da':'#7a4530','NBD Combo':'#3d2a1c','NB01 Đen':'#1e1814','NB01 Da':'#6b3824','JS01 Đen':'#5B4636','JS01 Nâu':'#4a3020','JS01 Da':'#8a6040','GY3 Đen':'#1e2030','GY3 Nâu':'#5B4636','Cloud Đen':'#2a2035','Cloud Nâu':'#4a3020','Cloud Hồng':'#8a4a68','Cloud Xanh':'#2a4a68','CB01':'#2a4030','Multi':'#3d2a50','Other':'#4a4540'};
 function showStats(st,total){
   const grid=document.getElementById('statsGrid');grid.innerHTML='';let sum=0;
   for(const[k,v]of Object.entries(st)){sum+=v;const c=document.createElement('div');c.className='sc'+(v>0?' hi':'');if(v>0)c.style.background=BBG[k]||'#5B4636';c.innerHTML=`<div class="sc-n">${v}</div><div class="sc-l">${k}</div>`;grid.appendChild(c);}
@@ -1956,6 +1971,9 @@ const ORD_PRODS=[
   {key:'GY3',name:'Gym3 / Jumpsuit',code:'GY3',dot:'#BE735E',
    colors:['ĐEN','NÂU'],sizes:['S','M'],
    clrBg:{ĐEN:'#2A211C',NÂU:'#3d2010'},clrFg:{ĐEN:'#DCC6AA',NÂU:'#d4a07a'}},
+  {key:'CLD',name:'Cloud',code:'CLOUD',dot:'#7a5fa8',
+   colors:['ĐEN','NÂU','HỒNG','XANH'],sizes:['S','M','L'],
+   clrBg:{ĐEN:'#2A211C',NÂU:'#3d2010',HỒNG:'#8a4a68',XANH:'#2a4a68'},clrFg:{ĐEN:'#DCC6AA',NÂU:'#d4a07a',HỒNG:'#f0c0d8',XANH:'#c0d8f0'}},
 ];
 let ORD_DATA=[];
 let curLotProd=null;
@@ -1995,7 +2013,7 @@ function tdClass(s){return s==='Đang về'?'td-go':s==='Kho SEC'?'td-sec':'td-h
 function ordNormSize(pk,s){
   s=(s||'').toString().toUpperCase().replace(/\s/g,'');
   if(s==='XXXL')s='3XL';
-  if(pk==='BSL'||pk==='GY3'){if(s==='XS')return 'S';if(s==='XXL')return '2XL';return s;}
+  if(pk==='BSL'||pk==='GY3'||pk==='CLD'){if(s==='XS')return 'S';if(s==='XXL')return '2XL';return s;}
   if(['S','XS','XS/S','XSS'].includes(s))return 'XS/S';
   if(['M','L','M/L','ML'].includes(s))return 'M/L';
   if(['XL','XXL','2XL','XL/XXL','XL/2XL','XLXXL','XL2XL'].includes(s))return 'XL/2XL';
@@ -2208,7 +2226,7 @@ async function updateLotStatus(prod,dotName,newStatus){
 
 async function loadOrd(){await loadOrdLots();}
 // ═══ KIỂM KHO ════════════════════════════════════════════════════
-const KHO_CFG={QNB:{name:'Quần Nịt Bụng',colors:['ĐEN','Da'],sizes:['XS/S','M/L','XL/2XL','3XL','4XL','5XL','6XL']},NBL:{name:'Quần NB Lót',colors:['ĐEN','Da'],sizes:['XS/S','M/L','XL/2XL','3XL','4XL','5XL','6XL']},BSL:{name:'Bodysuite Lót',colors:['ĐEN','NÂU','DA'],sizes:['S','M','L','XL','2XL','3XL']},GY3:{name:'Gym3',colors:['ĐEN','NÂU'],sizes:['S','M']}};
+const KHO_CFG={QNB:{name:'Quần Nịt Bụng',colors:['ĐEN','Da'],sizes:['XS/S','M/L','XL/2XL','3XL','4XL','5XL','6XL']},NBL:{name:'Quần NB Lót',colors:['ĐEN','Da'],sizes:['XS/S','M/L','XL/2XL','3XL','4XL','5XL','6XL']},BSL:{name:'Bodysuite Lót',colors:['ĐEN','NÂU','DA'],sizes:['S','M','L','XL','2XL','3XL']},GY3:{name:'Gym3',colors:['ĐEN','NÂU'],sizes:['S','M']},CLD:{name:'Cloud',colors:['ĐEN','NÂU','HỒNG','XANH'],sizes:['S','M','L']}};
 let curKhoProd='QNB';
 let khoVals=(function(){try{return JSON.parse(localStorage.getItem('hannal_kho_vals')||'{}')||{};}catch(_){return {};}})();
 function saveKhoVals(){try{localStorage.setItem('hannal_kho_vals',JSON.stringify(khoVals));}catch(_){}}
@@ -2247,7 +2265,7 @@ function khoCompare(){
       totSys+=system;if(has){totCnt+=cnt;if(diff<0)totThieu+=-diff;else if(diff>0)totDu+=diff;}
       const dcol=diff<0?'#c0392b':diff>0?'#1A6B5C':'#9A8070';
       const dtxt=!has?'—':diff===0?'✓ khớp':(diff>0?`+${diff} dư`:`${diff} thiếu`);
-      const clr=c==='ĐEN'?'#2A211C':c==='Da'||c==='DA'?'#7a4530':'#3d2010';
+      const clr=c==='ĐEN'?'#2A211C':c==='Da'||c==='DA'?'#7a4530':c==='HỒNG'?'#8a4a68':c==='XANH'?'#2a4a68':'#3d2010';
       const cc=si===0?`<td rowspan="${cfg.sizes.length}" style="background:${clr};color:#fff;font-weight:700;writing-mode:vertical-rl;transform:rotate(180deg);text-align:center">${c}</td>`:'';
       body+=`<tr>${cc}<td style="font-weight:600">${s}</td><td style="text-align:center">${system}</td><td style="text-align:center;font-weight:700">${has?cnt:'—'}</td><td style="text-align:center;font-weight:700;color:${dcol}">${dtxt}</td></tr>`;
     });
@@ -2338,8 +2356,8 @@ async function saveKho(){
 }
 
 // ═══ DASHBOARD — đọc thẳng MASTER_DASHBOARD ══════════════════════
-const PROD_KEYS=['QNB','NBL','BSL','GY3'];
-const PROD_NAMES={QNB:'Quần Nịt Bụng',NBL:'Quần NB Lót',BSL:'Bodysuite Lót',GY3:'Gym3'};
+const PROD_KEYS=['QNB','NBL','BSL','GY3','CLD'];
+const PROD_NAMES={QNB:'Quần Nịt Bụng',NBL:'Quần NB Lót',BSL:'Bodysuite Lót',GY3:'Gym3',CLD:'Cloud'};
 let curDashProd='QNB';   // sản phẩm đang xem trên Dashboard ('ALL' = tất cả)
 function setDashTab(prod,el){
   curDashProd=prod;
@@ -2347,7 +2365,7 @@ function setDashTab(prod,el){
   if(el)el.classList.add('on');
   if(DASH_DATA)renderDash(DASH_DATA);
 }
-const PROD_CLS={QNB:'dp-nbd',NBL:'dp-nbl',BSL:'dp-bsl',GY3:'dp-gy3'};
+const PROD_CLS={QNB:'dp-nbd',NBL:'dp-nbl',BSL:'dp-bsl',GY3:'dp-gy3',CLD:'dp-cloud'};
 
 async function loadDash(){
   showLoading('Tính dashboard...');
@@ -2412,7 +2430,7 @@ function setDashCustom(which,val){
 function renderDashSummary(){
   const el=document.getElementById('dashSummary');if(!el)return;
   const data=DASH_DATA;if(!data){el.innerHTML='';return;}
-  const clr={QNB:'#2A211C',NBL:'#1A6B5C',BSL:'#5B4636',GY3:'#BE735E'};
+  const clr={QNB:'#2A211C',NBL:'#1A6B5C',BSL:'#5B4636',GY3:'#BE735E',CLD:'#7a5fa8'};
 
   // ── Khoảng đang chọn + kỳ trước cùng độ dài ──
   const {from,to,label}=dashRangeDates();
@@ -2896,7 +2914,7 @@ function renderCeo(data){
 // ═══ INVENTORY PAGE ══════════════════════════════════════════════
 // ═══ QUẢN LÝ KHO — Logic đúng ═══════════════════════════════════
 let INV_DATA={};
-let INV_TARGET={QNB:3000,NBL:200,BSL:100,GY3:500};
+let INV_TARGET={QNB:3000,NBL:200,BSL:100,GY3:500,CLD:200};
 let curInvTab='ALL';
 let curInvProd=null;
 
@@ -2913,6 +2931,9 @@ const INV_PROD_CFG={
   GY3:{name:'Gym3 / Jumpsuit',code:'GY3',dot:'#BE735E',
        colors:['ĐEN','NÂU'],sizes:['S','M'],
        clrBg:{ĐEN:'#2A211C',NÂU:'#3d2010'},clrFg:{ĐEN:'#DCC6AA',NÂU:'#d4a07a'}},
+  CLD:{name:'Cloud',code:'CLOUD',dot:'#7a5fa8',
+       colors:['ĐEN','NÂU','HỒNG','XANH'],sizes:['S','M','L'],
+       clrBg:{ĐEN:'#2A211C',NÂU:'#3d2010',HỒNG:'#8a4a68',XANH:'#2a4a68'},clrFg:{ĐEN:'#DCC6AA',NÂU:'#d4a07a',HỒNG:'#f0c0d8',XANH:'#c0d8f0'}},
 };
 
 function switchInvSec(sec,el){
@@ -2962,7 +2983,7 @@ async function computeInvData(){
     saveKhoCounts();
   }catch(_){ /* bảng chưa tạo hoặc mất mạng → dùng KHO_COUNTS trong máy */ }
   INV_DATA={};
-  ['QNB','NBL','BSL','GY3'].forEach(pk=>{
+  ['QNB','NBL','BSL','GY3','CLD'].forEach(pk=>{
     const cfg=INV_PROD_CFG[pk];
     const khoMap=khoNhaNow(pk);
     const grp=(list)=>{const m={};list.filter(r=>(SALES_PMAP[r.prod]||r.prod)===pk).forEach(r=>{let nc=ordNormColor(pk,r.color),nsz=ordNormSize(pk,r.size);if(!cfg.colors.includes(nc))nc=cfg.colors[0];if(!cfg.sizes.includes(nsz))nsz=cfg.sizes[0];m[nc+'|'+nsz]=(m[nc+'|'+nsz]||0)+(r.qty||0);});return m;};
@@ -3005,7 +3026,7 @@ async function loadInventoryNew(){
 // Chuyển INV_DATA (tính sống) → DASH_DATA cho Dashboard / Size / CEO
 function invToDashData(){
   const data={};
-  ['QNB','NBL','BSL','GY3'].forEach(pk=>{
+  ['QNB','NBL','BSL','GY3','CLD'].forEach(pk=>{
     const cfg=INV_PROD_CFG[pk],pd=INV_DATA[pk];if(!pd)return;
     const skus=[];const T={s7:0,s30:0,s60:0,tongkd:0,db20:0,kho:0,sec:0,hut:0,dangve:0};
     cfg.colors.forEach(col=>cfg.sizes.forEach(sz=>{
@@ -3225,16 +3246,17 @@ const SALES_PROD_CFG={
   NBL:{colors:['ĐEN','Da'],sizes:['XS/S','M/L','XL/2XL','3XL','4XL','5XL','6XL'],dot:'#1A6B5C'},
   BSL:{colors:['ĐEN','NÂU','DA'],sizes:['S','M','L','XL','2XL','3XL'],dot:'#5B4636'},
   GY3:{colors:['ĐEN','NÂU'],sizes:['S','M'],dot:'#BE735E'},
+  CLD:{colors:['ĐEN','NÂU','HỒNG','XANH'],sizes:['S','M','L'],dot:'#7a5fa8'},
 };
-const SALES_PROD_NAMES={QNB:'Quần Nịt Bụng',NBL:'NB Lót',BSL:'Bodysuit',GY3:'Gym3'};
+const SALES_PROD_NAMES={QNB:'Quần Nịt Bụng',NBL:'NB Lót',BSL:'Bodysuit',GY3:'Gym3',CLD:'Cloud'};
 
-// Mã bên Sort (NBD/NB01/JS01) ↔ mã Đi Đơn (QNB/NBL/BSL); GY3 giữ nguyên
-const SALES_PMAP={NBD:'QNB',NB01:'NBL',JS01:'BSL',GY3:'GY3',QNB:'QNB',NBL:'NBL',BSL:'BSL',GY3_:'GY3'};
+// Mã bên Sort (NBD/NB01/JS01) ↔ mã Đi Đơn (QNB/NBL/BSL); GY3/CLOUD giữ nguyên
+const SALES_PMAP={NBD:'QNB',NB01:'NBL',JS01:'BSL',GY3:'GY3',CLOUD:'CLD',QNB:'QNB',NBL:'NBL',BSL:'BSL',GY3_:'GY3',CLD:'CLD'};
 function salesCanonColor(pk,raw){
   const cfg=SALES_PROD_CFG[pk];if(!cfg)return raw;
   const s=(raw||'').toLowerCase();
-  const want=(s.includes('đen')||s.includes('den'))?'den':(s.includes('nâu')||s.includes('nau'))?'nau':(s.includes('nude')||s.includes('da')||s.includes('be')||s.includes('skin'))?'da':s;
-  return cfg.colors.find(c=>{const cl=c.toLowerCase();return (want==='den'&&(cl==='đen'||cl==='den'))||(want==='nau'&&(cl==='nâu'||cl==='nau'))||(want==='da'&&cl==='da');})||cfg.colors[0]||raw;
+  const want=(s.includes('đen')||s.includes('den'))?'den':(s.includes('nâu')||s.includes('nau'))?'nau':(s.includes('hồng')||s.includes('hong'))?'hong':(s.includes('xanh'))?'xanh':(s.includes('nude')||s.includes('da')||s.includes('be')||s.includes('skin'))?'da':s;
+  return cfg.colors.find(c=>{const cl=c.toLowerCase();return (want==='den'&&(cl==='đen'||cl==='den'))||(want==='nau'&&(cl==='nâu'||cl==='nau'))||(want==='hong'&&cl==='hồng')||(want==='xanh'&&cl==='xanh')||(want==='da'&&cl==='da');})||cfg.colors[0]||raw;
 }
 function normSalesRow(r){const pk=SALES_PMAP[r.prod]||r.prod;return{date:r.date,prod:pk,color:salesCanonColor(pk,r.color),size:r.size,qty:r.qty||0};}
 // ▼▼▼ Số liệu gốc từ Google Sheet (1/6/2026 → nay) — sẽ điền sau khi có CSV 4 tab ▼▼▼
@@ -3353,7 +3375,7 @@ function renderSalesOverview(){
     byDate[d][r.prod]=(byDate[d][r.prod]||0)+(r.qty||0);
   });
   const dates=Object.keys(byDate).sort(salesDateCmp);
-  const prods=['QNB','NBL','BSL','GY3'];
+  const prods=['QNB','NBL','BSL','GY3','CLD'];
 
   if(!dates.length){
     document.getElementById('salesContent').innerHTML='<div style="padding:30px;text-align:center;color:#9A8070">Không có dữ liệu trong khoảng này</div>';
@@ -3485,7 +3507,7 @@ function khoNhaNow(pk,toParam){
 }
 
 function renderSalesDetail(){
-  const prods=curSalesDetailProd==='all'?['QNB','NBL','BSL','GY3']:[curSalesDetailProd];
+  const prods=curSalesDetailProd==='all'?['QNB','NBL','BSL','GY3','CLD']:[curSalesDetailProd];
   const from=document.getElementById('salesFrom').value,to=document.getElementById('salesTo').value;
   const sc=document.getElementById('salesContent');sc.classList.toggle('edit-on',EDIT_MODE);
   let html='';
