@@ -459,7 +459,8 @@ const PRODUCTS=[
   {k:'QNB',name:'Quần Nịt Bụng',c:'#2A211C'},
   {k:'NBL',name:'Quần NB Lót',c:'#5B4636'},
   {k:'BSL',name:'Bodysuit Lót',c:'#BE735E'},
-  {k:'GY3',name:'Gym3',c:'#1A6B5C'}
+  {k:'GY3',name:'Gym3',c:'#1A6B5C'},
+  {k:'CLD',name:'Cloud',c:'#3D6E9E'}
 ];
 const PMAP={};PRODUCTS.forEach(p=>PMAP[p.k]=p);
 const SEED_MONTHS=MONTHS, SEED_ALLM=Object.keys(SEED_MONTHS).map(Number);
@@ -940,6 +941,23 @@ async function sbSel(t,q=''){const r=await fetch(`${SB_URL}/rest/v1/${t}?${q}`,{
 async function sbUpsert(t,rows,onconflict){const r=await fetch(`${SB_URL}/rest/v1/${t}${onconflict?`?on_conflict=${onconflict}`:''}`,{method:'POST',headers:sbHead({'Prefer':'resolution=merge-duplicates,return=minimal'}),body:JSON.stringify(rows)});if(!r.ok)throw new Error('ups '+r.status);return true;}
 async function sbDel(t,q){const r=await fetch(`${SB_URL}/rest/v1/${t}?${q}`,{method:'DELETE',headers:sbHead({'Prefer':'return=minimal'})});if(!r.ok)throw new Error('del '+r.status);return true;}
 const EMP='Linh';
+// ── Sao lưu local cho trạng thái "nhắc lên bài / đã lên bài / chuyển đổi tốt" ──
+// Lý do cần cái này: nút bấm gọi Supabase NGẦM (không chờ), nếu mạng lỗi / bảng
+// chưa có cột / dòng KOL chưa kịp tạo trên Supabase thì lần lưu đó coi như mất —
+// và khi nhân viên mở lại trang, dữ liệu load lại từ Supabase (cũ) sẽ đè mất lựa
+// chọn vừa bấm. Lưu thêm 1 bản trên máy (localStorage) để lần sau mở lại luôn
+// khôi phục đúng, đồng thời tự đẩy lại lên Supabase.
+const LS_EXTRA_KEY='hannal_kol_extra_'+EMP;
+function saveExtraLocal(){
+  try{
+    const obj={};
+    REG.forEach(k=>{obj[k.name]={remind:k.remind||[false,false,false],good:!!k.good,posted:!!k.posted};});
+    localStorage.setItem(LS_EXTRA_KEY,JSON.stringify(obj));
+  }catch(e){}
+}
+function loadExtraLocal(){
+  try{return JSON.parse(localStorage.getItem(LS_EXTRA_KEY)||'{}');}catch(e){return {};}
+}
 
 function setSbBadge(){
   const b=$('sbBadge');if(!b)return;
@@ -949,7 +967,18 @@ function setSbBadge(){
 // lưu (không chặn UI; lỗi thì bỏ qua, giữ trên máy)
 async function pushKol(k){try{if(!SB_OK)return;await sbUpsert('kol_list',[{name:k.name,employee:EMP,prod:k.prod,zalo:k.zalo||'',phone:k.phone||'',link:k.link||'',add_date:k.addDate||'',source:k.src}],'name');}catch(e){}}
 async function pushKolProd(name,prod){try{if(!SB_OK)return;await sbUpsert('kol_list',[{name,employee:EMP,prod}],'name');}catch(e){}}
-async function pushKolExtra(k){try{if(!SB_OK)return;const r=k.remind||[false,false,false];await sbUpsert('kol_list',[{name:k.name,employee:EMP,remind1:!!r[0],remind2:!!r[1],remind3:!!r[2],good_conv:!!k.good,posted:!!k.posted}],'name');}catch(e){}}
+async function pushKolExtra(k){
+  saveExtraLocal(); // luôn lưu local NGAY, bất kể Supabase có sống hay không
+  if(!SB_OK)return;
+  const r=k.remind||[false,false,false];
+  const row={name:k.name,employee:EMP,prod:k.prod||'QNB',zalo:k.zalo||'',phone:k.phone||'',link:k.link||'',add_date:k.addDate||'',source:k.src||'manual',remind1:!!r[0],remind2:!!r[1],remind3:!!r[2],good_conv:!!k.good,posted:!!k.posted};
+  try{
+    await sbUpsert('kol_list',[row],'name');
+  }catch(e){
+    // thử lại 1 lần (VD dòng KOL chưa kịp tạo lúc thêm mới) trước khi bỏ cuộc
+    try{await sbUpsert('kol_list',[row],'name');}catch(e2){}
+  }
+}
 async function delKolDb(name){try{if(!SB_OK)return;await sbDel('kol_list',`name=eq.${encodeURIComponent(name)}`);}catch(e){}}
 async function pushMonth(month,matched){try{if(!SB_OK)return;await sbDel('kol_monthly',`month=eq.${month}&year=eq.2026`);const rows=matched.map(k=>({month,year:2026,name:k.n,gmv:k.g,refund:k.rf||0,com:k.c,orders:k.o}));if(rows.length)await sbUpsert('kol_monthly',rows);}catch(e){}}
 async function delMonthDb(month){try{if(!SB_OK)return;await sbDel('kol_monthly',`month=eq.${month}&year=eq.2026`);}catch(e){}}
@@ -983,6 +1012,20 @@ async function loadFromSupabase(){
     const byName={};REG.forEach(r=>byName[r.name.toLowerCase()]=r);
     ALLM.forEach(m=>(MONTHS[m]||[]).forEach(k=>{const r=byName[k.n.toLowerCase()];if(r&&!r.m.includes(m))r.m.push(m);}));
   }catch(e){SB_OK=false;} // giữ nguyên seed trong máy
+  // Khôi phục "nhắc lên bài / đã lên bài / chuyển đổi tốt" từ bản lưu trên máy,
+  // đề phòng lần trước lưu lên Supabase bị lỗi (mất mạng, dòng KOL chưa kịp tạo…).
+  // Bản trên máy luôn được coi là mới nhất vì nó được ghi NGAY lúc bấm nút.
+  const localExtra=loadExtraLocal();
+  const restored=[];
+  REG.forEach(k=>{
+    const le=localExtra[k.name];
+    if(!le)return;
+    const changed=JSON.stringify(k.remind||[false,false,false])!==JSON.stringify(le.remind||[false,false,false])
+      ||!!k.good!==!!le.good||!!k.posted!==!!le.posted;
+    k.remind=le.remind||[false,false,false];k.good=!!le.good;k.posted=!!le.posted;
+    if(changed)restored.push(k);
+  });
+  restored.forEach(pushKolExtra); // đẩy lại lên Supabase cho khớp
   setSbBadge();
   const dm=ALLM.slice().sort((a,b)=>b-a)[0];if(dm)curMD=String(dm);
   renderMonthBtnsD();renderMonthBtnsS();renderManaged();renderDash();renderSum();renderReg();renderReport();renderGood();
