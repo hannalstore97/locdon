@@ -501,7 +501,9 @@ let lastAdded=new Set();
 let OTHERS={}; // {handle(lowercase): tên nhân viên đang sở hữu} — KOL của nhân viên KHÁC
 let curMD='4', curMS='all';
 let pendingDelMonth=null;
-let curNewMonth='7'; // tháng xem báo cáo KOL mới
+// mặc định mở đúng tháng hiện tại (app hard-code năm 2026 xuyên suốt, nên chỉ lấy tháng thực tế)
+const NOWD=new Date();
+let curNewMonth = String(Math.min(12,Math.max(1,NOWD.getMonth()+1))); // tháng xem báo cáo KOL mới
 
 const prodOptions=(sel)=>PRODUCTS.map(p=>`<option value="${p.k}" ${p.k===sel?'selected':''}>${p.name}</option>`).join('');
 function nameProd(){const map={};REG.forEach(r=>map[r.name.toLowerCase()]=r.prod);return map;}
@@ -739,9 +741,9 @@ function renderReport(){
   // các tháng có KOL thêm tay (theo addDate dd/mm/yyyy)
   const monthsAdded=new Set();
   REG.forEach(r=>{if(r.addDate){const mm=r.addDate.split('/')[1];if(mm)monthsAdded.add(mm);}});
-  const opts=['7','6','5','4','3','2'].filter((m,i,a)=>true); // 2026
+  const opts=['12','11','10','9','8','7','6','5','4','3','2','1']; // đủ 12 tháng, không hard-code giới hạn
   const sel=`<select class="rep-sel" id="repMonth">`+
-    ['7','6','5','4','3','2'].map(m=>`<option value="${m}" ${m===curNewMonth?'selected':''}>Tháng ${parseInt(m)}/2026</option>`).join('')+`</select>`;
+    opts.map(m=>`<option value="${m}" ${m===curNewMonth?'selected':''}>Tháng ${parseInt(m)}/2026</option>`).join('')+`</select>`;
   const newThisMonth=REG.map((r,i)=>({...r,idx:i})).filter(r=>r.addDate&&r.addDate.split('/')[1]===curNewMonth.padStart(2,'0'));
   // phân bổ SP toàn danh sách (SP đã gửi cho KOL)
   const dist={};PRODUCTS.forEach(p=>dist[p.k]=0);REG.forEach(r=>{if(dist[r.prod]!==undefined)dist[r.prod]++;});
