@@ -64,6 +64,8 @@ html,body{height:100%;font-family:var(--f-body);-webkit-font-smoothing:antialias
 .card-hd-title{font-family:var(--f-head);font-size:22px;font-weight:900;color:var(--white);letter-spacing:-.02em}
 .card-hd-title span{color:var(--terra)}
 .card-hd-title span.tk{color:#4db6ac}
+.card-hd-title span.pl{color:#b79ae8}
+.card-hd.pl::after{background:radial-gradient(circle,rgba(107,78,158,.25) 0%,transparent 70%)}
 .card-hd-sub{font-size:12px;color:rgba(255,255,255,.4);margin-top:3px}
 .card-body{padding:22px 24px 26px}
 
@@ -71,15 +73,18 @@ html,body{height:100%;font-family:var(--f-body);-webkit-font-smoothing:antialias
 .drop{border:2px dashed var(--tan);border-radius:12px;background:var(--cream);padding:32px 24px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:16px}
 .drop:hover,.drop.drag{border-color:var(--terra);background:#fdf0e6}
 .drop.tk:hover,.drop.tk.drag{border-color:var(--teal);background:#f0faf9}
+.drop.pl:hover,.drop.pl.drag{border-color:#6B4E9E;background:#f4f0fa}
 .drop-ring{width:58px;height:58px;border-radius:50%;margin:0 auto 12px;background:var(--white);border:2px solid var(--tan);display:flex;align-items:center;justify-content:center;font-size:24px;transition:all .2s}
 .drop:hover .drop-ring{border-color:var(--terra)}
 .drop.tk:hover .drop-ring{border-color:var(--teal)}
+.drop.pl:hover .drop-ring{border-color:#6B4E9E}
 .drop-title{font-family:var(--f-head);font-size:14px;font-weight:700;color:var(--dark);margin-bottom:4px}
 .drop-sub{font-size:11px;color:#9A8070}
 .file-chip{display:none;margin-top:10px;font-family:var(--f-mono);font-size:10px;color:var(--brown);background:var(--white);border:1px solid var(--tan);border-radius:5px;padding:2px 10px}
 .btn-run{width:100%;padding:16px 20px;border:none;border-radius:11px;background:var(--dark);color:var(--white);font-family:var(--f-head);font-size:13px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .18s;box-shadow:0 4px 16px rgba(42,33,28,.25)}
 .btn-run:hover:not(:disabled){background:var(--brown);transform:translateY(-1px)}
 .btn-run.tk:hover:not(:disabled){background:var(--teal2)}
+.btn-run.pl:hover:not(:disabled){background:#5a3f87}
 .btn-run:disabled{background:var(--tan);color:rgba(255,255,255,.6);box-shadow:none;cursor:not-allowed}
 .btn{display:inline-flex;align-items:center;gap:5px;padding:8px 16px;border-radius:8px;border:none;font-family:var(--f-body);font-weight:600;font-size:12px;cursor:pointer;transition:all .15s}
 .btn-ghost{background:transparent;color:var(--brown);border:1.5px solid var(--tan)}
@@ -208,6 +213,7 @@ html,body{height:100%;font-family:var(--f-body);-webkit-font-smoothing:antialias
 .prog-bg{height:3px;background:var(--tan);border-radius:2px;overflow:hidden}
 .prog-fill{height:100%;background:var(--terra);border-radius:2px;animation:slide 1.3s ease-in-out infinite;width:45%}
 .prog-fill.tk{background:var(--teal)}
+.prog-fill.pl{background:#6B4E9E}
 @keyframes slide{0%{transform:translateX(-220%)}100%{transform:translateX(360%)}}
 .prog-lbl{font-size:10px;color:#9A8070;text-align:center;margin-top:5px}
 .err{display:none;margin-top:10px;background:#fdf1f1;border:1px solid #e5b4b4;border-radius:8px;padding:10px 12px;color:#8a2020;font-family:var(--f-mono);font-size:10px}
@@ -264,12 +270,18 @@ html,body{height:100%;font-family:var(--f-body);-webkit-font-smoothing:antialias
 .plat-btn:hover{background:var(--cream)}
 .plat-btn.active-shopee{background:var(--terra);border-color:var(--terra);color:var(--white)}
 .plat-btn.active-tiktok{background:var(--teal2);border-color:var(--teal2);color:var(--white)}
+.plat-btn.active-picklist{background:#6B4E9E;border-color:#6B4E9E;color:var(--white)}
 .mode-badge{display:flex;align-items:center;gap:8px;background:#fdf6ec;border:1px solid #e8d0a8;border-radius:8px;padding:9px 14px;margin-bottom:16px}
 .mode-badge.tk{background:#f0faf9;border-color:#a7d9d4}
 .mode-dot{width:7px;height:7px;border-radius:50%;background:var(--terra);box-shadow:0 0 0 2px rgba(190,115,94,.2)}
 .mode-dot.tk{background:var(--teal);box-shadow:0 0 0 2px rgba(42,122,110,.2)}
 .mode-txt{font-family:var(--f-head);font-size:11px;font-weight:600;color:var(--brown)}
 .mode-txt.tk{color:var(--teal2)}
+.mode-badge.pl{background:#f4f0fa;border-color:#c9b8e8}
+.mode-dot.pl{background:#6B4E9E;box-shadow:0 0 0 2px rgba(107,78,158,.2)}
+.mode-txt.pl{color:#6B4E9E}
+.pl-warn-banner{background:#fdecea;border:1px solid #e5b4b4;border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:#8a2020;line-height:1.6}
+.pl-ok-banner{background:#eaf5ed;border:1px solid #a8d9b5;border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:#1e6b3a;line-height:1.6}
 
 /* ── ORD HÀNG ── */
 .prod-card{background:var(--white);border:1px solid rgba(220,198,170,.5);border-radius:14px;overflow:hidden;margin-bottom:14px}
@@ -568,7 +580,9 @@ select:focus,input[type=text]:focus,input[type=date]:focus{border-color:var(--te
       <div class="plat-switch">
         <div class="plat-btn active-shopee" id="btnShopee" onclick="setPlatform('shopee')">🛍️ Shopee</div>
         <div class="plat-btn" id="btnTiktok" onclick="setPlatform('tiktok')">🎵 TikTok Shop</div>
+        <div class="plat-btn" id="btnPicklist" onclick="setPlatform('picklist')">📋 Picking List</div>
       </div>
+      <div id="plSummaryBanner"></div>
       <div class="mode-badge" id="modeBadge">
         <span class="mode-dot" id="modeDot"></span>
         <span class="mode-txt" id="modeTxt">Chế độ: Shopee · NBD / NB01 / GY3 / JS01 / CLOUD</span>
@@ -1537,7 +1551,7 @@ function buildSalesItems(){
   const dateVal=document.getElementById('pickDate')?.value||new Date().toISOString().split('T')[0];
   const dp=dateVal.split('-');const dateStr=dp.length===3?`${dp[2]}/${dp[1]}/${dp[0]}`:dateVal;
   const ca=curShift==='sang'?'sáng':'chiều';
-  const platform=`${PLAT==='tiktok'?'TikTok':'Shopee'} · Ca ${ca}`;
+  const platform=`${PLAT==='tiktok'?'TikTok':(PLAT==='picklist'?'PickingList':'Shopee')} · Ca ${ca}`;
   const items=[];
   for(const[prod,colors]of Object.entries(PICK_COLORS))for(const c of colors)for(const s of PICK_SIZES[prod]){
     const v=(PICK_INV[prod][c]||{})[s]||0;if(v>0)items.push({date:dateStr,prod,color:c,size:s,qty:v,platform});
@@ -1571,7 +1585,7 @@ function renderSalesModal(mode,info){
       <div style="background:var(--dark);padding:15px 20px;color:var(--tan);font-family:var(--f-head);font-weight:800;font-size:14px;letter-spacing:.04em">☁ Xác nhận ghi vào Đi Đơn?</div>
       <div style="padding:18px 20px;color:var(--dark);font-size:13px;line-height:1.75">
         Sắp ghi <b>${info.lines} dòng</b> (tổng <b>${info.totQty} sản phẩm</b>) vào Đi Đơn.<br>
-        <span style="color:#7a5a40">📅 Ngày <b>${info.dateStr}</b> · Ca <b>${info.ca}</b> · ${PLAT==='tiktok'?'TikTok':'Shopee'}</span>
+        <span style="color:#7a5a40">📅 Ngày <b>${info.dateStr}</b> · Ca <b>${info.ca}</b> · ${PLAT==='tiktok'?'TikTok':(PLAT==='picklist'?'PickingList':'Shopee')}</span>
         <div style="margin-top:12px;background:var(--yel-bg);border:1px solid #e8d9a0;border-radius:8px;padding:8px 11px;font-size:11.5px;color:#8a6f0b">⚠️ Ghi trùng sẽ <b>cộng dồn</b> số liệu. Chỉ bấm 1 lần.</div>
       </div>
       <div style="display:flex;gap:8px;padding:0 20px 18px">
@@ -1832,20 +1846,22 @@ window.addEventListener('DOMContentLoaded',()=>{
   initPickDate();
 });
 function setPlatform(p){
-  PLAT=p;const isTk=p==='tiktok';
-  document.getElementById('btnShopee').className='plat-btn'+(isTk?'':' active-shopee');
+  PLAT=p;const isTk=p==='tiktok',isPl=p==='picklist';
+  const suf=isTk?'tk':(isPl?'pl':'');
+  document.getElementById('btnShopee').className='plat-btn'+(suf===''?' active-shopee':'');
   document.getElementById('btnTiktok').className='plat-btn'+(isTk?' active-tiktok':'');
+  document.getElementById('btnPicklist').className='plat-btn'+(isPl?' active-picklist':'');
   const hero=document.getElementById('sortHero');
-  hero.className='card-hd'+(isTk?' tk':'');
-  document.getElementById('sortTitleSpan').className=isTk?'tk':'';
-  document.getElementById('sortTitleSpan').textContent=isTk?'TIKTOK':'ĐƠN HÀNG';
-  const badge=document.getElementById('modeBadge');badge.className='mode-badge'+(isTk?' tk':'');
-  document.getElementById('modeDot').className='mode-dot'+(isTk?' tk':'');
-  document.getElementById('modeTxt').className='mode-txt'+(isTk?' tk':'');
-  document.getElementById('modeTxt').textContent=isTk?'Chế độ: TikTok V2 · NBD/NB01/GY3/JS01/CLOUD':'Chế độ: Shopee · NBD/NB01/GY3/JS01/CLOUD';
-  document.getElementById('dropZone').className='drop'+(isTk?' tk':'');
-  document.getElementById('dropTitle').textContent=isTk?'Bấm vào đây để chọn File TikTok':'Bấm vào đây để chọn File Shopee';
-  document.getElementById('btnRun').className='btn-run'+(isTk?' tk':'');
+  hero.className='card-hd'+(suf?' '+suf:'');
+  document.getElementById('sortTitleSpan').className=suf;
+  document.getElementById('sortTitleSpan').textContent=isTk?'TIKTOK':(isPl?'PICKING LIST':'ĐƠN HÀNG');
+  const badge=document.getElementById('modeBadge');badge.className='mode-badge'+(suf?' '+suf:'');
+  document.getElementById('modeDot').className='mode-dot'+(suf?' '+suf:'');
+  document.getElementById('modeTxt').className='mode-txt'+(suf?' '+suf:'');
+  document.getElementById('modeTxt').textContent=isTk?'Chế độ: TikTok V2 · NBD/NB01/GY3/JS01/CLOUD':(isPl?'Chế độ: Picking List (đọc theo toạ độ cột SKU/Seller SKU/Qty/Order ID) · không tạo lại PDF sort':'Chế độ: Shopee · NBD/NB01/GY3/JS01/CLOUD');
+  document.getElementById('dropZone').className='drop'+(suf?' '+suf:'');
+  document.getElementById('dropTitle').textContent=isTk?'Bấm vào đây để chọn File TikTok':(isPl?'Bấm vào đây để chọn File Picking List':'Bấm vào đây để chọn File Shopee');
+  document.getElementById('btnRun').className='btn-run'+(suf?' '+suf:'');
   resetSort();
 }
 function triggerFile(){document.getElementById('fileInput').click();}
@@ -1869,6 +1885,7 @@ async function detectPlat(buf){
     const pdf=await pdfjsLib.getDocument({data:buf.slice(0)}).promise;
     const n=Math.min(pdf.numPages,2);let txt='';
     for(let i=1;i<=n;i++){const pg=await pdf.getPage(i);const tc=await pg.getTextContent();txt+=' '+tc.items.map(s=>s.str).join(' ');}
+    if(/picking\s*list/i.test(txt))return 'picklist';
     if(/tiktok|seller\s*sku|qty\s*total/i.test(txt))return 'tiktok';
     if(/nội dung hàng|shopee|\bSPX\b/i.test(txt))return 'shopee';
   }catch(_){}
@@ -1883,18 +1900,27 @@ async function run(){
     const auto=await detectPlat(buf);
     if(auto&&auto!==PLAT){
       lg('info',`⚙️ Tự nhận diện file ${auto.toUpperCase()} (nút đang để ${PLAT.toUpperCase()}) → dùng parser ${auto.toUpperCase()}`);
-      PLAT=auto;const isTk=auto==='tiktok';
-      document.getElementById('btnShopee').className='plat-btn'+(isTk?'':' active-shopee');
+      PLAT=auto;const isTk=auto==='tiktok',isPl=auto==='picklist';const suf=isTk?'tk':(isPl?'pl':'');
+      document.getElementById('btnShopee').className='plat-btn'+(suf===''?' active-shopee':'');
       document.getElementById('btnTiktok').className='plat-btn'+(isTk?' active-tiktok':'');
-      const mt=document.getElementById('modeTxt');if(mt)mt.textContent=isTk?'Chế độ: TikTok V2 · NBD/NB01/GY3/JS01/CLOUD':'Chế độ: Shopee · NBD/NB01/GY3/JS01/CLOUD';
+      document.getElementById('btnPicklist').className='plat-btn'+(isPl?' active-picklist':'');
+      const mt=document.getElementById('modeTxt');if(mt)mt.textContent=isTk?'Chế độ: TikTok V2 · NBD/NB01/GY3/JS01/CLOUD':(isPl?'Chế độ: Picking List (đọc theo toạ độ cột) · không tạo lại PDF sort':'Chế độ: Shopee · NBD/NB01/GY3/JS01/CLOUD');
     }
-    const result=PLAT==='shopee'?await runShopee(buf,F.name):await runTiktok(buf,F.name);
-    RPDF=result.pdfBytes;RFNAME=result.name;
-    lg('ok',`✓ Xong → ${RFNAME}`);
-    document.getElementById('resFn').textContent=RFNAME;
-    showStats(result.st,result.total);
-    await showPickTable();
-    document.getElementById('btnDl').style.display='inline-flex';
+    if(PLAT==='picklist'){
+      const r=await runPickingList(buf,F.name);
+      renderPlSummary(r);
+      await showPickTable();
+      document.getElementById('btnDl').style.display='none';
+      document.getElementById('resFn').textContent='(Picking List — không tạo PDF sort, chỉ đếm số lượng)';
+    }else{
+      const result=PLAT==='shopee'?await runShopee(buf,F.name):await runTiktok(buf,F.name);
+      RPDF=result.pdfBytes;RFNAME=result.name;
+      lg('ok',`✓ Xong → ${RFNAME}`);
+      document.getElementById('resFn').textContent=RFNAME;
+      showStats(result.st,result.total);
+      await showPickTable();
+      document.getElementById('btnDl').style.display='inline-flex';
+    }
   }catch(e){lg('error','Lỗi: '+e.message);showErr(e.message);console.error(e);}
   finally{loadingSort(false);document.getElementById('btnRow').style.display='flex';}
 }
@@ -1902,7 +1928,8 @@ function dl(){if(!RPDF)return;const blob=new Blob([RPDF],{type:'application/pdf'
 function resetSort(){
   F=RPDF=null;RFNAME='';PICK_INV=null;
   document.getElementById('dropIco').textContent='📤';
-  document.getElementById('dropTitle').textContent=PLAT==='tiktok'?'Bấm vào đây để chọn File TikTok':'Bấm vào đây để chọn File Shopee';
+  document.getElementById('dropTitle').textContent=PLAT==='tiktok'?'Bấm vào đây để chọn File TikTok':(PLAT==='picklist'?'Bấm vào đây để chọn File Picking List':'Bấm vào đây để chọn File Shopee');
+  const pb=document.getElementById('plSummaryBanner');if(pb)pb.innerHTML='';
   document.getElementById('dropSub').style.display='';
   document.getElementById('fileChip').style.display='none';
   document.getElementById('fileInput').value='';
@@ -1942,10 +1969,145 @@ async function runTiktok(buf,fname){
   prog('Tạo PDF…');const pdfBytes=await buildSortedPdf(buf,idx);
   return{pdfBytes,name:'TIKTOK_SORTED_'+fname,st,total};
 }
-function loadingSort(on){document.getElementById('progWrap').style.display=on?'block':'none';document.getElementById('btnRun').disabled=on;document.getElementById('logDot').classList.toggle('on',on);document.getElementById('progFill').className='prog-fill'+(PLAT==='tiktok'?' tk':'');}
+// ═══ PICKING LIST PARSER (đọc theo TOẠ ĐỘ cột PDF, không đoán mò theo tên SP) ═══
+// Định dạng: bảng tổng hợp cả lô, mỗi dòng = 1 biến thể (SKU) của 1 sản phẩm, có
+// cột riêng SKU / Seller SKU / Qty / Order ID theo vị trí x. Sản phẩm hiện có thể bị
+// đổi tên generic ("Sản phẩm phụ kiện thời trang…") nên KHÔNG dùng tên SP để nhận diện —
+// ưu tiên Seller SKU (NBD/NB01/GY3/JS01/CB01/CLOUD); chỉ dò từ khoá trong tên SP làm dự phòng
+// khi Seller SKU trống, và luôn tự đối chiếu tổng số với "Order/Product/Item quantity" ghi sẵn
+// trên đầu phiếu để phát hiện sai lệch thay vì âm thầm tin vào kết quả đọc được.
+function getPickListDeclaredTotals(text){
+  const oq=text.match(/Order\s*quantity\s*:?\s*(\d+)/i);
+  const pq=text.match(/Product\s*quantity\s*:?\s*(\d+)/i);
+  const iq=text.match(/Item\s*quantity\s*:?\s*(\d+)/i);
+  return{orderQty:oq?parseInt(oq[1]):null,prodQty:pq?parseInt(pq[1]):null,itemQty:iq?parseInt(iq[1]):null};
+}
+// Tìm dòng tiêu đề bảng (No | SKU | Seller SKU | Qty | Order ID) theo toạ độ để xác định
+// ranh giới cột — KHÔNG hardcode toạ độ cố định trước, chỉ dùng làm phương án dự phòng.
+function findHeaderX(items){
+  const byY={};
+  items.forEach(it=>{const k=Math.round(it.y);(byY[k]=byY[k]||[]).push(it);});
+  for(const k in byY){
+    const row=byY[k].slice().sort((a,b)=>a.x-b.x);
+    const texts=row.map(r=>r.str.trim());
+    const noIdx=texts.indexOf('No'),qtyIdx=texts.indexOf('Qty'),orderIdx=texts.indexOf('Order'),sellerIdx=texts.indexOf('Seller');
+    if(noIdx<0||qtyIdx<0||orderIdx<0||sellerIdx<0)continue;
+    let skuIdx=-1;
+    for(let i=0;i<texts.length;i++){if(texts[i]==='SKU'&&texts[i-1]!=='Seller'){skuIdx=i;break;}}
+    if(skuIdx<0)continue;
+    return{No:row[noIdx].x,Sku:row[skuIdx].x,Seller:row[sellerIdx].x,Qty:row[qtyIdx].x,Order:row[orderIdx].x};
+  }
+  return null;
+}
+function pickListCode(sellerSku,name){
+  const s=(sellerSku||'').toUpperCase().trim();
+  if(['NBD','NB01','GY3','JS01','CB01','CLOUD'].includes(s))return s;
+  const n=name||'';
+  if(/\bCLOUD\b/i.test(n))return'CLOUD';
+  if(/\bGY3\b/i.test(n))return'GY3';
+  if(/\bJS01\b/i.test(n))return'JS01';
+  if(/\bNB01\b/i.test(n))return'NB01';
+  if(/\bNBD\b/i.test(n))return'NBD';
+  if(/\bCB01\b/i.test(n))return'CB01';
+  return null;
+}
+async function runPickingList(buf,fname){
+  prog('Đang đọc PDF…');lg('info',`File: ${fname}`);
+  const pdf=await pdfjsLib.getDocument({data:buf.slice(0)}).promise;const total=pdf.numPages;lg('info',`Tổng: ${total} trang`);
+  const pagesItems=[];let page1Raw='';
+  for(let i=1;i<=total;i++){
+    prog(`Đọc trang ${i}/${total}…`);
+    const pg=await pdf.getPage(i);const tc=await pg.getTextContent();
+    const items=tc.items.filter(s=>s.str.trim()!=='').map(s=>({str:s.str,x:s.transform[4],y:s.transform[5]}));
+    pagesItems.push(items);
+    if(i===1)page1Raw=tc.items.map(s=>s.str).join(' ');
+  }
+  document.getElementById('dbgTxt').textContent='=== T1 (items theo toạ độ) ===\n'+pagesItems[0].map(it=>`[${it.x.toFixed(0)},${it.y.toFixed(0)}] ${it.str}`).join('\n');
+  document.getElementById('dbgWrap').style.display='block';
+
+  prog('Xác định cột theo toạ độ…');
+  let hdr=findHeaderX(pagesItems[0])||findHeaderX(pagesItems[1]||[]);
+  let usedFallback=false;
+  if(!hdr){hdr={No:22,Sku:270,Seller:341,Qty:408,Order:455};usedFallback=true;
+    lg('warn','⚠️ Không tìm được dòng tiêu đề bảng để tự xác định cột — dùng ngưỡng mặc định (cần kiểm tra kỹ kết quả).');
+  }else lg('ok',`Xác định cột theo toạ độ tiêu đề: SKU@${hdr.Sku.toFixed(0)} · Seller SKU@${hdr.Seller.toFixed(0)} · Qty@${hdr.Qty.toFixed(0)} · Order ID@${hdr.Order.toFixed(0)}`);
+  const bd={noEnd:70,nameEnd:hdr.Sku-5,skuEnd:(hdr.Sku+hdr.Seller)/2,sellerEnd:(hdr.Seller+hdr.Qty)/2,qtyEnd:(hdr.Qty+hdr.Order)/2};
+  const colOf=x=>x<bd.noEnd?'NO':x<bd.nameEnd?'NAME':x<bd.skuEnd?'SKU':x<bd.sellerEnd?'SELLER':x<bd.qtyEnd?'QTY':'ORDER';
+
+  prog('Dựng lại bảng theo dòng…');
+  const products=[];let curProd=null,curVar=null;
+  pagesItems.forEach(items=>{
+    const buckets=[];
+    items.slice().sort((a,b)=>b.y-a.y).forEach(it=>{
+      let placed=false;
+      for(const b of buckets){if(Math.abs(b.y-it.y)<3){b.items.push(it);placed=true;break;}}
+      if(!placed)buckets.push({y:it.y,items:[it]});
+    });
+    buckets.forEach(b=>{
+      const cols={};
+      b.items.slice().sort((a,c)=>a.x-c.x).forEach(it=>{const c=colOf(it.x);cols[c]=(cols[c]?cols[c]+' ':'')+it.str;});
+      const no=(cols.NO||'').trim(),name=(cols.NAME||'').trim(),sku=(cols.SKU||'').trim(),
+            seller=(cols.SELLER||'').trim(),qty=(cols.QTY||'').trim(),order=(cols.ORDER||'').trim();
+      if(no==='No'||name==='Product name'||name==='Product'||name==='image')return;
+      if(/tiktok/i.test(no+name))return;
+      if(/picking\s*list/i.test(name)||/user\s*:/i.test(no)||/print\s*time/i.test(no)||/order\s*quantity/i.test(no))return;
+      if(!no&&!name&&!sku&&!qty&&!order)return;
+      if(/^\d+$/.test(no)){curProd={no,name,variations:[]};products.push(curProd);curVar=null;}
+      else if(name&&curProd&&!sku&&!qty){curProd.name+=' '+name;}
+      if(sku){curVar={sku,seller,qty:parseInt(qty)||0,orders:[]};if(curProd)curProd.variations.push(curVar);}
+      if(order&&curVar)curVar.orders.push(order);
+    });
+  });
+
+  prog('Đối chiếu số liệu…');
+  const declared=getPickListDeclaredTotals(page1Raw);
+  let sumQty=0;const allOrders=new Set();const mismatches=[];
+  products.forEach(p=>p.variations.forEach(v=>{
+    sumQty+=v.qty;v.orders.forEach(o=>allOrders.add(o));
+    if(v.orders.length!==v.qty)mismatches.push({no:p.no,name:p.name,sku:v.sku,qty:v.qty,ordersFound:v.orders.length});
+  }));
+  const nVar=products.reduce((s,p)=>s+p.variations.length,0);
+  lg('info',`Đọc được ${products.length} sản phẩm · ${nVar} dòng biến thể.`);
+  lg(declared.itemQty==null||declared.itemQty===sumQty?'ok':'warn',`Tổng Qty đọc được: ${sumQty}`+(declared.itemQty!=null?` (phiếu ghi: ${declared.itemQty})`:''));
+  lg(declared.orderQty==null||declared.orderQty===allOrders.size?'ok':'warn',`Số đơn (Order ID) duy nhất: ${allOrders.size}`+(declared.orderQty!=null?` (phiếu ghi: ${declared.orderQty})`:''));
+  mismatches.forEach(m=>lg('warn',`⚠️ #${m.no} "${m.sku}": Qty=${m.qty} nhưng chỉ đọc được ${m.ordersFound} mã đơn (có thể do file gốc không lặp Order ID khi 1 đơn mua ≥2 SP cùng loại)`));
+
+  prog('Gộp vào bảng soạn hàng…');
+  const inv=initPickInv();const unknown=[];
+  products.forEach(p=>{
+    p.variations.forEach(v=>{
+      const code=pickListCode(v.seller,p.name);
+      const cs=v.sku.match(/^(?:\d+\s*c\s+)?([A-Za-zÀ-ỹ]+)\s*,\s*(.+)$/i);
+      if(!code||!cs){
+        const key=`${p.name.slice(0,40)} · ${v.sku}`;inv.OTHER[key]=(inv.OTHER[key]||0)+v.qty;
+        unknown.push({name:p.name,sku:v.sku,seller:v.seller});return;
+      }
+      addPickItem(inv,code,cs[1],cs[2],v.qty);
+    });
+  });
+  if(unknown.length)lg('warn',`⚠️ ${unknown.length} dòng không nhận diện được mã sản phẩm (Seller SKU trống + tên SP không khớp NBD/NB01/GY3/JS01/CB01/CLOUD) → đã đưa vào "Sản phẩm khác"`);
+  PICK_INV=inv;
+  return{total,products,sumQty,uniqueOrders:allOrders.size,declared,mismatches,usedFallback,fname};
+}
+function renderPlSummary(r){
+  const el=document.getElementById('plSummaryBanner');if(!el)return;
+  const okItem=r.declared.itemQty==null||r.declared.itemQty===r.sumQty;
+  const okOrder=r.declared.orderQty==null||r.declared.orderQty===r.uniqueOrders;
+  const allOk=okItem&&okOrder&&!r.usedFallback;
+  const rows=[
+    `Sản phẩm: <b>${r.products.length}</b>`+(r.declared.prodQty!=null?` (phiếu ghi: ${r.declared.prodQty})`:''),
+    `Tổng số lượng (Item quantity): <b>${r.sumQty}</b>`+(r.declared.itemQty!=null?` (phiếu ghi: ${r.declared.itemQty})`:'')+(okItem?' ✓':' ⚠️ LỆCH'),
+    `Số đơn duy nhất (Order quantity): <b>${r.uniqueOrders}</b>`+(r.declared.orderQty!=null?` (phiếu ghi: ${r.declared.orderQty})`:'')+(okOrder?' ✓':' ⚠️ LỆCH'),
+  ];
+  let extra='';
+  if(r.usedFallback)extra+='<br>⚠️ Không tìm được dòng tiêu đề bảng để tự xác định cột theo toạ độ — đã dùng ngưỡng mặc định, nên kiểm tra lại bảng soạn hàng bên dưới trước khi dùng.';
+  if(r.mismatches.length)extra+=`<br>⚠️ ${r.mismatches.length} dòng có Qty khác số mã Order ID in ra — xem log chi tiết bên dưới ("🔍 Debug").`;
+  el.innerHTML=`<div class="${allOk?'pl-ok-banner':'pl-warn-banner'}">${allOk?'✓ Đã đối chiếu khớp với tổng ghi trên đầu phiếu Picking List.':'⚠️ Kết quả đọc có điểm cần kiểm tra lại:'}<br>${rows.join('<br>')}${extra}</div>`;
+}
+function loadingSort(on){document.getElementById('progWrap').style.display=on?'block':'none';document.getElementById('btnRun').disabled=on;document.getElementById('logDot').classList.toggle('on',on);document.getElementById('progFill').className='prog-fill'+(PLAT==='tiktok'?' tk':(PLAT==='picklist'?' pl':''));}
 function prog(msg){document.getElementById('progLbl').textContent=msg;}
 function showErr(msg){const e=document.getElementById('errBox');e.textContent='✗  '+msg;e.style.display='block';}
-function clearUI(){document.getElementById('logBd').innerHTML='';document.getElementById('logCt').textContent='';document.getElementById('btnRow').style.display='none';document.getElementById('btnDl').style.display='none';document.getElementById('errBox').style.display='none';document.getElementById('statsCard').style.display='none';document.getElementById('pickCard').style.display='none';}
+function clearUI(){document.getElementById('logBd').innerHTML='';document.getElementById('logCt').textContent='';document.getElementById('btnRow').style.display='none';document.getElementById('btnDl').style.display='none';document.getElementById('errBox').style.display='none';document.getElementById('statsCard').style.display='none';document.getElementById('pickCard').style.display='none';const pb=document.getElementById('plSummaryBanner');if(pb)pb.innerHTML='';}
 const PFX={ok:'✓',error:'✗',warn:'⚠',multi:'◈',info:'·',debug:'→'};
 const CLS={ok:'lg-ok',error:'lg-err',warn:'lg-warn',multi:'lg-multi',info:'lg-info',debug:'lg-debug'};
 function lg(type,msg){const bd=document.getElementById('logBd');const ln=document.createElement('div');ln.className=`log-ln ${CLS[type]||'lg-info'}`;ln.innerHTML=`<span class="log-px">${PFX[type]||'·'}</span><span>${msg}</span>`;bd.appendChild(ln);bd.scrollTop=bd.scrollHeight;document.getElementById('logCt').textContent=bd.querySelectorAll('.log-ln').length+' dòng';}
