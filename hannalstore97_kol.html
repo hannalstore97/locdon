@@ -804,8 +804,18 @@ function addKols(list,prod,info){
   else if(added){m.className='addmsg ok';m.textContent=`✓ Thêm ${added} KOL vào ${PMAP[prod].name}${dup?` · bỏ qua ${dup} trùng`:''}. Ngày thêm: ${TODAY}.`;}
   else if(dup){m.className='addmsg warn';m.textContent=`⚠ ${dup} tên đã có rồi.`;}
   else{m.className='addmsg warn';m.textContent='Chưa nhập tên nào.';}
-  fresh.forEach(pushKol);
   renderReg();renderReport();renderDash();renderSum();renderGood();
+  if(fresh.length){
+    Promise.all(fresh.map(pushKol)).then(oks=>{
+      const failNames=fresh.filter((k,i)=>!oks[i]).map(k=>'@'+k.name);
+      if(failNames.length){
+        // KHÔNG mất dữ liệu (đã lưu local + REG), nhưng phải báo rõ để nhân
+        // viên biết mà nhờ kiểm tra, tránh im lặng rồi biến mất sau khi F5.
+        m.className='addmsg err';
+        m.innerHTML+=`<br>⚠ <b>${failNames.length} KOL chưa lưu được lên hệ thống chung</b> (${failNames.join(', ')}) — vẫn hiện tạm trên máy này, sẽ tự thử lưu lại. Nếu vẫn còn báo sau khi tải lại trang, nhờ kiểm tra cấu hình Supabase (rất có thể cột sản phẩm chưa cho phép mã "${PMAP[prod].k}"/${PMAP[prod].name}).`;
+      }
+    });
+  }
   setTimeout(()=>{lastAdded=new Set();renderReg();},2600);
 }
 $('addOne').onclick=()=>{
@@ -960,6 +970,27 @@ function saveExtraLocal(){
 function loadExtraLocal(){
   try{return JSON.parse(localStorage.getItem(LS_EXTRA_KEY)||'{}');}catch(e){return {};}
 }
+// ── Sao lưu local cho KOL MỚI THÊM (chưa chắc đã lưu lên Supabase) ──
+// Lý do: pushKol() gọi Supabase ngầm, nếu lỗi (VD cột prod ở Supabase chưa
+// cho phép giá trị 'CLD' của sản phẩm Cloud vì Cloud là SP thêm sau) thì lỗi
+// bị "nuốt" im lặng — KOL vẫn hiện trên màn hình NGAY lúc đó nhưng khi tải lại
+// trang, loadFromSupabase() ghi đè REG bằng dữ liệu Supabase (thiếu người này)
+// → người vừa thêm biến mất, y hệt hiện tượng "vô được 1 người, còn lại
+// không hiển thị lên". Lưu thêm 1 bản trên máy để không mất, và tự thử lưu
+// lại lên Supabase mỗi lần mở trang cho tới khi thành công.
+const LS_PENDING_KEY='hannal_kol_pending_'+EMP;
+function loadPendingLocal(){
+  try{return JSON.parse(localStorage.getItem(LS_PENDING_KEY)||'{}');}catch(e){return {};}
+}
+function savePendingLocal(obj){
+  try{localStorage.setItem(LS_PENDING_KEY,JSON.stringify(obj));}catch(e){}
+}
+function markPending(k){
+  const p=loadPendingLocal();p[k.name]=k;savePendingLocal(p);
+}
+function clearPending(name){
+  const p=loadPendingLocal();if(p[name]){delete p[name];savePendingLocal(p);}
+}
 
 function setSbBadge(){
   const b=$('sbBadge');if(!b)return;
@@ -967,7 +998,26 @@ function setSbBadge(){
   b.className='sbbadge '+(SB_OK?'ok':'warn');
 }
 // lưu (không chặn UI; lỗi thì bỏ qua, giữ trên máy)
-async function pushKol(k){try{if(!SB_OK)return;await sbUpsert('kol_list',[{name:k.name,employee:EMP,prod:k.prod,zalo:k.zalo||'',phone:k.phone||'',link:k.link||'',add_date:k.addDate||'',source:k.src}],'name');}catch(e){}}
+async function pushKol(k){
+  markPending(k); // lưu local NGAY, phòng khi Supabase lỗi thì vẫn còn dấu vết
+  if(!SB_OK)return false;
+  const row={name:k.name,employee:EMP,prod:k.prod,zalo:k.zalo||'',phone:k.phone||'',link:k.link||'',add_date:k.addDate||'',source:k.src};
+  try{
+    await sbUpsert('kol_list',[row],'name');
+    clearPending(k.name);
+    return true;
+  }catch(e){
+    // thử lại 1 lần (VD lỗi mạng thoáng qua) trước khi coi là thất bại
+    try{
+      await sbUpsert('kol_list',[row],'name');
+      clearPending(k.name);
+      return true;
+    }catch(e2){
+      console.error('pushKol lỗi — KOL "'+k.name+'" (SP: '+k.prod+') chưa lưu được lên Supabase:',e2);
+      return false; // vẫn còn trong pending, sẽ tự thử lại lần mở trang sau
+    }
+  }
+}
 async function pushKolProd(name,prod){try{if(!SB_OK)return;await sbUpsert('kol_list',[{name,employee:EMP,prod}],'name');}catch(e){}}
 async function pushKolExtra(k){
   saveExtraLocal(); // luôn lưu local NGAY, bất kể Supabase có sống hay không
@@ -1028,6 +1078,31 @@ async function loadFromSupabase(){
     if(changed)restored.push(k);
   });
   restored.forEach(pushKolExtra); // đẩy lại lên Supabase cho khớp
+  // Khôi phục KOL MỚI THÊM nhưng lần trước lưu lên Supabase bị lỗi (chưa kịp
+  // clearPending) — nếu không làm bước này, người vừa thêm (VD gán SP Cloud)
+  // sẽ "biến mất" khỏi web sau khi F5 dù nhân viên đã nhập đúng.
+  const pending=loadPendingLocal();
+  const inRegNow=new Set(REG.map(r=>r.name.toLowerCase()));
+  const stillFailing=[];
+  Object.keys(pending).forEach(name=>{
+    const k=pending[name];
+    if(!inRegNow.has(name.toLowerCase())){
+      REG.unshift(k); // đưa trở lại danh sách để không mất, hiển thị ngay
+      inRegNow.add(name.toLowerCase());
+    }
+    stillFailing.push(k);
+  });
+  if(stillFailing.length){
+    Promise.all(stillFailing.map(pushKol)).then(oks=>{
+      const stillBad=stillFailing.filter((k,i)=>!oks[i]);
+      if(stillBad.length){
+        console.warn('Các KOL sau vẫn CHƯA lưu được lên Supabase, kiểm tra cấu hình bảng kol_list (cột prod có cho phép các mã sản phẩm mới không?):',stillBad.map(k=>`${k.name} (${k.prod})`));
+        const banner=$('addMsg');
+        if(banner)banner.innerHTML=`⚠ <b>${stillBad.length} KOL chưa đồng bộ được lên hệ thống chung</b> (${stillBad.map(k=>'@'+k.name+' — '+(PMAP[k.prod]?PMAP[k.prod].name:k.prod)).join(', ')}). Dữ liệu vẫn còn trên máy này, nhưng nhờ kiểm tra cấu hình Supabase (bảng kol_list, cột prod) để lưu vĩnh viễn.`,banner.className='addmsg err';
+      }
+      renderReg();renderReport();renderDash();renderSum();renderGood();
+    });
+  }
   setSbBadge();
   const dm=ALLM.slice().sort((a,b)=>b-a)[0];if(dm)curMD=String(dm);
   renderMonthBtnsD();renderMonthBtnsS();renderManaged();renderDash();renderSum();renderReg();renderReport();renderGood();
