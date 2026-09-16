@@ -1014,7 +1014,7 @@ const RULES={QNB:{min:3000,lead:20,name:'Quần Nịt Bụng',code:'NBD',cls:'dp
              CLD:{min:200, lead:20,name:'Cloud',          code:'CLOUD', cls:'dp-cloud'}};
 const SZ=['XS/S','XS','S','M/L','M','L','XL/2XL','XL/XXL','XL','XXL','2XL','3XL','4XL','5XL','6XL'];
 const SZP='(XS\\/S|M\\/L|XL\\/2XL|XL\\/XXL|XS|S|M|L|XL|XXL|2XL|3XL|4XL|5XL|6XL)';
-const PICK_SIZES={NBD:['XS/S','M/L','XL/2XL','3XL','4XL','5XL','6XL'],NB01:['XS/S','M/L','XL/2XL','3XL','4XL','5XL','6XL'],JS01:['S','M','L','XL','2XL','3XL'],GY3:['S','M'],CLOUD:['S','M','L']};
+const PICK_SIZES={NBD:['XS/S','M/L','XL/2XL','3XL','4XL','5XL','6XL'],NB01:['XS/S','M/L','XL/2XL','3XL','4XL','5XL','6XL'],JS01:['S','M','L','XL','2XL','3XL'],GY3:['S','M'],CLOUD:['S','M','L','XL']};
 const PICK_COLORS={NBD:['Đen','Da'],NB01:['Đen','Da'],JS01:['Đen','Nâu','Da'],GY3:['Đen','Nâu'],CLOUD:['Đen','Nâu','Hồng','Xanh','Vàng','Tím','Xanh Navy']};
 // Tồn kho nhà cho cảnh báo lúc soạn hàng (map mã sort → mã Đi Đơn)
 let PICK_STOCK={},PICK_STOCK_READY=false;
@@ -2140,7 +2140,7 @@ const ORD_PRODS=[
    colors:['ĐEN','NÂU'],sizes:['S','M'],
    clrBg:{ĐEN:'#2A211C',NÂU:'#3d2010'},clrFg:{ĐEN:'#DCC6AA',NÂU:'#d4a07a'}},
   {key:'CLD',name:'Cloud',code:'CLOUD',dot:'#7a5fa8',
-   colors:['ĐEN','NÂU','HỒNG','XANH','VÀNG','TÍM','XANH NAVY'],sizes:['S','M','L'],
+   colors:['ĐEN','NÂU','HỒNG','XANH','VÀNG','TÍM','XANH NAVY'],sizes:['S','M','L','XL'],
    clrBg:{ĐEN:'#2A211C',NÂU:'#3d2010',HỒNG:'#8a4a68',XANH:'#2a4a68','VÀNG':'#8a6a1a','TÍM':'#5b3d8a','XANH NAVY':'#1a2540'},clrFg:{ĐEN:'#DCC6AA',NÂU:'#d4a07a',HỒNG:'#f0c0d8',XANH:'#c0d8f0','VÀNG':'#f0dca0','TÍM':'#dcc8f0','XANH NAVY':'#c0ccdc'}},
 ];
 let ORD_DATA=[];
@@ -2394,7 +2394,7 @@ async function updateLotStatus(prod,dotName,newStatus){
 
 async function loadOrd(){await loadOrdLots();}
 // ═══ KIỂM KHO ════════════════════════════════════════════════════
-const KHO_CFG={QNB:{name:'Quần Nịt Bụng',colors:['ĐEN','Da'],sizes:['XS/S','M/L','XL/2XL','3XL','4XL','5XL','6XL']},NBL:{name:'Quần NB Lót',colors:['ĐEN','Da'],sizes:['XS/S','M/L','XL/2XL','3XL','4XL','5XL','6XL']},BSL:{name:'Bodysuite Lót',colors:['ĐEN','NÂU','DA'],sizes:['S','M','L','XL','2XL','3XL']},GY3:{name:'Gym3',colors:['ĐEN','NÂU'],sizes:['S','M']},CLD:{name:'Cloud',colors:['ĐEN','NÂU','HỒNG','XANH','VÀNG','TÍM','XANH NAVY'],sizes:['S','M','L']}};
+const KHO_CFG={QNB:{name:'Quần Nịt Bụng',colors:['ĐEN','Da'],sizes:['XS/S','M/L','XL/2XL','3XL','4XL','5XL','6XL']},NBL:{name:'Quần NB Lót',colors:['ĐEN','Da'],sizes:['XS/S','M/L','XL/2XL','3XL','4XL','5XL','6XL']},BSL:{name:'Bodysuite Lót',colors:['ĐEN','NÂU','DA'],sizes:['S','M','L','XL','2XL','3XL']},GY3:{name:'Gym3',colors:['ĐEN','NÂU'],sizes:['S','M']},CLD:{name:'Cloud',colors:['ĐEN','NÂU','HỒNG','XANH','VÀNG','TÍM','XANH NAVY'],sizes:['S','M','L','XL']}};
 let curKhoProd='QNB';
 let khoVals=(function(){try{return JSON.parse(localStorage.getItem('hannal_kho_vals')||'{}')||{};}catch(_){return {};}})();
 function saveKhoVals(){try{localStorage.setItem('hannal_kho_vals',JSON.stringify(khoVals));}catch(_){}}
@@ -3100,7 +3100,7 @@ const INV_PROD_CFG={
        colors:['ĐEN','NÂU'],sizes:['S','M'],
        clrBg:{ĐEN:'#2A211C',NÂU:'#3d2010'},clrFg:{ĐEN:'#DCC6AA',NÂU:'#d4a07a'}},
   CLD:{name:'Cloud',code:'CLOUD',dot:'#7a5fa8',
-       colors:['ĐEN','NÂU','HỒNG','XANH','VÀNG','TÍM','XANH NAVY'],sizes:['S','M','L'],
+       colors:['ĐEN','NÂU','HỒNG','XANH','VÀNG','TÍM','XANH NAVY'],sizes:['S','M','L','XL'],
        clrBg:{ĐEN:'#2A211C',NÂU:'#3d2010',HỒNG:'#8a4a68',XANH:'#2a4a68','VÀNG':'#8a6a1a','TÍM':'#5b3d8a','XANH NAVY':'#1a2540'},clrFg:{ĐEN:'#DCC6AA',NÂU:'#d4a07a',HỒNG:'#f0c0d8',XANH:'#c0d8f0','VÀNG':'#f0dca0','TÍM':'#dcc8f0','XANH NAVY':'#c0ccdc'}},
 };
 
@@ -3414,7 +3414,7 @@ const SALES_PROD_CFG={
   NBL:{colors:['ĐEN','Da'],sizes:['XS/S','M/L','XL/2XL','3XL','4XL','5XL','6XL'],dot:'#1A6B5C'},
   BSL:{colors:['ĐEN','NÂU','DA'],sizes:['S','M','L','XL','2XL','3XL'],dot:'#5B4636'},
   GY3:{colors:['ĐEN','NÂU'],sizes:['S','M'],dot:'#BE735E'},
-  CLD:{colors:['ĐEN','NÂU','HỒNG','XANH','VÀNG','TÍM','XANH NAVY'],sizes:['S','M','L'],dot:'#7a5fa8'},
+  CLD:{colors:['ĐEN','NÂU','HỒNG','XANH','VÀNG','TÍM','XANH NAVY'],sizes:['S','M','L','XL'],dot:'#7a5fa8'},
 };
 const SALES_PROD_NAMES={QNB:'Quần Nịt Bụng',NBL:'NB Lót',BSL:'Bodysuit',GY3:'Gym3',CLD:'Cloud'};
 
