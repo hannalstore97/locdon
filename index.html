@@ -609,6 +609,7 @@ select:focus,input[type=text]:focus,input[type=date]:focus{border-color:var(--te
         <div style="margin-top:6px;font-family:var(--f-mono);font-size:10px;color:#60a5fa;white-space:pre-wrap;max-height:140px;overflow-y:auto;background:#f8f9ff;border:1px solid var(--tan);border-radius:6px;padding:8px" id="dbgTxt"></div>
       </details>
       <div class="tagline">Confidence isn't just a look, it's a lifestyle.</div>
+      <div style="text-align:center;font-family:var(--f-mono);font-size:9px;color:#9A8070;margin-top:6px">Bản sort: <b>2026-09-28 · TikTok đọc theo toạ độ cột</b></div>
     </div>
   </div>
 
@@ -1228,7 +1229,23 @@ const srtG=g=>[...g].sort((a,b)=>szR(a.size)-szR(b.size));
 function mkB(){return{NBD:{BLACK:[],DA:[],COMBO:[]},NB01:{BLACK:[],DA:[],COMBO:[]},GY3:{BLACK:[],BROWN:[]},JS01:{BLACK:[],BROWN:[],DA:[]},CLOUD:{BLACK:[],BROWN:[],PINK:[],BABYPINK:[],BLUE:[],YELLOW:[],PURPLE:[],NAVY:[],CREAM:[]},CB01:[],MULTI:[],OTHER:[]};}
 function getTQ(t){const m=t.match(/T[oổ]ng\s*SL[^:]*:?\s*(\d+)/i);return m?parseInt(m[1]):null;}
 
-// ═══ SHOPEE PARSER (bản chuẩn: đọc theo dòng "N. … SL: q", chống lặp, tách combo) ═══
+// ═══ SHOPEE PARSER v2 (nhận diện theo MÃ PHÂN LOẠI, chịu được tên SP generic + cắt dòng) ═══
+// Shopee giờ in tên SP dạng generic ("Sản phẩm phụ kiện thời trang"), nên KHÔNG dùng tên SP.
+// Nguồn nhận diện duy nhất là PHẦN PHÂN LOẠI ở cuối mỗi dòng hàng: "…, <MÃ> <Màu>,<Size>, SL: n"
+//   VD mới: "Sản phẩm phụ kiện thời trang, NBD Nude,5XL, SL: 1"
+//           "Sản phẩm phụ kiện thời trang, NB01Combo Đen + Nud|e,XL, SL: 1"  (bị cắt dòng giữa chữ)
+//   VD cũ : "…Không Hằn -NB|D, Nude,3XL, SL: 1"                               (bị cắt dòng giữa mã)
+// Shopee cắt dòng theo độ rộng ký tự (không theo từ) → pdf.js chèn khoảng trắng vào GIỮA mã/màu.
+// Cách xử lý: bỏ HẾT khoảng trắng trong phần mô tả rồi mới so khớp, nên cắt dòng ở đâu cũng không ảnh hưởng.
+// Không khớp đúng mẫu → đưa vào OTHER + ghi log lý do, KHÔNG đoán.
+const SHP_CODES='NBD|NB01|GY3|JS01|CB01|CLOUD';
+const SHP_COLORS='Hồng\\s*Baby|Hong\\s*Baby|Baby\\s*Pink|Xanh\\s*Navy|Đen|Den|Black|Nude|Nâu|Nau|Brown|Da|Kem|Cream|Hồng|Hong|Navy|Xanh|Vàng|Vang|Tím|Tim';
+const SHP_SIZES='XS\\/S|M\\/L|XL\\/XXL|XL\\/2XL|XXXL|6XL|5XL|4XL|3XL|2XL|XXL|XL|XS|S|M|L';
+// Phân loại CÓ mã, neo ở CUỐI mô tả: <MÃ>[-,:]?[Combo]<Màu>[+<Màu>…][,]<Size>
+const SHP_RE_CODE=new RegExp(`(?:^|[^A-Z0-9])(${SHP_CODES})[-,:]?(Combo)?((?:${SHP_COLORS})(?:\\+(?:${SHP_COLORS}))*),?(${SHP_SIZES})$`,'i');
+// Phân loại KHÔNG có mã (VD "Da,34") — chỉ để ghi nhận vào OTHER
+const SHP_RE_NOCODE=new RegExp(`((?:${SHP_COLORS})(?:\\+(?:${SHP_COLORS}))*),([A-Z0-9/]{1,8})$`,'i');
+const SHP_RE_COLOR=new RegExp(SHP_COLORS,'gi');
 function nGroupSize(code,rawSize){
   let s=(rawSize||'').toUpperCase().replace(/\s/g,'');
   if(s==='XXXL')s='3XL';
@@ -1240,57 +1257,81 @@ function cleanOtherName(d){
           .replace(/[-\u2013,]?\s*(Đen|Nude|Nâu|Da|Hồng\s*Baby|Hong\s*Baby|Baby\s*Pink|Kem|Cream|Hồng|Xanh\s*Navy|Xanh|Vàng|Tím)\s*,\s*[A-Za-z0-9/ ]+$/i,'')
           .replace(/\s{2,}/g,' ').replace(/[-\u2013,\s]+$/,'').trim().slice(0,50);
 }
+function shpColorsOf(s){return [...new Set([...(s||'').matchAll(SHP_RE_COLOR)].map(x=>x[0].replace(/\s/g,'').toLowerCase()))];}
+// Trả về mảng item (đã tách combo theo màu để đếm soạn hàng). Kèm thuộc tính:
+//   .lines  = danh sách DÒNG hàng trên nhãn {no,code,combo,colors,size,qty,raw,ok,why}
+//   .sumSL  = tổng SL các dòng đọc được (để đối chiếu với "Tổng SL sản phẩm")
 function getShopeeItems(raw){
-  // chuẩn hoá NFC để khớp chữ tiếng Việt do pdf.js trả về ở dạng tổ hợp
-  const t=(raw||'').replace(/\u00A0/g,' ').replace(/Comb\s*o/gi,'Combo').replace(/Nud\s+e/gi,'Nude')
-                   .replace(/\b(NBD|NB01|GY3|JS01|CB01|CLOUD)(Combo)/gi,'$1 $2')
-                   .replace(/\s+/g,' ').normalize('NFC').trim();
-  // chỉ đọc trong vùng "Nội dung hàng" (nếu tìm được), tránh bắt nhầm địa chỉ
+  const t=(raw||'').replace(/\u00A0/g,' ').normalize('NFC').replace(/\s+/g,' ').trim();
+  // chỉ đọc trong vùng "Nội dung hàng", tránh bắt nhầm địa chỉ
   const region=(t.match(/Nội dung hàng[\s\S]*?(?=Người gửi|Tiền thu|$)/)||[t])[0];
-  const re=/(\d+)\.\s*([A-Za-zÀ-ỹ].*?)\bSL\s*:?\s*(\d+)/g;
-  const res=[],seen=new Set();let m;
+  // Mỗi dòng hàng: "N. <mô tả> SL: q". Mô tả bắt đầu bằng chữ hoặc "[" (VD "[S-6XL] Quần…").
+  // Yêu cầu ký tự đầu là chữ/[/( để không bắt nhầm số tiền kiểu "11.000 VNĐ".
+  const re=/(\d{1,3})\s?\.\s*([\[(A-Za-zÀ-ỹ].*?)\bS\s*L\s*:?\s*(\d+)/g;
+  const res=[],lines=[],seen=new Set();let m;
   while((m=re.exec(region))!==null){
-    let desc=m[2].trim().replace(/,+$/,'');const qty=parseInt(m[3])||1;
-    const sig=desc.toUpperCase().replace(/\s/g,'')+'#'+qty;
-    if(seen.has(sig))continue;seen.add(sig);   // chống nhân đôi khi text-layer bị lặp
-    const code=/\bCLOUD\b/i.test(desc)?'CLOUD':/\bGY3\b/i.test(desc)?'GY3':/\bJS01\b/i.test(desc)?'JS01':/\bCB01\b/i.test(desc)?'CB01':/\bNB01\b/i.test(desc)?'NB01':/\bNBD\b/i.test(desc)?'NBD':null;
-    // Combo 2 màu (vd "NBD Combo Đen + Nude") -> tách mỗi màu 1 đơn vị
-    if(/combo/i.test(desc)&&code&&code!=='CB01'){
-      const size=nGroupSize(code,(desc.match(/,?\s*([A-Za-z0-9/ ]+)$/)||[])[1]||'');
-      const uniq=[...new Set([...desc.matchAll(/Đen|Nude|Nâu|Da|Hồng\s*Baby|Hong\s*Baby|Baby\s*Pink|Kem|Cream|Hồng|Xanh\s*Navy|Xanh|Vàng|Tím/gi)].map(x=>x[0].toLowerCase()))];
-      uniq.forEach(c=>res.push({code,color:c,size,qty:1}));continue;
+    const no=m[1],desc=m[2].trim().replace(/[,\s]+$/,''),qty=parseInt(m[3])||1;
+    const cmp=desc.replace(/\s+/g,'').replace(/,+$/,'');     // bản bỏ khoảng trắng — miễn nhiễm cắt dòng
+    const sig=no+'#'+cmp.toUpperCase()+'#'+qty;
+    if(seen.has(sig))continue;seen.add(sig);                   // chống nhân đôi khi text-layer bị lặp
+    const mc=cmp.match(SHP_RE_CODE);
+    if(mc){
+      const code=mc[1].toUpperCase(),combo=!!mc[2]||/\+/.test(mc[3]);
+      const colors=shpColorsOf(mc[3]),size=nGroupSize(code,mc[4]);
+      lines.push({no,code,combo,colors,size,qty,raw:cmp,ok:true});
+      if(code==='CB01'){res.push({code,color:colors[0]||'',size,qty,line:no});continue;}
+      // Combo nhiều màu → mỗi màu × SL của dòng (để bảng soạn hàng đếm đúng số cái)
+      colors.forEach(c=>res.push({code,color:c,size,qty,line:no,combo}));
+      continue;
     }
-    // màu + size ở cuối dòng: "…Màu,Size" HOẶC "…Màu Size" (một số nhãn SPX/Shopee không có dấu phẩy giữa màu và size, VD "GY3 ĐEN M")
-    const cs=desc.match(/(Đen|Nude|Nâu|Da|Hồng\s*Baby|Hong\s*Baby|Baby\s*Pink|Kem|Cream|Hồng|Xanh\s*Navy|Xanh|Vàng|Tím)\s*,?\s*([A-Za-z0-9/ ]+)$/i);
-    if(!cs){res.push({code:'OTHER',name:cleanOtherName(desc),color:'',size:'?',qty});continue;}
-    if(code)res.push({code,color:cs[1],size:nGroupSize(code,cs[2]),qty});
-    else res.push({code:'OTHER',name:cleanOtherName(desc),color:pColor(cs[1]),size:cs[2].toUpperCase().replace(/\s/g,''),qty});
+    const mn=cmp.match(SHP_RE_NOCODE);
+    const why=mn?'phân loại không có mã SKU':'không đọc được phân loại';
+    lines.push({no,code:'OTHER',combo:false,colors:[],size:mn?mn[2].toUpperCase():'?',qty,raw:cmp,ok:false,why});
+    // Tên generic → gom về 1 khoá cố định (không phụ thuộc chỗ cắt dòng)
+    const rest=cmp.replace(/^S[aả]nph[aẩ]mph[uụ]ki[eệ]nth[oờ]itrang,?/i,'').replace(mn?SHP_RE_NOCODE:/$^/,'').replace(/[-,]+$/,'');
+    res.push({code:'OTHER',name:rest?cleanOtherName(desc):'SP không mã',color:mn?pColor(mn[1]):'',size:mn?mn[2].toUpperCase():'?',qty,line:no});
   }
+  res.lines=lines;res.sumSL=lines.reduce((s,l)=>s+l.qty,0);
   return res;
 }
 
 function classifyShopee(pages){
-  const B=mkB(),logs=[],seen=new Set();let mc=0,oc=0;
+  const B=mkB(),logs=[],seen=new Set();let mc=0,oc=0,cc=0;
+  const put=(b,e,idx)=>{if(!seen.has(idx)){b.push(e);seen.add(idx);}};
   pages.forEach(({idx,text})=>{
-    const items=getShopeeItems(text),tq=getTQ(text);
-    if(!items.length){if(!seen.has(idx)){B.OTHER.push({size:'?',idx});seen.add(idx);}logs.push({t:'warn',m:`T${idx+1}: OTHER`});oc++;return;}
-    const slCount=(text.match(/SL\s*:?\s*\d+/gi)||[]).length;
-    const multi=(tq&&tq>=2)||items.length>=2||items.some(i=>i.qty>=2)||slCount>=2;
-    if(multi){if(!seen.has(idx)){B.MULTI.push({size:items[0].size,idx});seen.add(idx);}logs.push({t:'multi',m:`T${idx+1}: MULTI`});mc++;return;}
-    const it=items[0],ck=nColor(it.color),e={size:it.size,idx};
-    const push=b=>{if(!seen.has(idx)){b.push(e);seen.add(idx);}logs.push({t:'ok',m:`T${idx+1}: ${it.code}/${ck||it.color}/${it.size}x${it.qty}`});};
-    if(it.code==='NBD'&&ck&&B.NBD[ck]!==undefined)push(B.NBD[ck]);
-    else if(it.code==='NB01'&&ck&&B.NB01[ck]!==undefined)push(B.NB01[ck]);
-    else if(it.code==='GY3'&&ck&&B.GY3[ck]!==undefined)push(B.GY3[ck]);
-    else if(it.code==='JS01'&&ck&&B.JS01[ck]!==undefined)push(B.JS01[ck]);
-    else if(it.code==='CLOUD'&&ck&&B.CLOUD[ck]!==undefined)push(B.CLOUD[ck]);
-    else if(it.code==='CB01')push(B.CB01);
-    else{if(!seen.has(idx)){B.OTHER.push(e);seen.add(idx);}logs.push({t:'warn',m:`T${idx+1}: OTHER (${it.code})`});oc++;}
+    const items=getShopeeItems(text),tq=getTQ(text),lines=items.lines||[];
+    const T=`T${idx+1}`;
+    if(!lines.length){put(B.OTHER,{size:'?',idx},idx);logs.push({t:'warn',m:`${T}: OTHER — không tìm thấy dòng hàng "N. … SL: q"`});oc++;return;}
+    // Đối chiếu với "Tổng SL sản phẩm" in trên nhãn
+    if(tq!=null&&tq!==items.sumSL){
+      logs.push({t:'warn',m:`${T}: Tổng SL nhãn = ${tq} nhưng đọc được ${items.sumSL}${tq>items.sumSL?' (Shopee có thể ẩn bớt dòng khi danh sách dài)':''}`});
+    }
+    const slCount=(text.match(/\bS\s*L\s*:\s*\d+/gi)||[]).length;
+    const multi=(tq&&tq>=2)||lines.length>=2||lines.some(l=>l.qty>=2)||slCount>=2;
+    if(multi){put(B.MULTI,{size:lines[0].size,idx},idx);logs.push({t:'multi',m:`${T}: MULTI (${lines.map(l=>l.ok?`${l.code}${l.combo?' Combo':''} ${l.colors.join('+')} ${l.size}×${l.qty}`:`? ${l.raw.slice(-20)}×${l.qty}`).join(' | ')})`});mc++;return;}
+    const L=lines[0],e={size:L.size,idx};
+    if(!L.ok){put(B.OTHER,e,idx);logs.push({t:'warn',m:`${T}: OTHER — ${L.why}: "${L.raw.slice(-40)}"`});oc++;return;}
+    // Combo 1 dòng (VD "NBD Combo Đen + Nude") → nhóm Combo riêng của sản phẩm (như bản v3.5)
+    if(L.combo){
+      if(B[L.code]&&B[L.code].COMBO){put(B[L.code].COMBO,e,idx);logs.push({t:'ok',m:`${T}: ${L.code}/COMBO ${L.colors.join('+')}/${L.size}`});cc++;}
+      else{put(B.MULTI,e,idx);logs.push({t:'multi',m:`${T}: MULTI (combo ${L.code} không có nhóm riêng)`});mc++;}
+      return;
+    }
+    const ck=nColor(L.colors[0]);
+    const push=b=>{put(b,e,idx);logs.push({t:'ok',m:`${T}: ${L.code}/${ck||L.colors[0]}/${L.size}x${L.qty}`});};
+    if(L.code==='NBD'&&ck&&B.NBD[ck]!==undefined)push(B.NBD[ck]);
+    else if(L.code==='NB01'&&ck&&B.NB01[ck]!==undefined)push(B.NB01[ck]);
+    else if(L.code==='GY3'&&ck&&B.GY3[ck]!==undefined)push(B.GY3[ck]);
+    else if(L.code==='JS01'&&ck&&B.JS01[ck]!==undefined)push(B.JS01[ck]);
+    else if(L.code==='CLOUD'&&ck&&B.CLOUD[ck]!==undefined)push(B.CLOUD[ck]);
+    else if(L.code==='CB01')push(B.CB01);
+    else{put(B.OTHER,e,idx);logs.push({t:'warn',m:`${T}: OTHER — mã ${L.code} không có nhóm màu "${L.colors.join('+')}"`});oc++;}
   });
   pages.forEach(p=>{if(!seen.has(p.idx))B.OTHER.push({size:'?',idx:p.idx});});
-  logs.push({t:'info',m:`${mc} Multi · ${oc} Other`});
+  logs.push({t:'info',m:`${cc} Combo · ${mc} Multi · ${oc} Other`});
   return{B,logs};
 }
+
 function doSortShopee(B){
   const ORD=[{lb:'NBD Đen',g:B.NBD.BLACK},{lb:'NBD Da',g:B.NBD.DA},{lb:'NBD Combo',g:B.NBD.COMBO},{lb:'NB01 Đen',g:B.NB01.BLACK},{lb:'NB01 Da',g:B.NB01.DA},{lb:'NB01 Combo',g:B.NB01.COMBO},{lb:'JS01 Đen',g:B.JS01.BLACK},{lb:'JS01 Nâu',g:B.JS01.BROWN},{lb:'JS01 Da',g:B.JS01.DA},{lb:'GY3 Đen',g:B.GY3.BLACK},{lb:'GY3 Nâu',g:B.GY3.BROWN},{lb:'Cloud Đen',g:B.CLOUD.BLACK},{lb:'Cloud Nâu',g:B.CLOUD.BROWN},{lb:'Cloud Hồng',g:B.CLOUD.PINK},{lb:'Cloud Hồng Baby',g:B.CLOUD.BABYPINK},{lb:'Cloud Xanh',g:B.CLOUD.BLUE},{lb:'Cloud Vàng',g:B.CLOUD.YELLOW},{lb:'Cloud Tím',g:B.CLOUD.PURPLE},{lb:'Cloud Navy',g:B.CLOUD.NAVY},{lb:'Cloud Kem',g:B.CLOUD.CREAM},{lb:'CB01',g:B.CB01},{lb:'Multi',g:B.MULTI},{lb:'Other',g:B.OTHER}];
   const idx=[],st={};
@@ -1332,6 +1373,79 @@ function getTkItems(raw){
   }
   return res;
 }
+// ═══ TIKTOK — ĐỌC BẢNG HÀNG THEO TOẠ ĐỘ CỘT (không phụ thuộc cách pdf.js ghép chữ) ═══
+// Nhãn TikTok có bảng: Product Name | SKU | Seller SKU | Qty. Mỗi mảnh chữ có toạ độ x,y →
+// xếp vào đúng cột theo vị trí tiêu đề cột; mỗi dòng hàng được neo bởi con số ở cột Qty.
+// Nhận diện mã: ưu tiên Seller SKU; nếu trống thì chỉ nhận khi TÊN SP có chứa đúng mã (VD "… CLOUD …").
+// Không khớp → OTHER (ghi rõ Seller SKU + phân loại), không đoán.
+const TK_CODES=['NBD','NB01','GY3','JS01','CB01','CLOUD'];
+// Gom các mảnh chữ cùng hàng ngang (cùng y) thành dòng — chịu được việc pdf.js tách/gộp mảnh khác nhau
+function tkLines(items,tol){
+  tol=tol||2.5;const L=[];
+  items.filter(i=>i.s&&i.s.trim()).slice().sort((a,b)=>b.y-a.y).forEach(i=>{
+    const l=L.find(l=>Math.abs(l.y-i.y)<=tol);if(l)l.items.push(i);else L.push({y:i.y,items:[i]});});
+  L.forEach(l=>{l.items.sort((a,b)=>a.x-b.x);l.text=l.items.map(i=>i.s.trim()).join(' ').replace(/\s+/g,' ');});
+  return L;
+}
+function tkPageOrderId(items){
+  for(const l of tkLines(items,3)){const m=l.text.match(/Order\s*ID\s*:?\s*(\d{15,20})/i);if(m)return m[1];}
+  const m=items.map(i=>i.s).join(' ').match(/Order\s*ID\s*:?\s*(\d{15,20})/i);return m?m[1]:null;
+}
+// Trả về {rows:[{name,sku,seller,qty}], qtyTotal} hoặc null nếu trang không có bảng hàng TikTok
+function tkReadTable(items){
+  const it=items.filter(i=>i.s&&i.s.trim());
+  const lines=tkLines(it,2);
+  // Dòng tiêu đề: chứa "Product Name … SKU … Seller SKU … Qty"
+  const hl=lines.find(l=>/Product\s*Name/i.test(l.text)&&/Seller\s*SKU/i.test(l.text)&&/\bQty\b/.test(l.text)&&!/Total/i.test(l.text));
+  if(!hl)return null;
+  const hi=hl.items;
+  const selI=hi.find(i=>/^Seller/i.test(i.s.trim()));
+  const skuI=hi.find(i=>/^SKU/i.test(i.s.trim())&&i.x<selI.x);
+  const qI=hi.slice().reverse().find(i=>/Qty$/i.test(i.s.trim())||/^Qty/i.test(i.s.trim()));
+  if(!selI||!skuI||!qI||!(skuI.x<selI.x&&selI.x<qI.x))return null;
+  const hy=hl.y;
+  // Chân bảng: dòng "Qty Total …" hoặc "Order ID: …" nằm dưới tiêu đề
+  const foot=lines.filter(l=>l.y<hy-2&&(/Qty\s*Total/i.test(l.text)||/Order\s*ID/i.test(l.text)));
+  const fy=foot.length?Math.max(...foot.map(l=>l.y)):-1e9;
+  let qtyTotal=null;const tl=foot.find(l=>/Qty\s*Total/i.test(l.text));
+  if(tl){const m=tl.text.match(/Qty\s*Total\s*:?\s*(\d+)/i);if(m)qtyTotal=+m[1];}
+  const b1=skuI.x-3,b2=selI.x-3,b3=(selI.x+qI.x)/2;
+  const col=x=>x<b1?'name':x<b2?'sku':x<b3?'seller':'qty';
+  const body=it.filter(i=>i.y<hy-2&&i.y>fy+1);
+  const anchors=body.filter(i=>col(i.x)==='qty'&&/^\d+$/.test(i.s.trim())).sort((a,b)=>b.y-a.y);
+  const rows=anchors.map(a=>({top:a.y+3,name:[],sku:[],seller:[],qty:+a.s.trim()}));
+  body.forEach(i=>{const c=col(i.x);if(c==='qty')return;
+    let r=null;for(const R of rows){if(i.y<=R.top)r=R;else break;}
+    if(!r)r=rows[0];if(r)r[c].push(i);});
+  const J=a=>tkLines(a,1.5).map(l=>l.text).join(' ').replace(/\s+/g,' ').trim();
+  return {rows:rows.map(r=>({name:J(r.name),sku:J(r.sku),seller:J(r.seller),qty:r.qty})),qtyTotal};
+}
+// Dòng bảng → item. qty = SL trên nhãn; pieces = số cái thực (× số cái combo trong phân loại)
+function tkRowToItems(r){
+  const sel=(r.seller||'').toUpperCase().replace(/\s/g,'');
+  let code=TK_CODES.includes(sel)?sel:null,how='Seller SKU';
+  if(!code&&!sel){const f=TK_CODES.filter(c=>new RegExp(`(^|[^A-Z0-9])${c}([^A-Z0-9]|$)`,'i').test(r.name));if(f.length===1){code=f[0];how='tên SP';}}
+  const sku=(r.sku||'').normalize('NFC').replace(/\s+/g,' ').trim();
+  // "[Combo] N c|cái" ở đầu phân loại = số cái trong 1 đơn vị; "Màu " là tiền tố thừa
+  const m=sku.match(/^(?:combo\s*)?(?:(\d+)\s*c(?:ái|ai)?\s+)?(?:màu\s+)?(.+?)\s*,\s*([A-Za-z0-9/]{1,8})$/i);
+  const per=m&&m[1]?Math.max(1,+m[1]):1;
+  if(!code||!m)return[{code:'OTHER',name:r.name,seller:sel,color:m?m[2]:'',size:m?nSize(m[3]):'?',qty:r.qty,pieces:r.qty*per,raw:sku,why:!m?'không đọc được phân loại':(sel?`mã ${sel} chưa có trong hệ thống`:'không có Seller SKU')}];
+  const size=nSize(m[3]);
+  const colors=m[2].split('+').map(s=>s.trim()).filter(Boolean);
+  if(colors.length>1)return colors.map(c=>({code,color:c,size,qty:r.qty,pieces:r.qty,combo:true,how,raw:sku}));
+  return[{code,color:colors[0],size,qty:r.qty,pieces:r.qty*per,how,raw:sku}];
+}
+// Gom trang → đơn theo Order ID đọc từ từng mảnh chữ; gắn sẵn items/qtyTotal
+function groupTkPagesLayout(pages){
+  const groups=[];let cur=null;
+  pages.forEach(pg=>{
+    const oid=tkPageOrderId(pg.items||[]);const tb=tkReadTable(pg.items||[]);
+    if(cur&&oid&&oid===cur.orderId){cur.pages.push(pg);if(tb){cur.rows.push(...tb.rows);if(tb.qtyTotal!=null)cur.qtyTotal=tb.qtyTotal;}if(!tb)cur.layoutOk=false;return;}
+    cur={orderId:oid,pages:[pg],rows:tb?[...tb.rows]:[],qtyTotal:tb?tb.qtyTotal:null,layoutOk:!!tb};groups.push(cur);
+  });
+  groups.forEach(g=>{if(g.layoutOk&&g.rows.length)g.items=g.rows.flatMap(tkRowToItems);});
+  return groups;
+}
 function groupTkPages(pages){
   const groups=[];let lastId=null,cur=null;
   for(const pg of pages){
@@ -1343,15 +1457,18 @@ function groupTkPages(pages){
 }
 function classifyTiktok(groups){
   const B=mkB(),logs=[];let mc=0,oc=0;
-  groups.forEach(({orderId,pages:grpPages},gi)=>{
+  groups.forEach((g,gi)=>{
+    const {orderId,pages:grpPages}=g;
     const combined=grpPages.map(p=>p.text).join(' ');
     const indices=grpPages.map(p=>p.idx);
-    const items=getTkItems(combined);
+    const items=g.items||getTkItems(combined);
     const label=`Đơn ${gi+1}${grpPages.length>1?` (${grpPages.length}tr)`:''}`;
     const mkE=size=>({size,indices});
     if(!items.length){B.OTHER.push(mkE('?'));logs.push({t:'warn',m:`${label}: OTHER`});oc++;return;}
-    const slCount=(combined.match(/(?:SL|Qty)\s*:?\s*\d+/gi)||[]).length;
-    const multi=(getTkTQ(combined)>=2)||items.length>=2||items.some(i=>i.qty>=2)||slCount>=2;
+    const slCount=g.items?(g.rows||[]).length:(combined.match(/(?:SL|Qty)\s*:?\s*\d+/gi)||[]).length;
+    const tq=g.items?(g.qtyTotal||0):getTkTQ(combined);
+    const nLines=g.items?(g.rows||[]).length:items.length;
+    const multi=(tq>=2)||nLines>=2||items.length>=2&&!items.every(i=>i.combo)||items.some(i=>i.qty>=2)||slCount>=2;
     if(multi){B.MULTI.push(mkE(items[0].size));logs.push({t:'multi',m:`${label}: MULTI`});mc++;return;}
     const it=items[0],ck=nColor(it.color),e=mkE(it.size);
     const push=b=>{b.push(e);logs.push({t:'ok',m:`${label}: ${it.code}/${ck||it.color}/${it.size}`});};
@@ -1361,7 +1478,7 @@ function classifyTiktok(groups){
     else if(it.code==='JS01'&&ck&&B.JS01[ck]!==undefined)push(B.JS01[ck]);
     else if(it.code==='CLOUD'&&ck&&B.CLOUD[ck]!==undefined)push(B.CLOUD[ck]);
     else if(it.code==='CB01')push(B.CB01);
-    else{B.OTHER.push(e);logs.push({t:'warn',m:`${label}: OTHER`});oc++;}
+    else{B.OTHER.push(e);logs.push({t:'warn',m:`${label}: OTHER${it.why?` — ${it.why}: "${it.raw||''}"${it.seller?` [${it.seller}]`:''}`:''}`});oc++;}
   });
   logs.push({t:'info',m:`${mc} Multi · ${oc} Other · ${groups.length} đơn`});
   return{B,logs};
@@ -1451,17 +1568,48 @@ function buildPickFromPages(pages){
   });});
   return inv;
 }
+// Số cái trong 1 đơn vị combo — CHỈ đọc từ PHÂN LOẠI (cột SKU), không đọc từ tên sản phẩm.
+// Tên listing "Combo 2 Quần Legging…" nhưng khách chọn phân loại "1 cái Đen, 5XL" → là 1 cái, không phải 2.
+//   "Combo 2c Đen, M/L" / "Combo 2 cái Đen" / "Combo 2 Đen"  → 2   (số + [c|cái] + NGAY SAU là màu hoặc dấu phẩy)
+//   "1 cái Đen, 5XL" / "1c Da, XL/2XL"                        → 1
+//   "Combo 2 Quần Legging…" (tên SP, sau số là chữ thường)     → không tính
+const TK_COMBO_COL='(?:Đen|Den|Nude|Nâu|Nau|Da|Be|Hồng|Hong|Kem|Cream|Xanh|Navy|Vàng|Vang|Tím|Tim|Black|Brown|Skin|Pink|Blue|Yellow|Purple)';
+const TK_COMBO_RE=new RegExp(`combo\\s*(\\d+)\\s*(?:c(?:ái|ai)?(?![A-Za-zÀ-ỹ])\\s*)?(?=${TK_COMBO_COL}(?![A-Za-zÀ-ỹ])|,)`,'i');
 function tkComboCount(t){
-  // Combo "N cái": "Combo 2c", "Combo 2 cái", "Combo 2" → N (N>=2). Mặc định 1.
-  let m=(t||'').match(/combo\s*(\d+)\s*c(?:ái|ai)?\b/i)||(t||'').match(/combo\s*(\d+)\b/i);
+  const m=(t||'').normalize('NFC').match(TK_COMBO_RE);
   return m?Math.max(1,parseInt(m[1])):1;
+}
+// Đơn không nhận diện được mã (VD Seller SKU "MV01") → vẫn phải hiện ở "Sản phẩm khác", không được bỏ mất.
+// Đọc phần bảng hàng của nhãn TikTok: "… <Màu>, <Size> [SellerSKU] <Qty>" ngay trước "Qty Total"/"Order ID".
+function tkUnknownLine(t){
+  t=(t||'').normalize('NFC').replace(/\s+/g,' ');
+  const reg=(t.match(/Seller SKU\s+Qty\s+([\s\S]*?)\s*(?:Qty Total|Order ID)/i)||[])[1]||'';
+  const m=reg.match(/([A-Za-zÀ-ỹ][A-Za-zÀ-ỹ ]{0,20}),\s*([A-Za-z0-9/]{1,8})\s+(?:([A-Z][A-Z0-9]{1,11})\s+)?(\d{1,3})\s*$/);
+  if(!m)return null;
+  const color=m[1].trim().split(' ').slice(-2).join(' ').replace(/^(?:\d+\s*c(?:ái)?\s+)/i,'');
+  return {seller:m[3]||'',color,size:m[2].toUpperCase(),qty:parseInt(m[4])||1};
 }
 function buildPickFromGroups(groups){
   const inv=initPickInv();
-  groups.forEach(({pages:gp})=>{
+  groups.forEach(g=>{
+    const {orderId,pages:gp}=g;
+    if(g.items){   // đọc theo toạ độ cột — số cái đã tính sẵn từ phân loại
+      g.items.forEach(it=>{
+        if(it.code==='OTHER'){const key=`${it.seller||'Không mã'} · ${it.color?pColor(it.color):'?'} · ${it.size}`;inv.OTHER[key]=(inv.OTHER[key]||0)+it.pieces;}
+        else addPickItem(inv,it.code,it.color,it.size,it.pieces);
+      });
+      return;
+    }
     const combined=gp.map(p=>p.text).join(' ');
     const items=getTkItems(combined);
     const cmb=tkComboCount(combined);
+    if(!items.length){
+      const u=tkUnknownLine(combined);
+      const key=u?`${u.seller||'Không mã'} · ${pColor(u.color)} · ${u.size}`:`Đơn ${orderId||'?'} (không đọc được phân loại)`;
+      const q=u?u.qty:(getTkTQ(combined)||1);
+      inv.OTHER[key]=(inv.OTHER[key]||0)+q;
+      return;
+    }
     items.forEach(it=>{
       let q=it.qty||1;
       // Combo Nc (VD "Combo 2c") = N sản phẩm — nhãn TikTok chỉ ghi Qty 1 nên phải nhân lên.
@@ -1550,8 +1698,9 @@ async function showPickTable(){
       return`<div class="other-item"><span class="other-item-n">${label}</span><span class="other-item-q">${other[k]}</span></div>`;
     }).join('');
   }
-  let totalItems=0;
-  Object.values(PICK_INV).forEach(prod=>{if(typeof prod==='object')Object.values(prod).forEach(col=>{if(typeof col==='object')Object.values(col).forEach(v=>{totalItems+=(v||0);});});});
+  let totalItems=0,otherItems=0;
+  Object.entries(PICK_INV).forEach(([pk,prod])=>{if(pk==='OTHER'){Object.values(prod||{}).forEach(v=>{otherItems+=(v||0);});return;}if(typeof prod==='object')Object.values(prod).forEach(col=>{if(typeof col==='object')Object.values(col).forEach(v=>{totalItems+=(v||0);});});});
+  if(otherItems)totalItems=`${totalItems+otherItems} (gồm ${otherItems} SP khác)`;
   document.getElementById('pickNote').innerHTML=`Tổng ${totalItems} sản phẩm đếm từ PDF. CB01 đã cộng vào cả NBD và NB01.`+(PICK_STOCK_READY?` · <span style="color:#c0392b;font-weight:700">■ HẾT KHO</span> (kho nhà = 0 → thay size/màu khác) · <span style="color:#b5651d;font-weight:700">■ còn ít</span> (không đủ đơn)`:` · <span style="color:#9A8070">(không tải được tồn kho để cảnh báo)</span>`);
   const pc=document.getElementById('pickCard');pc.style.display='block';
 }
@@ -1751,6 +1900,15 @@ async function onHtFiles(input){
       for(let i=1;i<=pdf.numPages;i++){
         const pg=await pdf.getPage(i);const tc=await pg.getTextContent();
         const text=tc.items.map(s=>s.str).join(' ');
+        // Nhãn TikTok có bảng SKU/Seller SKU/Qty → đọc theo toạ độ cột (chính xác, kể cả mã lạ như MV01)
+        const tb=tkReadTable(tc.items.map(s=>({s:s.str,x:s.transform[4],y:s.transform[5]})));
+        if(tb&&tb.rows.length){
+          tb.rows.flatMap(tkRowToItems).forEach(it=>{
+            if(it.code==='OTHER'){const k=`${it.seller||'Không mã'} · ${it.color?pColor(it.color):'?'} · ${it.size}`;HT_INV.OTHER[k]=(HT_INV.OTHER[k]||0)+it.pieces;}
+            else addPickItem(HT_INV,it.code,it.color,it.size,it.pieces);
+          });
+          totalPages++;continue;
+        }
         const items=getExpressItems(text);
         if(items.length){
           // Đơn Combo (VD "Combo 2c") — nhãn chỉ in Qty:1 dù gói có N sản phẩm, phải nhân lên
@@ -1970,11 +2128,21 @@ async function runTiktok(buf,fname){
   prog('Đang đọc PDF…');lg('info',`File: ${fname}`);
   const pdf=await pdfjsLib.getDocument({data:buf.slice(0)}).promise;const total=pdf.numPages;lg('info',`Tổng: ${total} trang`);
   const pages=[];
-  for(let i=1;i<=total;i++){prog(`Đọc trang ${i}/${total}…`);const pg=await pdf.getPage(i);const tc=await pg.getTextContent();pages.push({idx:i-1,text:tc.items.map(s=>s.str).join(' ')});}
+  for(let i=1;i<=total;i++){prog(`Đọc trang ${i}/${total}…`);const pg=await pdf.getPage(i);const tc=await pg.getTextContent();pages.push({idx:i-1,text:tc.items.map(s=>s.str).join(' '),items:tc.items.map(s=>({s:s.str,x:s.transform[4],y:s.transform[5]}))});}
   document.getElementById('dbgTxt').textContent='=== T1 ===\n'+(pages[0]?.text||'');document.getElementById('dbgWrap').style.display='block';
-  prog('Gom đơn…');const groups=groupTkPages(pages);lg('info',`${groups.length} đơn`);
+  prog('Gom đơn…');
+  // Ưu tiên đọc bảng theo toạ độ cột; chỉ quay về đọc chuỗi text nếu nhãn không có bảng chuẩn
+  let groups=groupTkPagesLayout(pages);
+  const nLay=groups.filter(g=>g.items).length;
+  if(nLay===0){groups=groupTkPages(pages);lg('warn','⚠️ Không thấy bảng Product Name/SKU/Seller SKU/Qty — dùng cách đọc chuỗi text cũ');}
+  else if(nLay<groups.length)lg('warn',`⚠️ ${groups.length-nLay} đơn không đọc được theo toạ độ → đọc theo chuỗi text`);
+  lg('info',`${groups.length} đơn · ${nLay} đơn đọc theo toạ độ cột`);
   prog('Phân loại…');const{B,logs}=classifyTiktok(groups);logs.forEach(({t,m})=>lg(t,m));
   PICK_INV=buildPickFromGroups(groups);
+  // Đối chiếu: tổng "Qty Total" in trên nhãn (× số cái nếu là combo) phải = tổng bảng soạn hàng
+  {let exp=0;groups.forEach(g=>{if(g.items){const tq=g.qtyTotal!=null?g.qtyTotal:g.rows.reduce((a,r)=>a+r.qty,0);const lines=g.rows.reduce((a,r)=>a+r.qty,0);if(tq!==lines)lg('warn',`Đơn ${g.orderId}: Qty Total ${tq} ≠ tổng dòng ${lines}`);exp+=g.items.reduce((a,i)=>a+i.pieces,0)-lines+tq;return;}const c=g.pages.map(p=>p.text).join(' ');const tq=getTkTQ(c)||0;const its=getTkItems(c);const cmb=tkComboCount(c);exp+=(its.length===1&&cmb>=2&&its[0].code!=='CB01')?tq*cmb:tq;});
+   let got=0;Object.entries(PICK_INV).forEach(([k,p])=>Object.values(p).forEach(v=>{got+=typeof v==='object'?Object.values(v).reduce((a,b)=>a+(b||0),0):(v||0);}));
+   lg(exp===got?'ok':'warn',`Đối chiếu: Qty Total trên nhãn = ${exp} · bảng soạn hàng = ${got}${exp===got?' ✓':' ⚠️ LỆCH — kiểm tra log'}`);}
   const{idx,st}=doSortTiktok(B);lg('info',`Sort: ${idx.length} trang`);
   prog('Tạo PDF…');const pdfBytes=await buildSortedPdf(buf,idx);
   return{pdfBytes,name:'TIKTOK_SORTED_'+fname,st,total};
