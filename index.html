@@ -1301,9 +1301,13 @@ function getShopeeItems(raw){
 function classifyShopee(pages){
   const B=mkB(),logs=[],seen=new Set();let mc=0,oc=0,cc=0;
   const put=(b,e,idx)=>{if(!seen.has(idx)){b.push(e);seen.add(idx);}};
-  pages.forEach(({idx,text})=>{
+  pages.forEach(({idx,text,conflict,tails})=>{
     const items=getShopeeItems(text),tq=getTQ(text),lines=items.lines||[];
     const T=`T${idx+1}`;
+    // Đọc theo vị trí và theo luồng text cho 2 kết quả khác nhau → không chọn bừa, đẩy về OTHER để soát tay
+    if(conflict){put(B.OTHER,{size:'?',idx},idx);logs.push({t:'warn',m:`${T}: OTHER — 2 cách đọc PDF cho kết quả khác nhau (${conflict})`});oc++;return;}
+    // Cùng mã đơn trên nhiều trang → gom lại, đi chung nhóm MULTI
+    if(tails&&tails.length){put(B.MULTI,{size:lines[0]?lines[0].size:'?',idx},idx);logs.push({t:'multi',m:`${T}: MULTI — đơn ${tails.length+1} trang (gom T${[idx,...tails].map(i=>i+1).join(', T')})`});mc++;return;}
     if(!lines.length){put(B.OTHER,{size:'?',idx},idx);logs.push({t:'warn',m:`${T}: OTHER — không tìm thấy dòng hàng "N. … SL: q"`});oc++;return;}
     // Đối chiếu với "Tổng SL sản phẩm" in trên nhãn
     if(tq!=null&&tq!==items.sumSL){
@@ -1335,11 +1339,92 @@ function classifyShopee(pages){
   return{B,logs};
 }
 
-function doSortShopee(B){
+function doSortShopee(B,tailMap){
+  tailMap=tailMap||{};
   const ORD=[{lb:'NBD Đen',g:B.NBD.BLACK},{lb:'NBD Da',g:B.NBD.DA},{lb:'NBD Combo',g:B.NBD.COMBO},{lb:'NB01 Đen',g:B.NB01.BLACK},{lb:'NB01 Da',g:B.NB01.DA},{lb:'NB01 Combo',g:B.NB01.COMBO},{lb:'JS01 Đen',g:B.JS01.BLACK},{lb:'JS01 Nâu',g:B.JS01.BROWN},{lb:'JS01 Da',g:B.JS01.DA},{lb:'GY3 Đen',g:B.GY3.BLACK},{lb:'GY3 Nâu',g:B.GY3.BROWN},{lb:'Cloud Đen',g:B.CLOUD.BLACK},{lb:'Cloud Nâu',g:B.CLOUD.BROWN},{lb:'Cloud Hồng',g:B.CLOUD.PINK},{lb:'Cloud Hồng Baby',g:B.CLOUD.BABYPINK},{lb:'Cloud Xanh',g:B.CLOUD.BLUE},{lb:'Cloud Vàng',g:B.CLOUD.YELLOW},{lb:'Cloud Tím',g:B.CLOUD.PURPLE},{lb:'Cloud Navy',g:B.CLOUD.NAVY},{lb:'Cloud Kem',g:B.CLOUD.CREAM},{lb:'CB01',g:B.CB01},{lb:'Multi',g:B.MULTI},{lb:'Other',g:B.OTHER}];
   const idx=[],st={};
-  for(const{lb,g}of ORD){const s=srtG(g);idx.push(...s.map(x=>x.idx));st[lb]=s.length;}
+  for(const{lb,g}of ORD){const s=srtG(g);let n=0;s.forEach(x=>{const all=[x.idx,...(tailMap[x.idx]||[])];idx.push(...all);n+=all.length;});st[lb]=n;}
   return{idx,st};
+}
+
+// ═══ SHOPEE — ĐỌC THEO VỊ TRÍ TEXT + GOM ĐƠN (v3) ═══════════════
+// pdf.js trả text theo THỨ TỰ VẼ trong file, không phải thứ tự đọc. Nếu Shopee đổi template/thứ tự vẽ,
+// regex cắt vùng "Nội dung hàng … Người gửi" trên text luồng có thể lấy nhầm. Nên mỗi trang đọc 2 cách:
+//   (A) LAYOUT: lấy đúng khung "Nội dung hàng" theo toạ độ (dưới tiêu đề, trên dòng "Người gửi phải cam kết",
+//       cột trái — bỏ cột QR/mã phân loại bên phải), sắp dòng theo y rồi x.
+//   (B) LUỒNG: text nối theo thứ tự pdf.js (cách cũ).
+// Chọn: 2 cách giống nhau → dùng. Chỉ 1 cách đọc được → dùng cách đó. Khác nhau → cách nào khớp "Tổng SL"
+// và đọc được mã cho mọi dòng thì dùng; vẫn hoà → đánh dấu conflict → OTHER (không đoán).
+const SHP_COL_CUT=0.71;   // cột QR bên phải bắt đầu ~72% bề rộng nhãn; dòng hàng kết thúc ~69%
+function shpBuildLines(items){
+  const its=items.filter(it=>it.str&&it.str.trim()).map(it=>({s:it.str,x:it.x,y:it.y,w:it.w||0,h:Math.max(4,Math.abs(it.h||8))}));
+  its.sort((a,b)=>b.y-a.y||a.x-b.x);
+  const lines=[];
+  for(const it of its){
+    const L=lines.find(l=>Math.abs(l.y-it.y)<=Math.max(1.5,Math.min(l.h,it.h)*0.45));
+    if(L)L.it.push(it);else lines.push({y:it.y,h:it.h,it:[it]});
+  }
+  lines.forEach(l=>{l.it.sort((a,b)=>a.x-b.x);let t='',end=null;
+    for(const it of l.it){if(end!=null&&it.x-end>l.h*0.15)t+=' ';t+=it.s;end=it.x+it.w;}
+    l.text=t;});
+  return lines.sort((a,b)=>b.y-a.y);
+}
+// items: [{str,x,y,w,h}] (toạ độ PDF, y hướng lên). Trả text vùng "Nội dung hàng" hoặc null.
+function shpLayoutRegion(items,view){
+  const x0=view[0],W=view[2]-view[0],xCut=x0+W*SHP_COL_CUT;
+  const head=items.find(it=>/N[ộo]i\s*dung\s*h[àa]ng/i.test(it.str));
+  if(!head)return null;
+  const yTop=head.y;
+  const ends=items.filter(it=>it.y<yTop-1&&/Ng[ưu][ờo]i\s*g[ửu]i\s*ph[ảa]i|Ti[ềe]n\s*thu/i.test(it.str)).map(it=>it.y);
+  const yBot=ends.length?Math.max(...ends):-Infinity;
+  const tol=Math.max(1.5,Math.abs(head.h||8)*0.45);
+  const reg=items.filter(it=>it.x<xCut&&it.y<=yTop+tol&&it.y>yBot+0.5);
+  return shpBuildLines(reg).map(l=>l.text).join(' ');
+}
+// Mã đơn Shopee: 6 số ngày (YYMMDD) + 8 ký tự, VD 260526ET4PAWFJ — nằm dưới "Mã đơn hàng:"
+function shpOrderId(text){
+  const m=(text||'').match(/\b(\d{6}[A-Z0-9]{8})\b/g)||[];
+  const ids=[...new Set(m.filter(x=>/[A-Z]/.test(x.slice(6))))];
+  return ids.length===1?ids[0]:null;            // 0 hoặc >1 ứng viên → không dùng để gom
+}
+function shpSig(r){return (r.lines||[]).map(l=>l.raw.toUpperCase()+'×'+l.qty).join('|');}
+// So theo NỘI DUNG đã nhận diện (mã/combo/màu/size/SL), không so chuỗi thô
+function shpSem(r){return (r.lines||[]).map(l=>l.ok?`${l.code}|${l.combo?1:0}|${[...l.colors].sort().join('+')}|${l.size}|${l.qty}`:`?|${l.size}|${l.qty}`).join('#');}
+// Điểm tin cậy: khớp "Tổng SL" (2) + mọi dòng có mã (1) + số thứ tự dòng liên tục 1..n (1)
+// (VD địa chỉ "Chung Cư Ct4. Phú Sơn" bị luồng hiểu nhầm là dòng số 4 → mất điểm thứ tự)
+function shpScore(r,tq){if(!r||!r.lines||!r.lines.length)return -1;
+  return (tq!=null&&r.sumSL===tq?2:0)+(r.lines.every(l=>l.ok)?1:0)+(r.lines.every((l,i)=>+l.no===i+1)?1:0);}
+// pages: [{idx,stream,layout}] → [{idx,text,conflict?,src}] + logs
+function shpChooseText(pages){
+  const logs=[];let nL=0,nS=0,nSame=0;
+  const out=pages.map(p=>{
+    const tq=getTQ(p.stream);
+    const rS=getShopeeItems(p.stream),rL=p.layout?getShopeeItems(p.layout):null;
+    const hasS=rS.lines.length>0,hasL=!!(rL&&rL.lines.length);
+    const T=`T${p.idx+1}`;
+    if(hasL&&hasS&&shpSem(rL)===shpSem(rS)){nSame++;return{idx:p.idx,text:p.layout,src:'layout'};}
+    if(hasL&&!hasS){nL++;logs.push({t:'info',m:`${T}: dùng text theo VỊ TRÍ (luồng PDF không đọc được dòng hàng)`});return{idx:p.idx,text:p.layout,src:'layout'};}
+    if(hasS&&!hasL){nS++;if(p.layout!=null)logs.push({t:'info',m:`${T}: dùng text theo LUỒNG (khung toạ độ không có dòng hàng)`});return{idx:p.idx,text:p.stream,src:'stream'};}
+    if(!hasL&&!hasS)return{idx:p.idx,text:p.stream,src:'none'};
+    const sL=shpScore(rL,tq),sS=shpScore(rS,tq);
+    if(sL>sS){nL++;logs.push({t:'warn',m:`${T}: 2 cách đọc khác nhau → chọn VỊ TRÍ (khớp Tổng SL/mã tốt hơn)`});return{idx:p.idx,text:p.layout,src:'layout'};}
+    if(sS>sL){nS++;logs.push({t:'warn',m:`${T}: 2 cách đọc khác nhau → chọn LUỒNG (khớp Tổng SL/mã tốt hơn)`});return{idx:p.idx,text:p.stream,src:'stream'};}
+    return{idx:p.idx,text:p.stream,src:'conflict',conflict:`vị trí: ${rL.lines.map(l=>l.raw.slice(-18)).join(' | ')} ≠ luồng: ${rS.lines.map(l=>l.raw.slice(-18)).join(' | ')}`};
+  });
+  logs.push({t:'info',m:`Đọc text: ${nSame} trang 2 cách khớp nhau · ${nL} theo vị trí · ${nS} theo luồng`});
+  return{pages:out,logs};
+}
+// Gom các trang cùng mã đơn (kể cả không liền nhau). Trang đầu tiên làm "head", các trang sau là "tails".
+function shpGroupOrders(pages){
+  const byId={},tailMap={},logs=[];
+  pages.forEach(p=>{p.orderId=shpOrderId(p.stream||p.text);if(!p.orderId)return;(byId[p.orderId]=byId[p.orderId]||[]).push(p);});
+  const tailSet=new Set();
+  Object.entries(byId).forEach(([id,ps])=>{if(ps.length<2)return;
+    const [h,...t]=ps;h.tails=t.map(x=>x.idx);tailMap[h.idx]=h.tails;h.tails.forEach(i=>tailSet.add(i));
+    const same=t.every(x=>shpSig(getShopeeItems(x.text))===shpSig(getShopeeItems(h.text)));
+    logs.push({t:'warn',m:`Đơn ${id}: ${ps.length} trang (T${ps.map(x=>x.idx+1).join(', T')}) → gom chung${same?' · nội dung giống hệt, có thể in trùng nhãn':''}`});
+  });
+  return{heads:pages.filter(p=>!tailSet.has(p.idx)),tailMap,logs};
 }
 
 // ═══ TIKTOK PARSER ═══════════════════════════════════════════════
@@ -2118,12 +2203,23 @@ function resetSort(){
 async function runShopee(buf,fname){
   prog('Đang đọc PDF…');lg('info',`File: ${fname}`);
   const pdf=await pdfjsLib.getDocument({data:buf.slice(0)}).promise;const total=pdf.numPages;lg('info',`Tổng: ${total} trang`);
-  const pages=[];
-  for(let i=1;i<=total;i++){prog(`Đọc trang ${i}/${total}…`);const pg=await pdf.getPage(i);const tc=await pg.getTextContent();pages.push({idx:i-1,text:tc.items.map(s=>s.str).join(' ')});}
-  document.getElementById('dbgTxt').textContent='=== T1 ===\n'+(pages[0]?.text||'');document.getElementById('dbgWrap').style.display='block';
-  prog('Phân loại…');const{B,logs}=classifyShopee(pages);logs.forEach(({t,m})=>lg(t,m));
-  PICK_INV=buildPickFromPages(pages);
-  const{idx,st}=doSortShopee(B);lg('info',`Sort: ${idx.length} trang`);
+  const raw=[];
+  for(let i=1;i<=total;i++){prog(`Đọc trang ${i}/${total}…`);const pg=await pdf.getPage(i);const tc=await pg.getTextContent();
+    const stream=tc.items.map(s=>s.str).join(' ');
+    let layout=null;
+    if(((pg.rotate||0)%180)===0){   // nhãn xoay ngang → bỏ đọc theo toạ độ, dùng luồng
+      const its=tc.items.filter(s=>typeof s.str==='string').map(s=>({str:s.str,x:s.transform[4],y:s.transform[5],w:s.width,h:s.height||Math.hypot(s.transform[2],s.transform[3])}));
+      layout=shpLayoutRegion(its,pg.view);
+    }
+    raw.push({idx:i-1,stream,layout});}
+  const ch=shpChooseText(raw);ch.logs.forEach(({t,m})=>lg(t,m));
+  const all=ch.pages.map((p,i)=>({...p,stream:raw[i].stream}));
+  document.getElementById('dbgTxt').textContent='=== T1 · vùng Nội dung hàng (theo vị trí) ===\n'+(raw[0]?.layout||'(không tìm thấy)')+'\n\n=== T1 · text luồng ===\n'+(raw[0]?.stream||'');document.getElementById('dbgWrap').style.display='block';
+  const grp=shpGroupOrders(all);grp.logs.forEach(({t,m})=>lg(t,m));
+  prog('Phân loại…');const{B,logs}=classifyShopee(grp.heads);logs.forEach(({t,m})=>lg(t,m));
+  PICK_INV=buildPickFromPages(all);
+  const{idx,st}=doSortShopee(B,grp.tailMap);lg('info',`Sort: ${idx.length} trang`);
+  if(idx.length!==total||new Set(idx).size!==total)throw new Error(`Số trang sau sort (${idx.length}) ≠ file gốc (${total}) — dừng để tránh mất/trùng nhãn`);
   prog('Tạo PDF…');const pdfBytes=await buildSortedPdf(buf,idx);
   return{pdfBytes,name:'SHOPEE_SORTED_'+fname,st,total};
 }
@@ -2657,7 +2753,7 @@ function khoCompare(){
     <div style="font-size:11px;color:#9A8070;margin-top:6px">Sau khi lưu, số đếm sẽ hiện <b style="color:#c0392b">màu đỏ</b> trong bảng Tồn kho nhà ở trang Đi Đơn (từ ngày đếm), rồi tồn tự cuộn tiếp như cũ.</div>`;
 }
 
-function khoSaveCount(pk,dv){
+async function khoSaveCount(pk,dv){
  try{
   const cfg=KHO_CFG[pk];
   const dstr=dv.split('-').reverse().join('/');
@@ -2678,7 +2774,7 @@ function khoSaveCount(pk,dv){
   // đẩy lên Supabase để các máy khác cũng thấy (không chặn UI; local đã lưu nên vẫn chạy khi offline)
   try{
     const upRows=rows.map(r=>({prod:pk,date:dstr,color:r.color,size:r.size,counted:r.counted,system_val:r.system}));
-    sbUpsert('kho_counts',upRows,'prod,date,color,size').catch(e=>console.warn('sync kho_counts:',e&&e.message));
+    await sbUpsert('kho_counts',upRows,'prod,date,color,size').catch(e=>console.warn('sync kho_counts:',e&&e.message));
   }catch(_){}
   toast(`✓ Đã lưu kiểm kho ${cfg.name} ngày ${dstr} · cập nhật ${n} ô vào tồn kho nhà`,'ok');
   renderKhoHistory();
@@ -3329,8 +3425,8 @@ function toYMD(d){
 }
 
 async function computeInvData(){
-  const today=new Date().toISOString().split('T')[0];
-  const mk=(days)=>{const d=new Date();d.setDate(d.getDate()-days);return d.toISOString().split('T')[0];};
+  const today=localYMD();
+  const mk=(days)=>{const d=new Date();d.setDate(d.getDate()-days);return localYMD(d);};
   const from7=mk(7),from30=mk(30),from60=mk(60);
   const [snapRows,salesRows,ordRowsAll,targetRows]=await Promise.all([
     sbSelect('kho_snapshot','order=counted_at.desc'),
@@ -3348,7 +3444,7 @@ async function computeInvData(){
   // Đồng bộ số kiểm kho từ Supabase → mọi máy đều thấy (nếu bảng kho_counts chưa tạo hoặc offline thì dùng bản local)
   try{
     const kc=await sbSelect('kho_counts','select=prod,date,color,size,counted');
-    (kc||[]).forEach(r=>{if(r&&r.prod&&r.date)KHO_COUNTS[r.prod+'|'+r.date+'|'+r.color+'|'+r.size]=r.counted;});
+    (kc||[]).forEach(r=>{if(!(r&&r.prod&&r.date))return;let d=String(r.date).slice(0,10);if(/^\d{4}-\d{2}-\d{2}$/.test(d))d=d.split('-').reverse().join('/');KHO_COUNTS[r.prod+'|'+d+'|'+r.color+'|'+r.size]=r.counted;});
     saveKhoCounts();
   }catch(_){ /* bảng chưa tạo hoặc mất mạng → dùng KHO_COUNTS trong máy */ }
   INV_DATA={};
@@ -3418,9 +3514,8 @@ function loadInventory(){loadInventoryNew();}
 function renderInventory(){renderInventoryNew();}
 
 function getLatestSnapDate(pk){
-  const cfg=INV_PROD_CFG[pk];let latest='Chưa đếm';
-  cfg.colors.forEach(col=>cfg.sizes.forEach(sz=>{const d=INV_DATA[pk]?.[col]?.[sz]||{};if(d.snapDate&&(latest==='Chưa đếm'||d.snapDate>latest))latest=d.snapDate;}));
-  return latest;
+  let best='';Object.keys(KHO_COUNTS||{}).forEach(k=>{const p=k.split('|');if(p[0]!==pk)return;const y=p[1].split('/').reverse().join('-');if(y>best)best=y;});
+  return best?best.split('-').reverse().join('/'):'Chưa đếm';
 }
 
 function previewTarget(pk){const v=parseInt(document.getElementById(`target-inp-${pk}`).value)||0;const el=document.getElementById(`target-disp-${pk}`);if(el)el.textContent=v.toLocaleString()+'c';}
@@ -3498,7 +3593,7 @@ function openUpdateKho(prodKey){
   const pass=prompt('Nhập mật khẩu:');if(pass===null)return;if(pass!=='1258'){toast('Sai mật khẩu!','err');return;}
   curInvProd=prodKey;const cfg=INV_PROD_CFG[prodKey];
   document.getElementById('updateKhoTitle').textContent=`Đếm kho — ${cfg.name}`;
-  document.getElementById('khoSnapDate').value=new Date().toISOString().split('T')[0];
+  document.getElementById('khoSnapDate').value=localYMD();
   let tbl=`<table class="lot-inp-tbl"><thead><tr><th style="text-align:left;padding-left:10px;min-width:60px">Màu</th>${cfg.sizes.map(s=>`<th>${s}</th>`).join('')}</tr></thead><tbody>`;
   cfg.colors.forEach(col=>{
     const bg=cfg.clrBg[col]||'#2A211C',fg=cfg.clrFg[col]||'#DCC6AA';
@@ -3507,19 +3602,61 @@ function openUpdateKho(prodKey){
     tbl+='</tr>';
   });
   tbl+='</tbody></table>';
+  tbl+=`<div style="margin-top:10px;font-size:12px;color:#5B4636;display:flex;flex-wrap:wrap;gap:14px;align-items:center">
+    <span style="font-weight:700">Số này là tồn lúc:</span>
+    <label style="cursor:pointer"><input type="radio" name="khoSnapMode" value="now" checked> Hiện tại — đơn trong ngày đã đồng bộ thì <b>không</b> trừ lại</label>
+    <label style="cursor:pointer"><input type="radio" name="khoSnapMode" value="start"> Đầu ngày — còn trừ đơn của cả ngày đếm</label>
+  </div>`;
   document.getElementById('updateKhoInputs').innerHTML=tbl;
   document.getElementById('updateKhoCard').style.display='block';
   document.getElementById('updateKhoCard').scrollIntoView({behavior:'smooth'});
 }
 function closeUpdateKho(){document.getElementById('updateKhoCard').style.display='none';curInvProd=null;}
 
+// Ngày theo giờ máy (VN), không dùng toISOString (UTC → trước 7h sáng bị lùi 1 ngày)
+function localYMD(d){d=d||new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+// Đơn đi / hàng về ĐÃ ghi nhận trong 1 ngày (dd/mm/yyyy) của 1 SP — cùng nguồn khoNhaNow dùng
+function khoDayFlow(pk,dstr){
+  const eff=(rows,ovr)=>{const m={};rows.forEach(r=>{if(r.date!==dstr)return;const k=r.color+'|'+r.size;m[k]=(m[k]||0)+(r.qty||0);});
+    Object.keys(ovr||{}).forEach(fk=>{const p=fk.split('|');if(p[0]===pk&&p[1]===dstr)m[p[2]+'|'+p[3]]=ovr[fk];});return m;};
+  return{ord:eff(SALES_ALL.filter(r=>r.prod===pk),EDITS.ord),arr:eff(getArrRows(pk),EDITS.arr)};
+}
+// "Đếm kho" ở trang Kho hàng. Trước đây chỉ ghi bảng kho_snapshot — bảng này KHÔNG được dùng để tính
+// Kho nhà (Kho nhà tính từ KHO_COUNTS: tồn gốc − đơn đi + hàng về, reset tại ngày có số đếm) → số nhập bị bỏ qua.
+// Giờ ghi thẳng vào KHO_COUNTS + kho_counts (cùng cơ chế với tab Kiểm kho), kho_snapshot giữ làm lịch sử.
 async function saveKhoSnapshot(){
-  const cfg=INV_PROD_CFG[curInvProd];const date=document.getElementById('khoSnapDate').value;
+  const pk=curInvProd,cfg=INV_PROD_CFG[pk];const date=document.getElementById('khoSnapDate').value;
   if(!date){toast('Chọn ngày đếm!','err');return;}
-  const rows=[];
-  cfg.colors.forEach(col=>cfg.sizes.forEach(sz=>{const id=`upkho_${col.replace(/[^a-z0-9]/gi,'_')}_${sz.replace(/[^a-z0-9]/gi,'_')}`;const v=parseInt(document.getElementById(id)?.value)||0;rows.push({prod:curInvProd,color:col,size:sz,qty:v,counted_at:date});}));
-  try{await sbInsert('kho_snapshot',rows);toast(`✓ Đã lưu snapshot kho ngày ${date}`,'ok');closeUpdateKho();await loadInventoryNew();}
-  catch(e){toast('Lỗi: '+e.message,'err');}
+  const mode=(document.querySelector('input[name="khoSnapMode"]:checked')||{}).value||'now';
+  const dstr=date.split('-').reverse().join('/');
+  const flow=khoDayFlow(pk,dstr),sys=khoNhaNow(pk,date);
+  const typed={},logRows=[],upRows=[],snapRows=[];
+  cfg.colors.forEach(col=>cfg.sizes.forEach(sz=>{
+    const id=`upkho_${col.replace(/[^a-z0-9]/gi,'_')}_${sz.replace(/[^a-z0-9]/gi,'_')}`;
+    const v=parseInt(document.getElementById(id)?.value)||0;const k=col+'|'+sz;typed[k]=v;
+    // khoNhaNow tính ngày đếm = số lưu − đơn đi trong ngày + hàng về trong ngày.
+    // Đếm "hiện tại" = đơn/hàng về đã ghi nhận tới giờ đã nằm trong số đếm → cộng bù để kết quả = đúng số đã nhập.
+    const stored=mode==='now'?v+(flow.ord[k]||0)-(flow.arr[k]||0):v;
+    const system=Math.round(sys[k]||0);
+    KHO_COUNTS[pk+'|'+dstr+'|'+k]=stored;
+    logRows.push({color:col,size:sz,system,counted:v,diff:v-system});
+    upRows.push({prod:pk,date:dstr,color:col,size:sz,counted:stored,system_val:system});
+    snapRows.push({prod:pk,color:col,size:sz,qty:v,counted_at:date});
+  }));
+  KHO_COUNT_LOG.unshift({ts:Date.now(),date:dstr,prod:pk,prodName:cfg.name,rows:logRows});
+  saveKhoCounts();
+  // PHẢI chờ upsert xong: loadInventoryNew đọc lại kho_counts từ Supabase và ghi đè KHO_COUNTS trong máy
+  let cloudOk=true;
+  try{await sbUpsert('kho_counts',upRows,'prod,date,color,size');}catch(e){cloudOk=false;console.warn('sync kho_counts:',e&&e.message);}
+  sbInsert('kho_snapshot',snapRows).catch(e=>console.warn('kho_snapshot:',e&&e.message));
+  closeUpdateKho();
+  await loadInventoryNew();
+  // Kiểm tra lại: Kho nhà sau khi tính phải đúng số vừa nhập (nếu ngày đếm là hôm nay)
+  if(date===localYMD()){
+    const bad=[];cfg.colors.forEach(col=>cfg.sizes.forEach(sz=>{const got=INV_DATA[pk]?.[col]?.[sz]?.khoNha;const want=typed[col+'|'+sz];if(got!==want)bad.push(`${col} ${sz}: nhập ${want} → hiện ${got}`);}));
+    if(bad.length){toast(`⚠ ${bad.length} ô lệch sau khi lưu — xem Console`,'err');console.warn('Lệch sau Đếm kho:',bad);return;}
+  }
+  toast(`✓ Đã lưu đếm kho ${cfg.name} ngày ${dstr}${cloudOk?'':' (chỉ lưu trong máy — chưa đồng bộ được Supabase)'}`,cloudOk?'ok':'err');
 }
 
 function renderCeoFromDash(data){
@@ -3831,7 +3968,7 @@ function computeKhoRows(pk,from,to){
   const cfg=SALES_PROD_CFG[pk];
   const base=SEED_KHO_BASE[pk]||{};
   const ANCHOR='2026-06-01';
-  const toYMD=s=>{const p=s.split('/');return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;};
+  const toYMD=s=>{s=String(s||'');const p=s.split('/');if(p.length!==3)return s;return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;};
   const eff=(rows,ovr)=>{const m={};rows.forEach(r=>{const k=r.date+'|'+r.color+'|'+r.size;m[k]=(m[k]||0)+(r.qty||0);});Object.keys(ovr||{}).forEach(fk=>{const p=fk.split('|');if(p[0]!==pk)return;m[p.slice(1).join('|')]=ovr[fk];});return m;};
   const ordMap=eff(SALES_ALL.filter(r=>r.prod===pk),EDITS.ord);
   const arrMap=eff(getArrRows(pk),EDITS.arr);
@@ -3862,8 +3999,8 @@ function computeKhoRows(pk,from,to){
 // Tồn kho nhà (tồn nay hoặc tới ngày toParam) mỗi SKU — dùng cho Quản lý kho & Kiểm kho
 function khoNhaNow(pk,toParam){
   const cfg=SALES_PROD_CFG[pk];const base=SEED_KHO_BASE[pk]||{};
-  const toYMD=s=>{const p=s.split('/');return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;};
-  const today=toParam||new Date().toISOString().split('T')[0];
+  const toYMD=s=>{s=String(s||'');const p=s.split('/');if(p.length!==3)return s;return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;};
+  const today=toParam||localYMD();
   const eff=(rows,ovr)=>{const m={};rows.forEach(r=>{const k=r.date+'|'+r.color+'|'+r.size;m[k]=(m[k]||0)+(r.qty||0);});Object.keys(ovr||{}).forEach(fk=>{const p=fk.split('|');if(p[0]!==pk)return;m[p.slice(1).join('|')]=ovr[fk];});return m;};
   const ordMap=eff(SALES_ALL.filter(r=>r.prod===pk),EDITS.ord);
   const arrMap=eff(getArrRows(pk),EDITS.arr);
