@@ -1230,7 +1230,7 @@ function nSize(s){
 const szR=s=>{const i=SZ.indexOf(s);return i<0?999:i;};
 const srtG=g=>[...g].sort((a,b)=>szR(a.size)-szR(b.size));
 function mkB(){return{NBD:{BLACK:[],DA:[],COMBO:[]},NB01:{BLACK:[],DA:[],COMBO:[]},GY3:{BLACK:[],BROWN:[]},JS01:{BLACK:[],BROWN:[],DA:[]},CLOUD:{BLACK:[],BROWN:[],PINK:[],BABYPINK:[],BLUE:[],YELLOW:[],PURPLE:[],NAVY:[],CREAM:[]},CB01:[],MULTI:[],OTHER:[]};}
-function getTQ(t){const m=t.match(/T[oổ]ng\s*SL[^:]*:?\s*(\d+)/i);return m?parseInt(m[1]):null;}
+function getTQ(t){const m=(t||'').normalize('NFC').match(/T[oổ]ng\s*SL[^:]*:?\s*(\d+)/i);return m?parseInt(m[1]):null;}
 
 // ═══ SHOPEE PARSER v2 (nhận diện theo MÃ PHÂN LOẠI, chịu được tên SP generic + cắt dòng) ═══
 // Shopee giờ in tên SP dạng generic ("Sản phẩm phụ kiện thời trang"), nên KHÔNG dùng tên SP.
@@ -1249,6 +1249,10 @@ const SHP_RE_CODE=new RegExp(`(?:^|[^A-Z0-9])(${SHP_CODES})[-,:]?(Combo)?((?:${S
 // Phân loại KHÔNG có mã (VD "Da,34") — chỉ để ghi nhận vào OTHER
 const SHP_RE_NOCODE=new RegExp(`((?:${SHP_COLORS})(?:\\+(?:${SHP_COLORS}))*),([A-Z0-9/]{1,8})$`,'i');
 const SHP_RE_COLOR=new RegExp(SHP_COLORS,'gi');
+const SHP_RE_SIZE_ONLY=new RegExp(`^(?:${SHP_SIZES})$`,'i');
+// Mã SP đứng riêng thành 1 từ trong tên (không dính chữ/số khác), VD "SET ĐỒ TẬP NỮ CLOUD – SẴN MÚT"
+const SHP_RE_NAMECODE=new RegExp(`(?:^|[^A-Za-z0-9À-ỹ])(${SHP_CODES})(?![A-Za-z0-9À-ỹ])`,'gi');
+function shpCodesInName(desc){return [...new Set([...(desc||'').normalize('NFC').matchAll(SHP_RE_NAMECODE)].map(x=>x[1].toUpperCase()))];}
 function nGroupSize(code,rawSize){
   let s=(rawSize||'').toUpperCase().replace(/\s/g,'');
   if(s==='XXXL')s='3XL';
@@ -1274,7 +1278,7 @@ function getShopeeItems(raw){
   const res=[],lines=[],seen=new Set();let m;
   while((m=re.exec(region))!==null){
     const no=m[1],desc=m[2].trim().replace(/[,\s]+$/,''),qty=parseInt(m[3])||1;
-    const cmp=desc.replace(/\s+/g,'').replace(/,+$/,'');     // bản bỏ khoảng trắng — miễn nhiễm cắt dòng
+    const cmp=desc.replace(/\s+/g,'').normalize('NFC').replace(/,+$/,'');     // bỏ khoảng trắng — miễn nhiễm cắt dòng; NFC lại vì dấu tổ hợp có thể bị tách thành item riêng
     const sig=no+'#'+cmp.toUpperCase()+'#'+qty;
     if(seen.has(sig))continue;seen.add(sig);                   // chống nhân đôi khi text-layer bị lặp
     const mc=cmp.match(SHP_RE_CODE);
@@ -1288,6 +1292,19 @@ function getShopeeItems(raw){
       continue;
     }
     const mn=cmp.match(SHP_RE_NOCODE);
+    // Phân loại không có mã (VD SET CLOUD: "SET ĐỒ TẬP NỮ CLOUD – SẴN MÚT | …, Hồng baby,L") → lấy mã từ TÊN SP,
+    // chỉ khi: tên chứa ĐÚNG 1 mã đứng riêng thành từ + size thuộc danh sách size chuẩn. Không thoả → OTHER như cũ.
+    if(mn){
+      const nameCodes=shpCodesInName(desc);
+      if(nameCodes.length===1&&SHP_RE_SIZE_ONLY.test(mn[2])){
+        const code=nameCodes[0],combo=/\+/.test(mn[1]);
+        const colors=shpColorsOf(mn[1]),size=nGroupSize(code,mn[2]);
+        lines.push({no,code,combo,colors,size,qty,raw:cmp,ok:true,viaName:true});
+        if(code==='CB01'){res.push({code,color:colors[0]||'',size,qty,line:no});continue;}
+        colors.forEach(c=>res.push({code,color:c,size,qty,line:no,combo}));
+        continue;
+      }
+    }
     const why=mn?'phân loại không có mã SKU':'không đọc được phân loại';
     lines.push({no,code:'OTHER',combo:false,colors:[],size:mn?mn[2].toUpperCase():'?',qty,raw:cmp,ok:false,why});
     // Tên generic → gom về 1 khoá cố định (không phụ thuộc chỗ cắt dòng)
@@ -1325,7 +1342,7 @@ function classifyShopee(pages){
       return;
     }
     const ck=nColor(L.colors[0]);
-    const push=b=>{put(b,e,idx);logs.push({t:'ok',m:`${T}: ${L.code}/${ck||L.colors[0]}/${L.size}x${L.qty}`});};
+    const push=b=>{put(b,e,idx);logs.push({t:'ok',m:`${T}: ${L.code}/${ck||L.colors[0]}/${L.size}x${L.qty}${L.viaName?' · mã lấy từ tên SP':''}`});};
     if(L.code==='NBD'&&ck&&B.NBD[ck]!==undefined)push(B.NBD[ck]);
     else if(L.code==='NB01'&&ck&&B.NB01[ck]!==undefined)push(B.NB01[ck]);
     else if(L.code==='GY3'&&ck&&B.GY3[ck]!==undefined)push(B.GY3[ck]);
@@ -1369,13 +1386,33 @@ function shpBuildLines(items){
     l.text=t;});
   return lines.sort((a,b)=>b.y-a.y);
 }
+// pdf.js trên nhãn Shopee THẬT tách mỗi chữ có dấu thành 1 item riêng: "N" "ộ" "i dung hàng (T" "ổ" "ng SL…".
+// join(' ') → "N ộ i dung hàng", "T ổ ng SL" → regex "Nội dung hàng"/"Tổng SL" không khớp.
+// Nối theo toạ độ: item kế tiếp cùng dòng & sát mép item trước → nối liền, ngược lại thêm 1 dấu cách.
+function shpJoinItems(items){
+  let out='',prev=null;
+  for(const s of items){
+    const str=(s.str||'').normalize('NFC');
+    if(!str){if(s.hasEOL){out+=' ';prev=null;}continue;}
+    if(prev){
+      const sameY=Math.abs(s.transform[5]-prev.transform[5])<0.5;
+      const gap=s.transform[4]-(prev.transform[4]+(prev.width||0));
+      const h=Math.abs(s.height||s.transform[3]||8);
+      out+=(sameY&&gap>-0.5&&gap<=h*0.15)?'':' ';
+    }
+    out+=str;prev=s;
+  }
+  return out.normalize('NFC');
+}
 // items: [{str,x,y,w,h}] (toạ độ PDF, y hướng lên). Trả text vùng "Nội dung hàng" hoặc null.
 function shpLayoutRegion(items,view){
   const x0=view[0],W=view[2]-view[0],xCut=x0+W*SHP_COL_CUT;
-  const head=items.find(it=>/N[ộo]i\s*dung\s*h[àa]ng/i.test(it.str));
+  // Tìm trên DÒNG đã ghép (item lẻ chỉ là mảnh chữ, VD "N" + "ộ" + "i dung hàng")
+  const all=shpBuildLines(items);
+  const head=all.find(l=>/N[ộo]i\s*dung\s*h[àa]ng/i.test(l.text));
   if(!head)return null;
   const yTop=head.y;
-  const ends=items.filter(it=>it.y<yTop-1&&/Ng[ưu][ờo]i\s*g[ửu]i\s*ph[ảa]i|Ti[ềe]n\s*thu/i.test(it.str)).map(it=>it.y);
+  const ends=all.filter(l=>l.y<yTop-1&&/Ng[ưu][ờo]i\s*g[ửu]i\s*ph[ảa]i|Ti[ềe]n\s*thu/i.test(l.text)).map(l=>l.y);
   const yBot=ends.length?Math.max(...ends):-Infinity;
   const tol=Math.max(1.5,Math.abs(head.h||8)*0.45);
   const reg=items.filter(it=>it.x<xCut&&it.y<=yTop+tol&&it.y>yBot+0.5);
@@ -2156,7 +2193,7 @@ async function detectPlat(buf){
   try{
     const pdf=await pdfjsLib.getDocument({data:buf.slice(0)}).promise;
     const n=Math.min(pdf.numPages,2);let txt='';
-    for(let i=1;i<=n;i++){const pg=await pdf.getPage(i);const tc=await pg.getTextContent();txt+=' '+tc.items.map(s=>s.str).join(' ');}
+    for(let i=1;i<=n;i++){const pg=await pdf.getPage(i);const tc=await pg.getTextContent();txt+=' '+shpJoinItems(tc.items);}
     if(/picking\s*list/i.test(txt))return 'picklist';
     if(/tiktok|seller\s*sku|qty\s*total/i.test(txt))return 'tiktok';
     if(/nội dung hàng|shopee|\bSPX\b/i.test(txt))return 'shopee';
@@ -2221,10 +2258,11 @@ async function runShopee(buf,fname){
   const pdf=await pdfjsLib.getDocument({data:buf.slice(0)}).promise;const total=pdf.numPages;lg('info',`Tổng: ${total} trang`);
   const raw=[];
   for(let i=1;i<=total;i++){prog(`Đọc trang ${i}/${total}…`);const pg=await pdf.getPage(i);const tc=await pg.getTextContent();
-    const stream=tc.items.map(s=>s.str).join(' ');
+    // Chuẩn hoá NFC ngay khi đọc: có PDF trả tiếng Việt dạng tổ hợp (NFD) → regex "Nội dung hàng"/"Tổng SL" không khớp
+    const stream=shpJoinItems(tc.items);
     let layout=null;
     if(((pg.rotate||0)%180)===0){   // nhãn xoay ngang → bỏ đọc theo toạ độ, dùng luồng
-      const its=tc.items.filter(s=>typeof s.str==='string').map(s=>({str:s.str,x:s.transform[4],y:s.transform[5],w:s.width,h:s.height||Math.hypot(s.transform[2],s.transform[3])}));
+      const its=tc.items.filter(s=>typeof s.str==='string').map(s=>({str:s.str.normalize('NFC'),x:s.transform[4],y:s.transform[5],w:s.width,h:s.height||Math.hypot(s.transform[2],s.transform[3])}));
       layout=shpLayoutRegion(its,pg.view);
     }
     raw.push({idx:i-1,stream,layout});}
