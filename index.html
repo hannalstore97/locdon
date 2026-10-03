@@ -1560,7 +1560,11 @@ function tkRowToItems(r){
   if(!code&&!sel){const f=TK_CODES.filter(c=>new RegExp(`(^|[^A-Z0-9])${c}([^A-Z0-9]|$)`,'i').test(r.name));if(f.length===1){code=f[0];how='tên SP';}}
   if(!code&&!sel){const c=tkCodeFromName(r.name);if(c){code=c;how='tên SP (mẫu)';}}
   // Gộp khoảng trắng quanh "/" trong size: TikTok có thể in "XS/ S", "M /L"
-  const sku=(r.sku||'').normalize('NFC').replace(/\s+/g,' ').replace(/\s*\/\s*/g,'/').trim();
+  let sku=(r.sku||'').normalize('NFC').replace(/\s+/g,' ').replace(/\s*\/\s*/g,'/').trim();
+  // Thứ tự ĐẢO "Size, Màu" (VD Bodysuit JS01 in "S, Đen") → đổi về "Màu, Size".
+  // Chỉ đảo khi phần đầu ĐÚNG là size chuẩn VÀ phần sau là màu hệ thống biết — không khớp thì giữ nguyên (→ OTHER).
+  {const rv=sku.match(new RegExp(`^${SZP}\\s*,\\s*([^,]+)$`,'i'));
+   if(rv&&nColor(rv[2])&&!new RegExp(`^${SZP}$`,'i').test(rv[2].trim()))sku=`${rv[2].trim()}, ${rv[1]}`;}
   // Đầu phân loại: "Combo" và/hoặc "N c|cái|(trống)" = số cái trong 1 đơn vị; "Màu " là tiền tố thừa
   //   "1 cái Da, XS/S" → 1 · "Combo 2c Đen, M/L" / "Combo 2 Đen, M/L" → 2 · "Combo Đen, M/L" → 2
   //   "Combo Đen + Da, XL/2XL" → mỗi màu 1 cái (tổng 2)
