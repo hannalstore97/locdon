@@ -302,6 +302,42 @@ td.act{text-align:right;width:36px}.del{border:none;background:none;color:#c9b8a
 
 .foot{text-align:center;font-family:'Montserrat';font-size:9px;letter-spacing:3px;color:rgba(42,33,28,.28);padding:26px}
 @media(max-width:640px){.head h1{font-size:20px}.page{padding:0 14px}td.hide,th.hide{display:none}.phead,.prow,.ptot{grid-template-columns:1.3fr .8fr 1fr 1fr}.pcol-kol,.phead .pcol-kol,.ptot .pcol-kol{display:none}.mbreak-row{grid-template-columns:repeat(3,1fr)}}
+
+/* ===== Lượt mời sản phẩm (KOL mới + mời lại KOL cũ) ===== */
+.rep-today{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#F7F3EB;border-radius:10px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#5B4636}
+.rep-today b{font-family:'Montserrat';font-size:15px;color:#2A211C}
+.rep-today .rt-sub{color:#9A8070;font-size:11px}
+.rep-split{display:flex;gap:6px;flex-wrap:wrap;margin:-4px 0 12px}
+.rep-split span{font-size:11px;font-weight:600;border-radius:14px;padding:3px 10px}
+.rep-split .sn{background:#FDF0E6;color:#BE735E}
+.rep-split .sr{background:#E7EFF6;color:#3D6E9E}
+.rep-days{display:flex;gap:3px;overflow-x:auto;padding:4px 0 6px;margin-bottom:6px}
+.rd-col{flex:1 0 20px;min-width:20px;display:flex;flex-direction:column;align-items:center;gap:2px;border:none;background:none;cursor:pointer;padding:3px 0;border-radius:7px;font-family:'Poppins'}
+.rd-col:hover{background:#FBF7F1}
+.rd-col.on{background:#F3E6DA}
+.rd-n{font-family:'Montserrat';font-size:9px;font-weight:800;color:#2A211C;height:12px;line-height:12px}
+.rd-bar{width:12px;height:52px;background:#F2EBE1;border-radius:4px;display:flex;flex-direction:column-reverse;overflow:hidden}
+.rd-new{background:#BE735E;display:block;width:100%}
+.rd-re{background:#3D6E9E;display:block;width:100%}
+.rd-d{font-size:9.5px;color:#9A8070;line-height:1}
+.rd-col.today .rd-d{color:#fff;background:#2A211C;border-radius:8px;padding:1px 4px}
+.rd-col.z .rd-n{color:transparent}
+.rep-legend{display:flex;gap:12px;font-size:10.5px;color:#9A8070;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.rep-legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.rep-legend .clr{margin-left:auto;color:#BE735E;cursor:pointer;font-weight:600}
+.rep-dayhead{font-family:'Montserrat';font-size:10px;font-weight:800;color:#5B4636;padding:9px 10px 3px;display:flex;justify-content:space-between}
+.rep-dayhead span{color:#9A8070;font-weight:700}
+.inv-kind{font-family:'Montserrat';font-size:8.5px;font-weight:800;padding:2px 7px;border-radius:12px;white-space:nowrap;flex-shrink:0}
+.inv-kind.new{background:#FDF0E6;color:#BE735E}
+.inv-kind.re{background:#E7EFF6;color:#3D6E9E}
+.inv-var{font-size:11px;color:#5B4636;background:#fff;border:1px solid #E8D9C8;border-radius:10px;padding:1px 8px;white-space:nowrap;flex-shrink:0}
+.inv-del{border:none;background:none;color:#c9b8a6;cursor:pointer;font-size:13px;padding:2px 6px;border-radius:6px;flex-shrink:0}
+.inv-del:hover{color:#c0392b;background:#faeae7}
+.rc-re{font-weight:400;color:#3D6E9E;font-size:10.5px}
+.inv-warn{font-size:11px;color:#9a5a2b;background:#FFF4E5;border-radius:9px;padding:7px 11px;margin-bottom:10px}
+.kc-inv{font-size:10px;color:#3D6E9E;margin-top:3px;white-space:nowrap;cursor:help}
+.kc-re{border:1px solid #E0D2C0;background:#fff;color:#3D6E9E;cursor:pointer;font-size:11px;font-weight:700;padding:2px 7px;border-radius:7px;margin-right:2px}
+.kc-re:hover{border-color:#3D6E9E;background:#E7EFF6}
 </style>
 </head>
 <body>
@@ -398,7 +434,7 @@ td.act{text-align:right;width:36px}.del{border:none;background:none;color:#c9b8a
     <div class="how">
       <div class="how-t">Cách hoạt động</div>
       <div class="steps">
-        <div class="step"><div class="snum">1</div><div><div class="st">Linh thêm KOL + chọn sản phẩm</div><div class="sd">Mời được ai thì gõ tên + chọn mặt hàng bạn đó bán.</div></div></div>
+        <div class="step"><div class="snum">1</div><div><div class="st">Linh thêm KOL + chọn sản phẩm</div><div class="sd">Mời được ai thì gõ tên + chọn mặt hàng + màu. KOL cũ mời lại cũng gõ tên như vậy — app ghi thành lượt mời lại.</div></div></div>
         <div class="step"><div class="snum">2</div><div><div class="st">App nhớ danh sách của Linh</div><div class="sd">133 KOL cũ nạp sẵn, tạm gán Quần Nịt Bụng — sửa được.</div></div></div>
         <div class="step"><div class="snum">3</div><div><div class="st">Cuối tháng up file (khỏi tô vàng)</div><div class="sd">App dò tên trùng danh sách → tự tính tháng mới cho Linh.</div></div></div>
       </div>
@@ -411,14 +447,15 @@ td.act{text-align:right;width:36px}.del{border:none;background:none;color:#c9b8a
         <input class="ainput" id="oPhone" placeholder="SĐT" inputmode="tel" autocomplete="off">
         <input class="ainput full" id="oLink" placeholder="Link TikTok (dán link trang KOL)" autocomplete="off">
         <select class="aselect full" id="oneProd"></select>
+        <input class="ainput full" id="oVar" placeholder="Màu / phân loại (VD: Đen, Be size L) — để phân biệt khi mời lại cùng sản phẩm" autocomplete="off">
       </div>
       <button class="btn addbtn" id="addOne">＋ Thêm KOL</button>
-      <div class="addhint">Ngày thêm tự động lấy hôm nay. Chỉ <b>@tiktok</b> bắt buộc — Zalo/SĐT/Link có thể bổ sung sau.</div>
+      <div class="addhint" id="addHint">Ngày thêm tự động lấy hôm nay. Chỉ <b>@tiktok</b> bắt buộc — Zalo/SĐT/Link có thể bổ sung sau. Gõ tên KOL <b>đã có</b> trong danh sách → ghi thành <b>lượt mời lại</b> (SP mới hoặc màu khác), vẫn được đếm.</div>
       <div class="bulklink" id="bulkToggle">＋ Thêm nhanh nhiều tên (chỉ tên, dán danh sách)</div>
       <div class="bulkwrap" id="bulkWrap">
         <textarea id="bulk" placeholder="Mỗi tên 1 dòng…"></textarea>
         <div class="brow">
-          <span style="font-size:11px;color:rgba(220,198,170,.6)">Gán vào SP đã chọn ở trên · tên trùng tự bỏ qua · Zalo/SĐT/Link để trống.</span>
+          <span style="font-size:11px;color:rgba(220,198,170,.6)">Gán vào SP + màu đã chọn ở trên · tên đã có → ghi lượt mời lại · Zalo/SĐT/Link để trống.</span>
           <button class="btn" id="addBulk">Thêm tất cả</button>
         </div>
       </div>
@@ -645,18 +682,19 @@ function renderReg(){
       <td class="edcell" data-i="${k.idx}" data-f="zalo" title="Bấm để sửa Zalo">${k.zalo?esc(k.zalo):'<span class=\'edadd\'>+ Zalo</span>'}</td>
       <td class="edcell" data-i="${k.idx}" data-f="phone" title="Bấm để sửa SĐT">${k.phone?esc(k.phone):'<span class=\'edadd\'>+ SĐT</span>'}</td>
       <td class="edcell edlink" data-i="${k.idx}" data-f="link" title="Bấm để sửa link">${k.link?`<a href="${esc(k.link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 Mở</a> <span class="edpen">✎</span>`:'<span class=\'edadd\'>+ Link</span>'}</td>
-      <td><select class="kc-psel psel" data-i="${k.idx}">${prodOptions(k.prod)}</select></td>
+      <td><select class="kc-psel psel" data-i="${k.idx}">${prodOptions(k.prod)}</select>${reInfo(k.name)}</td>
       <td>${k.m.length?mtag(k.m):mut}</td>
       <td class="remind-cell">${remindBtns}</td>
       <td><button class="posted-btn ${postedOn?'on':''}" onclick="togglePosted(${k.idx})" title="${postedOn?'Bấm để bỏ đánh dấu':'Đánh dấu KOL đã lên bài'}">${postedOn?'✓ Đã lên bài':'○ Chưa lên bài'}</button></td>
       <td><button class="good-btn ${goodOn?'on':''}" onclick="toggleGood(${k.idx})" title="${goodOn?'Bấm để bỏ đánh dấu':'Đánh dấu KOL chuyển đổi tốt'}">${goodOn?'★ Tốt':'☆ Đánh dấu'}</button></td>
       <td>${k.addDate?esc(k.addDate):mut}</td>
       <td>${srcTag}</td>
-      <td><button class="kc-del del" data-i="${k.idx}" title="Xoá KOL">✕</button></td>
+      <td style="white-space:nowrap"><button class="kc-re" data-n="${esc(k.name)}" title="Mời lại KOL này cho sản phẩm / màu khác">↻</button><button class="kc-del del" data-i="${k.idx}" title="Xoá KOL">✕</button></td>
     </tr>`;
   }).join('')||`<tr><td colspan="12" style="text-align:center;color:#b9a892;padding:22px;font-size:12px">${q?`Không tìm thấy "${esc(q)}"`:'Chưa có KOL nào. Thêm ở form phía trên.'}</td></tr>`;
-  document.querySelectorAll('.psel').forEach(s=>s.onchange=()=>{const k=REG[+s.dataset.i];k.prod=s.value;pushKolProd(k.name,s.value);renderDash();renderSum();renderReport();});
-  document.querySelectorAll('.del').forEach(b=>b.onclick=()=>{const k=REG[+b.dataset.i];if(k)delKolDb(k.name);REG.splice(+b.dataset.i,1);renderReg();renderDash();renderSum();renderReport();renderGood();});
+  document.querySelectorAll('.psel').forEach(s=>s.onchange=()=>{const k=REG[+s.dataset.i];k.prod=s.value;pushKolProd(k.name,s.value);syncNewInviteProd(k.name,s.value);renderDash();renderSum();renderReport();});
+  document.querySelectorAll('.del').forEach(b=>b.onclick=()=>{const k=REG[+b.dataset.i];if(k){delKolDb(k.name);delInvitesOfKol(k.name);}REG.splice(+b.dataset.i,1);renderReg();renderDash();renderSum();renderReport();renderGood();});
+  document.querySelectorAll('.kc-re').forEach(b=>b.onclick=()=>startReinvite(b.dataset.n));
   bindInlineEdit();
 }
 // dùng chung cho bảng KOL (tab Nhập KOL mới) và danh sách xổ ra trong Báo cáo KOL mới
@@ -736,73 +774,116 @@ function renderGood(){
   }).join('')||`<tr><td colspan="8" style="text-align:center;color:#b9a892;padding:22px;font-size:12px">Chưa có KOL nào được đánh dấu chuyển đổi tốt.</td></tr>`;
 }
 let repOpen=false;
+let repDay=null; // ngày đang lọc trong danh sách (null = cả tháng)
 function renderReport(){
   const el=$('report');if(!el)return;
-  // các tháng có KOL thêm tay (theo addDate dd/mm/yyyy)
-  const monthsAdded=new Set();
-  REG.forEach(r=>{if(r.addDate){const mm=r.addDate.split('/')[1];if(mm)monthsAdded.add(mm);}});
+  const mm=curNewMonth.padStart(2,'0'), mN=parseInt(curNewMonth);
   const opts=['12','11','10','9','8','7','6','5','4','3','2','1']; // đủ 12 tháng, không hard-code giới hạn
   const sel=`<select class="rep-sel" id="repMonth">`+
     opts.map(m=>`<option value="${m}" ${m===curNewMonth?'selected':''}>Tháng ${parseInt(m)}/2026</option>`).join('')+`</select>`;
-  const newThisMonth=REG.map((r,i)=>({...r,idx:i})).filter(r=>r.addDate&&r.addDate.split('/')[1]===curNewMonth.padStart(2,'0'));
-  // phân bổ SP toàn danh sách (SP đã gửi cho KOL)
+  const regIdx={};REG.forEach((r,i)=>regIdx[r.name.toLowerCase()]=i);
+  const ALLINV=allInvites();
+  const inMonth=ALLINV.filter(v=>v.date&&v.date.split('/')[1]===mm);
+  const nNew=inMonth.filter(v=>v.kind==='new').length, nRe=inMonth.length-nNew;
+  // hôm nay
+  const today=ALLINV.filter(v=>v.date===TODAY);
+  const tNew=today.filter(v=>v.kind==='new').length, tRe=today.length-tNew;
+  // theo ngày trong tháng đang xem
+  const dim=new Date(2026,mN,0).getDate();
+  const per=[];for(let d=0;d<=dim;d++)per.push({n:0,r:0});
+  inMonth.forEach(v=>{const d=parseInt(v.date.split('/')[0]);if(per[d]){if(v.kind==='new')per[d].n++;else per[d].r++;}});
+  const maxD=Math.max(1,...per.map(x=>x.n+x.r));
+  const isCur=mm===TODAY.split('/')[1], todayD=parseInt(TODAY.split('/')[0]);
+  let daysHtml='';
+  for(let d=1;d<=dim;d++){
+    const x=per[d],t=x.n+x.r;
+    daysHtml+=`<button class="rd-col ${t?'':'z'} ${repDay===d?'on':''} ${isCur&&d===todayD?'today':''}" data-d="${d}" title="Ngày ${d}/${mN}: ${t} lượt mời (${x.n} KOL mới · ${x.r} mời lại)">`
+      +`<span class="rd-n">${t||'·'}</span><span class="rd-bar"><span class="rd-new" style="height:${x.n/maxD*100}%"></span><span class="rd-re" style="height:${x.r/maxD*100}%"></span></span><span class="rd-d">${d}</span></button>`;
+  }
+  // danh sách (gom theo ngày, mới nhất trước)
+  const shown=inMonth.filter(v=>repDay==null||parseInt(v.date.split('/')[0])===repDay)
+    .sort((a,b)=>parseInt(b.date)-parseInt(a.date)||(b.ts||0)-(a.ts||0));
+  const groups={};shown.forEach(v=>{(groups[v.date]=groups[v.date]||[]).push(v);});
+  const mut='<span class="rep-link mut">🔗 Chưa có link</span>';
+  const itemHtml=v=>{
+    const i=regIdx[v.name.toLowerCase()], r=i!=null?REG[i]:null;
+    const link=r&&r.link?`<a href="${esc(r.link)}" target="_blank" rel="noopener" class="rep-link">🔗 Mở</a>`:mut;
+    const varTag=v.variant?`<span class="inv-var">${esc(v.variant)}</span>`:'';
+    if(v.kind==='new'&&r){
+      const remind=r.remind||[false,false,false];
+      const rdots=[0,1,2].map(j=>`<button class="remind-btn sm ${remind[j]?'on':''}" onclick="toggleRemind(${i},${j})" title="Nhắc lên bài lần ${j+1}${remind[j]?' — đã nhắc':''}">${j+1}</button>`).join('');
+      return `<div class="rep-item"><span class="inv-kind new">KOL mới</span>
+        <span class="rin"><span class="at">@</span>${esc(v.name)}</span>${ptag(v.prod)}${varTag}${link}
+        <span class="rep-rdots">${rdots}</span>
+        <button class="posted-btn sm ${r.posted?'on':''}" onclick="togglePosted(${i})">${r.posted?'✓ Đã lên bài':'○ Chưa lên bài'}</button>
+        <button class="good-btn sm ${r.good?'on':''}" onclick="toggleGood(${i})">${r.good?'★ Tốt':'☆ Đánh dấu'}</button></div>`;
+    }
+    return `<div class="rep-item"><span class="inv-kind ${v.kind==='new'?'new':'re'}">${v.kind==='new'?'KOL mới':'↻ Mời lại'}</span>
+      <span class="rin"><span class="at">@</span>${esc(v.name)}</span>${ptag(v.prod)}${varTag}${link}
+      ${v.kind==='re'?`<button class="inv-del" data-id="${esc(v.id)}" title="Xoá lượt mời lại này (nhập nhầm)">✕</button>`:''}</div>`;
+  };
+  const listHtml=shown.length
+    ? Object.keys(groups).map(dt=>{const g=groups[dt];const gn=g.filter(v=>v.kind==='new').length;
+        return `<div class="rep-dayhead">Ngày ${dt}<span>${g.length} lượt · ${gn} mới · ${g.length-gn} mời lại</span></div>`+g.map(itemHtml).join('');}).join('')
+    : `<div class="rep-empty">${repDay!=null?`Ngày ${repDay}/${mN} chưa có lượt mời nào.`:`Chưa có lượt mời nào trong tháng ${mN}/2026.`}</div>`;
+  // SP đã mời trong tháng (tính mọi lượt, kể cả mời lại)
+  const pm={};PRODUCTS.forEach(p=>pm[p.k]={t:0,r:0});
+  inMonth.forEach(v=>{if(pm[v.prod]){pm[v.prod].t++;if(v.kind==='re')pm[v.prod].r++;}});
+  const chipsMonth=PRODUCTS.map(p=>`<span class="rep-chip"><span class="rc-dot" style="background:${p.c}"></span>${p.name}: <b>${pm[p.k].t}</b>${pm[p.k].r?` <span class="rc-re">(${pm[p.k].r} mời lại)</span>`:''}</span>`).join('');
   const dist={};PRODUCTS.forEach(p=>dist[p.k]=0);REG.forEach(r=>{if(dist[r.prod]!==undefined)dist[r.prod]++;});
   const chips=PRODUCTS.map(p=>`<span class="rep-chip"><span class="rc-dot" style="background:${p.c}"></span>${p.name}: <b>${dist[p.k]}</b></span>`).join('');
-  // phân bổ SP riêng của KOL mới mời trong tháng đang xem
-  const distMonth={};PRODUCTS.forEach(p=>distMonth[p.k]=0);newThisMonth.forEach(r=>{if(distMonth[r.prod]!==undefined)distMonth[r.prod]++;});
-  const chipsMonth=PRODUCTS.map(p=>`<span class="rep-chip"><span class="rc-dot" style="background:${p.c}"></span>${p.name}: <b>${distMonth[p.k]}</b></span>`).join('');
-  const listHtml=newThisMonth.length?newThisMonth.map(r=>{
-      const remind=r.remind||[false,false,false];
-      const rdots=[0,1,2].map(i=>`<button class="remind-btn sm ${remind[i]?'on':''}" onclick="toggleRemind(${r.idx},${i})" title="Nhắc lên bài lần ${i+1}${remind[i]?' — đã nhắc':''}">${i+1}</button>`).join('');
-      const goodOn=!!r.good;
-      const postedOn=!!r.posted;
-      return `
-      <div class="rep-item">
-        <span class="rin"><span class="at">@</span>${esc(r.name)}</span>
-        ${ptag(r.prod)}
-        ${r.link?`<a href="${esc(r.link)}" target="_blank" rel="noopener" class="rep-link">🔗 Mở</a>`:'<span class="rep-link mut">🔗 Chưa có link</span>'}
-        <span class="rep-rdots">${rdots}</span>
-        <button class="posted-btn sm ${postedOn?'on':''}" onclick="togglePosted(${r.idx})" title="${postedOn?'Bấm để bỏ đánh dấu':'Đánh dấu KOL đã lên bài'}">${postedOn?'✓ Đã lên bài':'○ Chưa lên bài'}</button>
-        <button class="good-btn sm ${goodOn?'on':''}" onclick="toggleGood(${r.idx})" title="${goodOn?'Bấm để bỏ đánh dấu':'Đánh dấu KOL chuyển đổi tốt'}">${goodOn?'★ Tốt':'☆ Đánh dấu'}</button>
-        <span class="rid">${r.addDate?esc(r.addDate):''}</span>
-      </div>`;
-    }).join(''):`<div class="rep-empty">Chưa có KOL nào được thêm trong tháng ${parseInt(curNewMonth)}/2026.</div>`;
+  const warn=INV_STATE==='local'
+    ? `<div class="inv-warn">⚠ Lượt mời lại đang <b>lưu tạm trên máy này</b> — Supabase chưa có bảng <b>kol_invites</b>. Tạo bảng xong, mở lại trang là tự đẩy lên.</div>`:'';
   el.innerHTML=`
-    <div class="rep-head"><div class="rep-t">📋 Báo cáo KOL mới đã mời</div>${sel}</div>
-    <div class="rep-big ${repOpen?'open':''}" id="repBig" title="Bấm để xem danh sách KOL mới">
-      <div class="rep-numwrap"><div class="rep-num">${newThisMonth.length}</div><div class="rep-lab">KOL mới mời trong tháng ${parseInt(curNewMonth)}/2026 · bấm để xem danh sách</div></div>
+    <div class="rep-head"><div class="rep-t">📋 Báo cáo lượt mời sản phẩm</div>${sel}</div>
+    ${warn}
+    <div class="rep-today">Hôm nay ${TODAY.slice(0,5)}: <b>${today.length}</b> lượt mời <span class="rt-sub">(${tNew} KOL mới · ${tRe} mời lại KOL cũ)</span></div>
+    <div class="rep-big ${repOpen?'open':''}" id="repBig" title="Bấm để xem danh sách">
+      <div class="rep-numwrap"><div class="rep-num">${inMonth.length}</div><div class="rep-lab">lượt mời sản phẩm trong tháng ${mN}/2026 · bấm để xem danh sách</div></div>
       <span class="rep-arrow">▼</span>
     </div>
+    <div class="rep-split"><span class="sn">${nNew} KOL mới</span><span class="sr">↻ ${nRe} lượt mời lại KOL cũ</span></div>
+    <div class="rep-days" id="repDays">${daysHtml}</div>
+    <div class="rep-legend"><span><i style="background:#BE735E"></i>KOL mới</span><span><i style="background:#3D6E9E"></i>Mời lại KOL cũ</span>${repDay!=null?`<span class="clr" id="repClr">Đang lọc ngày ${repDay}/${mN} · xem cả tháng</span>`:'<span style="margin-left:auto">Bấm 1 ngày để xem chi tiết</span>'}</div>
     <div class="rep-list ${repOpen?'show':''}" id="repList">${listHtml}</div>
     <div class="rep-prodgroup">
-      <div class="rep-sub">Sản phẩm đã gửi cho KOL mới trong tháng ${parseInt(curNewMonth)}/2026</div>
+      <div class="rep-sub">Sản phẩm đã mời trong tháng ${mN}/2026 (tính cả mời lại)</div>
       <div class="rep-prods">${chipsMonth}</div>
     </div>
-    <div class="rep-sub">Sản phẩm đã gửi cho KOL (toàn danh sách ${REG.length})</div>
+    <div class="rep-sub">Sản phẩm đang gán cho KOL (toàn danh sách ${REG.length})</div>
     <div class="rep-prods">${chips}</div>`;
-  $('repMonth').onchange=e=>{curNewMonth=e.target.value;repOpen=true;renderReport();};
+  $('repMonth').onchange=e=>{curNewMonth=e.target.value;repDay=null;repOpen=true;renderReport();};
   $('repBig').onclick=()=>{repOpen=!repOpen;renderReport();};
+  el.querySelectorAll('.rd-col').forEach(b=>b.onclick=()=>{const d=+b.dataset.d;repDay=repDay===d?null:d;repOpen=true;renderReport();});
+  if($('repClr'))$('repClr').onclick=()=>{repDay=null;renderReport();};
+  el.querySelectorAll('.inv-del').forEach(b=>b.onclick=()=>{delInvite(b.dataset.id);renderReport();renderReg();});
 }
 function addKols(list,prod,info){
-  const ex=new Set(REG.map(r=>r.name.toLowerCase()));
-  let added=0,dup=0;lastAdded=new Set();const fresh=[];const blocked=[];
+  const byName={};REG.forEach(r=>byName[r.name.toLowerCase()]=r);
+  const variant=((info&&info.variant)||'').trim();
+  let added=0,dup=0;lastAdded=new Set();const fresh=[];const blocked=[];const reNames=[];const seen=new Set();
   list.map(norm).filter(Boolean).forEach(n=>{
-    if(ex.has(n)){dup++;return;}
+    if(seen.has(n))return; seen.add(n); // tên lặp trong cùng 1 lần dán
+    const old=byName[n];
+    if(old){
+      // KOL CŨ của mình → ghi LƯỢT MỜI LẠI (SP mới hoặc màu khác). Chỉ chặn khi
+      // trùng y hệt (cùng KOL + cùng SP + cùng màu) trong CÙNG NGÀY — gần như chắc là bấm 2 lần.
+      if(hasSameInviteToday(old.name,prod,variant)){dup++;return;}
+      addInvite(old.name,prod,variant,'re');reNames.push(old.name);lastAdded.add(old.name);return;
+    }
     if(OTHERS[n]){blocked.push({n,owner:OTHERS[n]});return;} // KOL đang của nhân viên khác → chặn
-    ex.add(n);
     const k={name:n,prod:prod,m:[],src:'manual',addDate:TODAY,zalo:(info&&info.zalo)||'',phone:(info&&info.phone)||'',link:(info&&info.link)||'',remind:[false,false,false],good:false,posted:false};
-    REG.unshift(k);fresh.push(k);lastAdded.add(n);added++;
+    byName[n]=k;REG.unshift(k);fresh.push(k);lastAdded.add(n);added++;
+    addInvite(n,prod,variant,'new');
   });
   const m=$('addMsg');
-  if(blocked.length){
-    const names=blocked.map(b=>`@${b.n} <span style="opacity:.85">(của ${b.owner})</span>`).join(', ');
-    m.className='addmsg err';
-    m.innerHTML=`⛔ <b>${blocked.length} KOL đang thuộc nhân viên khác</b>, không thêm được: ${names}. Để nhân viên đó làm tiếp.`
-      +(added?`<br><span style="color:#9fe0b4">✓ Đã thêm ${added} KOL còn lại vào ${PMAP[prod].name}.</span>`:'')
-      +(dup?`<br><span style="color:#e7b98a">⚠ Bỏ qua ${dup} tên đã có sẵn.</span>`:'');
-  }
-  else if(added){m.className='addmsg ok';m.textContent=`✓ Thêm ${added} KOL vào ${PMAP[prod].name}${dup?` · bỏ qua ${dup} trùng`:''}. Ngày thêm: ${TODAY}.`;}
-  else if(dup){m.className='addmsg warn';m.textContent=`⚠ ${dup} tên đã có rồi.`;}
+  const spTxt=PMAP[prod].name+(variant?` · ${esc(variant)}`:'');
+  const parts=[];
+  if(added)parts.push(`<span style="color:#9fe0b4">✓ Thêm ${added} KOL mới vào ${spTxt}. Ngày thêm: ${TODAY}.</span>`);
+  if(reNames.length)parts.push(`<span style="color:#9fc8ef">↻ Ghi ${reNames.length} lượt mời lại KOL cũ cho ${spTxt}: ${reNames.slice(0,8).map(x=>'@'+esc(x)).join(', ')}${reNames.length>8?' …':''}</span>`);
+  if(dup)parts.push(`<span style="color:#e7b98a">⚠ Bỏ qua ${dup} tên đã mời đúng SP + màu này hôm nay rồi.</span>`);
+  if(blocked.length)parts.unshift(`⛔ <b>${blocked.length} KOL đang thuộc nhân viên khác</b>, không thêm được: ${blocked.map(b=>`@${esc(b.n)} <span style="opacity:.85">(của ${esc(b.owner)})</span>`).join(', ')}. Để nhân viên đó làm tiếp.`);
+  if(parts.length){m.className='addmsg '+(blocked.length?'err':(added||reNames.length)?'ok':'warn');m.innerHTML=parts.join('<br>');}
   else{m.className='addmsg warn';m.textContent='Chưa nhập tên nào.';}
   renderReg();renderReport();renderDash();renderSum();renderGood();
   if(fresh.length){
@@ -818,12 +899,26 @@ function addKols(list,prod,info){
   }
   setTimeout(()=>{lastAdded=new Set();renderReg();},2600);
 }
+// Bấm ↻ ở bảng KOL → điền sẵn tên, chỉ cần chọn SP + màu rồi bấm nút
+function startReinvite(name){
+  $('one').value=name;updateAddMode();
+  $('one').closest('.addbox').scrollIntoView({behavior:'smooth',block:'center'});
+  setTimeout(()=>$('oneProd').focus(),300);
+}
+function updateAddMode(){
+  const n=norm($('one').value||'');
+  const isOld=n&&REG.some(r=>r.name.toLowerCase()===n);
+  $('addOne').textContent=isOld?'↻ Ghi lượt mời lại':'＋ Thêm KOL';
+  const cnt=isOld?allInvites().filter(v=>v.name.toLowerCase()===n).length:0;
+  if(isOld){const m=$('addMsg');m.className='addmsg ok';m.innerHTML=`↻ <b>@${esc(n)}</b> đã có trong danh sách (${cnt} lượt mời trước đó) — chọn sản phẩm + màu rồi bấm <b>Ghi lượt mời lại</b>. Zalo/SĐT/Link nhập ở đây sẽ không ghi đè.`;}
+}
 $('addOne').onclick=()=>{
-  addKols([$('one').value],$('oneProd').value,{zalo:$('oZalo').value.trim(),phone:$('oPhone').value.trim(),link:$('oLink').value.trim()});
-  ['one','oZalo','oPhone','oLink'].forEach(id=>$(id).value='');$('one').focus();
+  addKols([$('one').value],$('oneProd').value,{zalo:$('oZalo').value.trim(),phone:$('oPhone').value.trim(),link:$('oLink').value.trim(),variant:$('oVar').value.trim()});
+  ['one','oZalo','oPhone','oLink','oVar'].forEach(id=>$(id).value='');$('addOne').textContent='＋ Thêm KOL';$('one').focus();
 };
 $('one').addEventListener('keydown',e=>{if(e.key==='Enter')$('addOne').click();});
-$('addBulk').onclick=()=>{addKols(($('bulk').value||'').split(/[\n,]+/),$('oneProd').value,null);$('bulk').value='';};
+$('one').addEventListener('input',updateAddMode);
+$('addBulk').onclick=()=>{addKols(($('bulk').value||'').split(/[\n,]+/),$('oneProd').value,{variant:$('oVar').value.trim()});$('bulk').value='';};
 $('bulkToggle').onclick=()=>$('bulkWrap').classList.toggle('show');
 $('search').addEventListener('input',renderReg);
 
@@ -1031,6 +1126,81 @@ async function pushKolExtra(k){
     try{await sbUpsert('kol_list',[row],'name');}catch(e2){}
   }
 }
+// ═══ SỔ LƯỢT MỜI SẢN PHẨM (bảng kol_invites) ═══════════════
+// Mỗi lần mời = 1 dòng {id,name,prod,variant,date dd/mm/yyyy,kind:'new'|'re',ts}.
+// kol_list vẫn giữ 1 dòng/KOL như cũ (không đổi SP gốc → doanh số Dashboard không bị dời).
+// Luôn lưu local trước, Supabase lỗi/chưa có bảng thì giữ pending, mở trang lại tự đẩy.
+const LS_INV_KEY='hannal_kol_inv_'+EMP;
+let INV=[], INV_STATE='init'; // 'sb' | 'local'
+function loadInvLocal(){try{const o=JSON.parse(localStorage.getItem(LS_INV_KEY)||'{}');return {list:o.list||[],pending:o.pending||[],deleted:o.deleted||[]};}catch(e){return {list:[],pending:[],deleted:[]};}}
+function saveInvLocal(pending,deleted){
+  try{const o=loadInvLocal();
+    const P=new Set(pending!==undefined?pending:o.pending),D=new Set(deleted!==undefined?deleted:o.deleted);
+    localStorage.setItem(LS_INV_KEY,JSON.stringify({list:INV,pending:[...P],deleted:[...D]}));}catch(e){}
+}
+INV=loadInvLocal().list;
+const vkey=s=>String(s||'').trim().toLowerCase();
+// Lượt mời KOL mới thêm TRƯỚC khi có sổ này: suy ra từ ngày thêm (add_date) trong kol_list
+function allInvites(){
+  const hasNew=new Set(INV.filter(v=>v.kind==='new').map(v=>v.name.toLowerCase()));
+  const legacy=REG.filter(r=>r.addDate&&!hasNew.has(r.name.toLowerCase()))
+    .map(r=>({id:'legacy:'+r.name,name:r.name,prod:r.prod,variant:'',date:r.addDate,kind:'new',ts:0,legacy:true}));
+  return INV.concat(legacy);
+}
+function hasSameInviteToday(name,prod,variant){
+  const n=name.toLowerCase(),v=vkey(variant);
+  return allInvites().some(x=>x.date===TODAY&&x.name.toLowerCase()===n&&x.prod===prod&&vkey(x.variant)===v);
+}
+function invRow(v){return {id:v.id,employee:EMP,name:v.name,prod:v.prod,variant:v.variant||'',invite_date:v.date,kind:v.kind,created_at:new Date(v.ts||Date.now()).toISOString()};}
+async function pushInv(v){
+  if(!SB_OK)return false;
+  try{await sbUpsert('kol_invites',[invRow(v)],'id');
+    const o=loadInvLocal();saveInvLocal(o.pending.filter(id=>id!==v.id));INV_STATE='sb';return true;
+  }catch(e){INV_STATE='local';return false;}
+}
+function addInvite(name,prod,variant,kind){
+  const v={id:Date.now().toString(36)+Math.random().toString(36).slice(2,8),name,prod,variant:variant||'',date:TODAY,kind,ts:Date.now()};
+  INV.unshift(v);
+  const o=loadInvLocal();saveInvLocal(o.pending.concat(v.id));
+  pushInv(v).then(()=>renderReport());
+  return v;
+}
+function delInvite(id){
+  INV=INV.filter(v=>v.id!==id);
+  const o=loadInvLocal();saveInvLocal(o.pending.filter(x=>x!==id),o.deleted.concat(id));
+  if(SB_OK)sbDel('kol_invites',`id=eq.${encodeURIComponent(id)}`).then(()=>{const p=loadInvLocal();saveInvLocal(undefined,p.deleted.filter(x=>x!==id));}).catch(()=>{});
+}
+function delInvitesOfKol(name){INV.filter(v=>v.name.toLowerCase()===name.toLowerCase()).forEach(v=>delInvite(v.id));}
+// Sửa SP ở bảng KOL = sửa nhầm → lượt mời "KOL mới" của người đó đổi theo
+function syncNewInviteProd(name,prod){
+  const v=INV.find(x=>x.kind==='new'&&x.name.toLowerCase()===name.toLowerCase());
+  if(!v||v.prod===prod)return;
+  v.prod=prod;const o=loadInvLocal();saveInvLocal(o.pending.concat(v.id));pushInv(v);
+}
+function reInfo(name){
+  const re=INV.filter(v=>v.kind==='re'&&v.name.toLowerCase()===name.toLowerCase());
+  if(!re.length)return '';
+  const tip=re.map(v=>`${v.date}: ${(PMAP[v.prod]||{name:v.prod}).name}${v.variant?' · '+v.variant:''}`).join('\n');
+  return `<div class="kc-inv" title="${esc(tip)}">↻ ${re.length} lần mời lại</div>`;
+}
+async function loadInvites(){
+  const loc=loadInvLocal();
+  if(!SB_OK){INV=loc.list;INV_STATE='local';return;}
+  let rows;
+  try{rows=await sbSel('kol_invites',`select=*&employee=eq.${EMP}&order=created_at.desc`);}
+  catch(e){INV=loc.list;INV_STATE='local';return;} // chưa có bảng → giữ bản trên máy
+  INV_STATE='sb';
+  const del=new Set(loc.deleted);
+  const map={};
+  (rows||[]).forEach(r=>{if(del.has(r.id))return;map[r.id]={id:r.id,name:r.name,prod:r.prod,variant:r.variant||'',date:r.invite_date,kind:r.kind==='new'?'new':'re',ts:Date.parse(r.created_at)||0};});
+  const pend=new Set(loc.pending);
+  loc.list.forEach(v=>{if(pend.has(v.id)&&!del.has(v.id))map[v.id]=v;}); // bản local chưa đẩy lên
+  INV=Object.values(map).sort((a,b)=>(b.ts||0)-(a.ts||0));
+  saveInvLocal();
+  // đẩy lại các lượt pending + xoá lại các lượt đã xoá nhưng chưa xoá được trên server
+  for(const id of pend){const v=map[id];if(v)await pushInv(v);}
+  for(const id of del){try{await sbDel('kol_invites',`id=eq.${encodeURIComponent(id)}`);const p=loadInvLocal();saveInvLocal(undefined,p.deleted.filter(x=>x!==id));}catch(e){}}
+}
 async function delKolDb(name){try{if(!SB_OK)return;await sbDel('kol_list',`name=eq.${encodeURIComponent(name)}`);}catch(e){}}
 async function pushMonth(month,matched){try{if(!SB_OK)return;await sbDel('kol_monthly',`month=eq.${month}&year=eq.2026`);const rows=matched.map(k=>({month,year:2026,name:k.n,gmv:k.g,refund:k.rf||0,com:k.c,orders:k.o}));if(rows.length)await sbUpsert('kol_monthly',rows);}catch(e){}}
 async function delMonthDb(month){try{if(!SB_OK)return;await sbDel('kol_monthly',`month=eq.${month}&year=eq.2026`);}catch(e){}}
@@ -1103,6 +1273,7 @@ async function loadFromSupabase(){
       renderReg();renderReport();renderDash();renderSum();renderGood();
     });
   }
+  await loadInvites();
   setSbBadge();
   const dm=ALLM.slice().sort((a,b)=>b-a)[0];if(dm)curMD=String(dm);
   renderMonthBtnsD();renderMonthBtnsS();renderManaged();renderDash();renderSum();renderReg();renderReport();renderGood();
