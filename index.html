@@ -1252,6 +1252,23 @@ const SHP_RE_COLOR=new RegExp(SHP_COLORS,'gi');
 const SHP_RE_SIZE_ONLY=new RegExp(`^(?:${SHP_SIZES})$`,'i');
 // Mã SP đứng riêng thành 1 từ trong tên (không dính chữ/số khác), VD "SET ĐỒ TẬP NỮ CLOUD – SẴN MÚT"
 const SHP_RE_NAMECODE=new RegExp(`(?:^|[^A-Za-z0-9À-ỹ])(${SHP_CODES})(?![A-Za-z0-9À-ỹ])`,'gi');
+// ── NHẬN DIỆN THEO MÃ SKU (dùng chung mọi luồng) ──
+// Tên SP chứa mã SKU ở BẤT KỲ đâu (kể cả dính liền chữ, VD "quần nịt bụngNBD", "SET CLOUD VÀNG") → hiểu là mã đó.
+// So trên chuỗi đã bỏ khoảng trắng (chịu cắt dòng "NB D"), chỉ chặn khi dính SỐ (NB012 ≠ NB01).
+// Nhiều mã KHÁC NHAU trong 1 dòng → không đoán, trả về nhiều mã để nơi gọi đẩy về OTHER.
+const SKU_RE_ANY=new RegExp(`(?<![0-9])(${SHP_CODES})(?![0-9])`,'gi');
+// Dò trên CẢ text gốc (để "NBD 3XL" không bị coi là "NBD3…") VÀ text bỏ khoảng trắng (để "NB D" bị cắt dòng vẫn ra NBD)
+function skuCodesIn(s){const t=(s||'').normalize('NFC');return [...new Set([...t.matchAll(SKU_RE_ANY),...t.replace(/\s+/g,'').matchAll(SKU_RE_ANY)].map(x=>x[1].toUpperCase()))];}
+// Phân loại NGAY SAU mã, ghi tự do không cần dấu phẩy: "<MÃ> [Combo] <Màu>[+<Màu>…] [Size] <Size>"
+//   "quần nịt bụng NBD da 3XL" · "NBD đen + da 3XL" · "SET CLOUD VÀNG S" · "NB01 Nude, M"
+// Phần sau mã phải khớp TRỌN mẫu (chỉ màu + size, không chữ lạ) — thiếu màu/size hoặc có chữ khác → OTHER.
+const SKU_RE_TAIL=new RegExp(`^[-–,:|.]*(Combo)?,?((?:${SHP_COLORS})(?:\\+(?:${SHP_COLORS}))*),?(?:Size)?(${SHP_SIZES})$`,'i');
+function skuParseFree(cmp,desc){
+  const codes=skuCodesIn(desc||cmp);if(codes.length!==1)return null;
+  const code=codes[0];const i=cmp.toUpperCase().lastIndexOf(code);if(i<0)return null;
+  const t=cmp.slice(i+code.length).match(SKU_RE_TAIL);if(!t)return null;
+  return{code,combo:!!t[1]||/\+/.test(t[2]),colors:shpColorsOf(t[2]),size:nGroupSize(code,t[3])};
+}
 function shpCodesInName(desc){return [...new Set([...(desc||'').normalize('NFC').matchAll(SHP_RE_NAMECODE)].map(x=>x[1].toUpperCase()))];}
 function nGroupSize(code,rawSize){
   let s=(rawSize||'').toUpperCase().replace(/\s/g,'');
@@ -1281,7 +1298,7 @@ function getShopeeItems(raw){
     const cmp=desc.replace(/\s+/g,'').normalize('NFC').replace(/,+$/,'');     // bỏ khoảng trắng — miễn nhiễm cắt dòng; NFC lại vì dấu tổ hợp có thể bị tách thành item riêng
     const sig=no+'#'+cmp.toUpperCase()+'#'+qty;
     if(seen.has(sig))continue;seen.add(sig);                   // chống nhân đôi khi text-layer bị lặp
-    const mc=cmp.match(SHP_RE_CODE);
+    const mc=skuCodesIn(desc).length>1?null:cmp.match(SHP_RE_CODE);   // 1 dòng có nhiều mã khác nhau → không đoán
     if(mc){
       const code=mc[1].toUpperCase(),combo=!!mc[2]||/\+/.test(mc[3]);
       const colors=shpColorsOf(mc[3]),size=nGroupSize(code,mc[4]);
@@ -1291,11 +1308,18 @@ function getShopeeItems(raw){
       colors.forEach(c=>res.push({code,color:c,size,qty,line:no,combo}));
       continue;
     }
+    const fr=skuParseFree(cmp,desc);
+    if(fr){
+      lines.push({no,code:fr.code,combo:fr.combo,colors:fr.colors,size:fr.size,qty,raw:cmp,ok:true,viaSku:true});
+      if(fr.code==='CB01'){res.push({code:fr.code,color:fr.colors[0]||'',size:fr.size,qty,line:no});continue;}
+      fr.colors.forEach(c=>res.push({code:fr.code,color:c,size:fr.size,qty,line:no,combo:fr.combo}));
+      continue;
+    }
     const mn=cmp.match(SHP_RE_NOCODE);
     // Phân loại không có mã (VD SET CLOUD: "SET ĐỒ TẬP NỮ CLOUD – SẴN MÚT | …, Hồng baby,L") → lấy mã từ TÊN SP,
     // chỉ khi: tên chứa ĐÚNG 1 mã đứng riêng thành từ + size thuộc danh sách size chuẩn. Không thoả → OTHER như cũ.
     if(mn){
-      const nameCodes=shpCodesInName(desc);
+      const nameCodes=skuCodesIn(desc);
       if(nameCodes.length===1&&SHP_RE_SIZE_ONLY.test(mn[2])){
         const code=nameCodes[0],combo=/\+/.test(mn[1]);
         const colors=shpColorsOf(mn[1]),size=nGroupSize(code,mn[2]);
@@ -1305,7 +1329,8 @@ function getShopeeItems(raw){
         continue;
       }
     }
-    const why=mn?'phân loại không có mã SKU':'không đọc được phân loại';
+    const nc=skuCodesIn(desc);
+    const why=nc.length>1?`1 dòng có nhiều mã SKU (${nc.join(', ')})`:(nc.length===1?`có mã ${nc[0]} nhưng không đọc được màu/size`:(mn?'phân loại không có mã SKU':'không đọc được phân loại'));
     lines.push({no,code:'OTHER',combo:false,colors:[],size:mn?mn[2].toUpperCase():'?',qty,raw:cmp,ok:false,why});
     // Tên generic → gom về 1 khoá cố định (không phụ thuộc chỗ cắt dòng)
     const rest=cmp.replace(/^S[aả]nph[aẩ]mph[uụ]ki[eệ]nth[oờ]itrang,?/i,'').replace(mn?SHP_RE_NOCODE:/$^/,'').replace(/[-,]+$/,'');
@@ -1478,7 +1503,7 @@ function getTkItems(raw){
   const r0b=new RegExp(`${SZP}\\s*,\\s*(Đen|Den|Nude|Nâu|Nau|Da|Be|Brown|Black|Skin|Hồng\\s*Baby|Hong\\s*Baby|Baby\\s*Pink|Kem|Cream|Hồng|Hong|Pink|Vàng|Vang|Yellow|Tím|Tim|Purple|Xanh\\s*Navy|Navy|Xanh|Blue)\\s+(NBD|NB01|GY3|CB01|JS01|CLOUD)\\s+(\\d+)`,'gi');
   while((m=r0b.exec(t))!==null){const size=nSize(m[1]),color=m[2].trim(),code=m[3].toUpperCase(),qty=parseInt(m[4]);if(size&&qty>0&&!res.some(r=>r.code===code&&r.size===size&&pColor(r.color)===pColor(color)))res.push({code,color,size,qty});}
   if(res.length)return res;
-  const r1=new RegExp(`\\b(NBD|NB01|GY3|CB01|JS01|CLOUD)\\s+([^,]{1,30}?),\\s*${SZP}(?:\\s*[x×]\\s*(\\d+)|\\s*,?\\s*(?:SL|Qty)\\s*:?\\s*(\\d+))?`,'gi');
+  const r1=new RegExp(`\\b(NBD|NB01|GY3|CB01|JS01|CLOUD)\\s+([^,]{1,30}?),\\s*${SZP}(?![A-Za-z0-9/])(?:\\s*[x×]\\s*(\\d+)|\\s*,?\\s*(?:SL|Qty)\\s*:?\\s*(\\d+))?`,'gi');
   while((m=r1.exec(t))!==null){const code=m[1].toUpperCase(),color=m[2].trim(),size=nSize(m[3]),qty=parseInt(m[4]||m[5]||'1');if(size&&qty>0&&!res.some(r=>r.code===code&&r.size===size&&pColor(r.color)===pColor(color)))res.push({code,color,size,qty});}
   // Fallback cuối: token có thể bị pdf.js tách rời (VD "M, Đen" xa "JS01").
   // Tìm CODE + cặp (màu,size) ở BẤT KỲ vị trí, BẤT KỲ thứ tự — chỉ chạy khi các mẫu trên trượt.
@@ -1488,7 +1513,7 @@ function getTkItems(raw){
       const code=codeM[1].toUpperCase();
       const COL='(Đen|Den|Nude|Nâu|Nau|Da|Be|Brown|Black|Skin|Hồng\\s*Baby|Hong\\s*Baby|Baby\\s*Pink|Kem|Cream|Hồng|Hong|Pink|Vàng|Vang|Yellow|Tím|Tim|Purple|Xanh\\s*Navy|Navy|Xanh|Blue)';
       let color,size,cs;
-      if((cs=t.match(new RegExp(`${COL}\\s*,\\s*${SZP}`,'i')))){color=cs[1];size=nSize(cs[2]);}       // "Màu, Size"
+      if((cs=t.match(new RegExp(`${COL}\\s*,\\s*${SZP}(?![A-Za-z0-9/])`,'i')))){color=cs[1];size=nSize(cs[2]);}       // "Màu, Size"
       else if((cs=t.match(new RegExp(`${SZP}\\s*,\\s*${COL}`,'i')))){size=nSize(cs[1]);color=cs[2];}   // "Size, Màu"
       if(color&&size){
         const qm=t.match(/(?:Qty\s*Total|T[oổ]ng\s*SL)\s*:?\s*(\d+)/i);
@@ -1557,7 +1582,7 @@ function tkCodeFromName(name){
 function tkRowToItems(r){
   const sel=(r.seller||'').toUpperCase().replace(/\s/g,'');
   let code=TK_CODES.includes(sel)?sel:null,how='Seller SKU';
-  if(!code&&!sel){const f=TK_CODES.filter(c=>new RegExp(`(^|[^A-Z0-9])${c}([^A-Z0-9]|$)`,'i').test(r.name));if(f.length===1){code=f[0];how='tên SP';}}
+  if(!code){const f=skuCodesIn(r.name);if(f.length===1){code=f[0];how=sel?`tên SP (Seller SKU "${sel}" không phải mã hệ thống)`:'tên SP';}}
   if(!code&&!sel){const c=tkCodeFromName(r.name);if(c){code=c;how='tên SP (mẫu)';}}
   // Gộp khoảng trắng quanh "/" trong size: TikTok có thể in "XS/ S", "M /L"
   let sku=(r.sku||'').normalize('NFC').replace(/\s+/g,' ').replace(/\s*\/\s*/g,'/').trim();
