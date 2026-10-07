@@ -527,7 +527,8 @@ const PRODUCTS=[
   {k:'NBL',name:'Quần NB Lót',c:'#5B4636'},
   {k:'BSL',name:'Bodysuit Lót',c:'#BE735E'},
   {k:'GY3',name:'Gym3',c:'#1A6B5C'},
-  {k:'CLD',name:'Cloud',c:'#3D6E9E'}
+  {k:'CLD',name:'Cloud',c:'#3D6E9E'},
+  {k:'LUN',name:'Luna',c:'#8A5A9E'}
 ];
 const PMAP={};PRODUCTS.forEach(p=>PMAP[p.k]=p);
 const SEED_MONTHS=MONTHS, SEED_ALLM=Object.keys(SEED_MONTHS).map(Number);
@@ -622,7 +623,7 @@ function renderDash(){
   const fixNote=(REPAIR.fixed.length?`✓ Đã tự sửa dữ liệu <b>Tháng ${REPAIR.fixed.join(', ')}</b> (lần nhập trước bị đọc sai cột) — hoa hồng KOL lấy đúng cột V "Hoa hồng ước tính".<br>`:'')
     +(badNow.length?`⛔ <b>Tháng ${badNow.join(', ')}</b> có vẻ bị nhập sai cột (hoa hồng/số đơn vô lý) — nhập lại file tháng đó để ghi đè.<br>`:'');
   $('dashNote').innerHTML= fixNote + (assigned===0
-    ? '⚠️ Hiện <b>tất cả KOL đang tạm gán Quần Nịt Bụng</b> nên 3 sản phẩm kia = 0. Qua tab <b>➕ Nhập KOL mới</b> đổi sản phẩm cho từng KOL (cột "Sản phẩm") thì Dashboard tự cập nhật.'
+    ? '⚠️ Hiện <b>tất cả KOL đang tạm gán Quần Nịt Bụng</b> nên các sản phẩm khác = 0. Qua tab <b>➕ Nhập KOL mới</b> đổi sản phẩm cho từng KOL (cột "Sản phẩm") thì Dashboard tự cập nhật.'
     : `✓ Đã có <b>${assigned} KOL</b> gán sang sản phẩm khác. Dashboard cập nhật theo phân bổ thực tế.`);
 }
 function highlightTier(rate){
