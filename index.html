@@ -612,7 +612,7 @@ select:focus,input[type=text]:focus,input[type=date]:focus{border-color:var(--te
         <div style="margin-top:6px;font-family:var(--f-mono);font-size:10px;color:#60a5fa;white-space:pre-wrap;max-height:140px;overflow-y:auto;background:#f8f9ff;border:1px solid var(--tan);border-radius:6px;padding:8px" id="dbgTxt"></div>
       </details>
       <div class="tagline">Confidence isn't just a look, it's a lifestyle.</div>
-      <div style="text-align:center;font-family:var(--f-mono);font-size:9px;color:#9A8070;margin-top:6px">Bản sort: <b>2026-09-28 · TikTok đọc theo toạ độ cột</b></div>
+      <div style="text-align:center;font-family:var(--f-mono);font-size:9px;color:#9A8070;margin-top:6px">Bản sort: <b>2026-10-08 · CB01 = 1 lót + 1 đùi</b></div>
     </div>
   </div>
 
@@ -1783,7 +1783,7 @@ function buildPickFromGroups(groups){
     if(g.items){   // đọc theo toạ độ cột — số cái đã tính sẵn từ phân loại
       g.items.forEach(it=>{
         if(it.code==='OTHER'){const key=`${it.seller||'Không mã'} · ${it.color?pColor(it.color):'?'} · ${it.size}`;inv.OTHER[key]=(inv.OTHER[key]||0)+it.pieces;}
-        else addPickItem(inv,it.code,it.color,it.size,it.pieces);
+        else addPickItem(inv,it.code,it.color,it.size,it.code==='CB01'?it.qty:it.pieces);   // CB01 = 1 bộ (1 NBD + 1 NB01) → cộng theo số bộ, addPickItem tự chia vào 2 SP
       });
       return;
     }
@@ -2093,7 +2093,7 @@ async function onHtFiles(input){
         if(tb&&tb.rows.length){
           tb.rows.flatMap(tkRowToItems).forEach(it=>{
             if(it.code==='OTHER'){const k=`${it.seller||'Không mã'} · ${it.color?pColor(it.color):'?'} · ${it.size}`;HT_INV.OTHER[k]=(HT_INV.OTHER[k]||0)+it.pieces;}
-            else addPickItem(HT_INV,it.code,it.color,it.size,it.pieces);
+            else addPickItem(HT_INV,it.code,it.color,it.size,it.code==='CB01'?it.qty:it.pieces);   // CB01: theo số bộ
           });
           totalPages++;continue;
         }
