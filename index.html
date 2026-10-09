@@ -506,6 +506,144 @@ select:focus,input[type=text]:focus,input[type=date]:focus{border-color:var(--te
 .clr-den{background:#2A211C;color:#DCC6AA}.clr-nude{background:#7a4530;color:#e8c9a0}.clr-nau{background:#3d2010;color:#d4a07a}.clr-da{background:#8a6040;color:#f0d0a8}
 .inv-hut-red{color:var(--red-fg);font-weight:700}.inv-dl-red{color:var(--red-fg);font-size:10px;font-weight:600}
 .inv-dl-org{color:var(--org-fg);font-size:10px;font-weight:600}.inv-dl-yel{color:var(--yel-fg);font-size:10px;font-weight:600}.inv-dl-grn{color:var(--grn-fg);font-size:10px}
+.kv-prod{margin-bottom:22px}
+.kv-prod-head{display:flex;align-items:center;gap:8px;font-family:var(--f-head);font-weight:800;font-size:15px;color:var(--dark);margin:6px 2px 10px}
+.kv-mini{font-size:10px;background:var(--cream);border:1px solid rgba(190,115,94,.35);color:var(--brown);cursor:pointer;padding:4px 10px;border-radius:6px}
+.kv-blk{background:#fff;border:1px solid rgba(220,198,170,.7);border-radius:14px;overflow:hidden;margin-bottom:14px}
+.kv-head{background:#3a2722;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 16px}
+.kv-name{font-family:var(--f-head);font-weight:800;font-size:15px;color:#fff;letter-spacing:.03em;flex:1;min-width:110px}
+.kv-ctrls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.kv-ctrls label{display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,.75)}
+.kv-ctrls input{width:84px;padding:6px 10px;border-radius:9px;border:1px solid rgba(220,198,170,.35);background:rgba(255,255,255,.06);color:#fff;font-size:13px;outline:none}
+.kv-ctrls input:focus{border-color:var(--tan)}
+.kv-hint{font-size:10px;color:rgba(220,198,170,.55)}
+.kv-btn{padding:6px 12px;border-radius:9px;border:1px solid rgba(220,198,170,.5);background:transparent;color:#fff;font-weight:700;font-size:12px;cursor:pointer}
+.kv-go{padding:7px 14px;border-radius:10px;border:none;background:#F7E3A6;color:var(--dark);font-weight:800;font-size:12px;cursor:pointer}
+.kv-wrap{overflow-x:auto}
+.kv-tbl{width:100%;border-collapse:collapse;font-size:12.5px;min-width:880px}
+.kv-tbl th{font-family:var(--f-head);font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--brown);background:var(--cream);padding:10px 8px;text-align:center;white-space:nowrap}
+.kv-tbl td{padding:9px 8px;text-align:center;border-top:1px solid rgba(220,198,170,.45);color:var(--dark)}
+.kv-tbl .kv-l{text-align:left;padding-left:16px;font-weight:700}
+.kv-tbl th.kv-th-ton{background:#3a2722;color:#F7E3A6}
+.kv-tbl td.kv-ton{background:#FAF5EE;font-weight:800}
+.kv-tbl th.kv-th-due{background:#FBF0D6;color:#7a5a12}
+.kv-tbl th.kv-th-ord{background:#E6EEF8;color:#1f3f73}
+.kv-sec{color:var(--org-fg);font-weight:700}
+.kv-dv{color:#B0632A;font-weight:800}
+.kv-7d{color:#B5A595}
+.kv-30d{font-weight:800}
+.kv-hut{color:var(--red-fg);font-weight:800}
+.kv-ord{color:#1f3f73;font-weight:800}
+.kv-dash{color:#bbb}
+.kv-row-thieu td{background:var(--red-bg)}
+.kv-row-thieu td.kv-ton{background:#f8e0dc}
+.kv-due-red{color:var(--red-fg);font-weight:700}.kv-due-org{color:var(--org-fg);font-weight:700}
+.kv-foot td{background:#FAF5EE;font-weight:800;font-size:13px}
+.kv-pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:700;white-space:nowrap}
+.kv-on{background:var(--grn-bg);color:var(--grn-fg)}.kv-thieu{background:var(--red-bg);color:var(--red-fg)}.kv-cut{background:#eee;color:#666}
+.kv-modal{background:#fff;border-radius:16px;max-width:440px;width:100%;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.kv-modal-h{background:var(--dark);padding:14px 20px;color:var(--tan);font-family:var(--f-head);font-weight:800;font-size:14px}
+.kv-chip{background:#E6EEF8;color:#1f3f73;border-radius:8px;padding:3px 9px;font-size:12px}
+.kv-f{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;font-size:12px;font-weight:600;color:var(--brown)}
+.kv-f input{width:170px;padding:7px 10px;border:1px solid rgba(220,198,170,.8);border-radius:8px;font-size:13px}
+.kv-mbtn{flex:1;padding:10px;border-radius:9px;border:1px solid rgba(220,198,170,.7);background:var(--cream);color:var(--brown);font-weight:700;font-size:12px;cursor:pointer}
+.kv-mbtn-go{background:var(--dark);color:var(--tan);border-color:var(--dark)}
+@media(max-width:640px){.kv-head{padding:10px 12px}.kv-ctrls input{width:70px}}
+.po-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.po-f{display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:700;color:var(--brown);font-family:var(--f-head);letter-spacing:.02em}
+.po-f input,.po-f select{padding:9px 11px;border:1px solid rgba(220,198,170,.9);border-radius:9px;font-size:13px;font-family:var(--f-body);color:var(--dark);background:var(--white);outline:none;font-weight:500}
+.po-f input:focus,.po-f select:focus{border-color:var(--terra)}
+.po-empty{padding:26px;text-align:center;color:#9A8070;font-size:13px;background:var(--white);border:1px dashed rgba(220,198,170,.9);border-radius:12px}
+.po-new-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.po-new-blk{border:1px solid rgba(220,198,170,.7);border-radius:12px;overflow:hidden}
+.po-new-h{display:flex;justify-content:space-between;padding:9px 12px;font-family:var(--f-head);font-weight:800;font-size:13px}
+.po-new-tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.po-new-tbl th{font-size:9.5px;font-family:var(--f-head);text-transform:uppercase;letter-spacing:.06em;color:var(--brown);background:var(--cream);padding:7px 8px;text-align:center}
+.po-new-tbl td{padding:5px 8px;text-align:center;border-top:1px solid rgba(220,198,170,.45)}
+.po-new-tbl .l,.po-tbl .l{text-align:left;font-weight:700}
+.po-ton{color:#9A8070}
+.po-qinp,.po-rinp{width:72px;padding:6px 8px;border:1px solid rgba(220,198,170,.9);border-radius:8px;text-align:center;font-size:13px;font-weight:700;color:#1f3f73;background:#F3F7FC;outline:none}
+.po-qinp:focus,.po-rinp:focus{border-color:#1f3f73}
+.po-new-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:16px;padding-top:14px;border-top:1px solid rgba(220,198,170,.6);font-family:var(--f-head);font-size:14px;color:var(--dark)}
+.po-new-foot b{font-size:20px}
+.po-go{padding:10px 18px;border-radius:10px;border:none;background:var(--dark);color:var(--tan);font-family:var(--f-head);font-weight:800;font-size:12.5px;cursor:pointer}
+.po-go:hover{background:var(--brown)}
+.po-sbtn{padding:7px 12px;border-radius:9px;border:1px solid rgba(220,198,170,.9);background:var(--white);color:var(--brown);font-weight:700;font-size:11.5px;cursor:pointer;font-family:var(--f-body)}
+.po-sbtn:hover{background:var(--cream)}
+.po-sbtn.danger{color:var(--red-fg);border-color:rgba(192,57,43,.35)}
+.po-link{border:none;background:none;color:#1f3f73;font-weight:700;font-size:11.5px;cursor:pointer;text-decoration:underline;margin-left:6px}
+.po-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.po-seg{display:inline-flex;background:var(--white);border:1px solid rgba(220,198,170,.8);border-radius:10px;padding:3px;gap:2px}
+.po-seg button{border:none;background:none;padding:7px 14px;border-radius:8px;font-family:var(--f-head);font-weight:700;font-size:12px;color:var(--brown);cursor:pointer}
+.po-seg button.on{background:var(--dark);color:var(--tan)}
+.po-seg button i{font-style:normal;opacity:.6;margin-left:4px}
+.po-seg.sm button{padding:5px 10px;font-size:11px}
+.po-chips{display:flex;flex-wrap:wrap;gap:6px}
+.po-fchip{border:1px solid rgba(220,198,170,.9);background:var(--white);color:var(--brown);border-radius:999px;padding:5px 12px;font-size:11.5px;font-weight:600;cursor:pointer}
+.po-fchip.on{background:var(--terra);border-color:var(--terra);color:#fff}
+.po-chip{background:var(--cream);border-radius:7px;padding:3px 8px;font-size:11.5px;color:var(--dark)}
+.po-grp-h{font-family:var(--f-head);font-weight:800;font-size:14px;color:var(--dark);margin:8px 2px 0}
+#poListContent{display:flex;flex-direction:column;gap:14px}
+.po-grp-h span{font-weight:500;font-size:11.5px;color:#9A8070;margin-left:6px}
+.po-card{background:var(--white);border:1px solid rgba(220,198,170,.7);border-radius:14px;overflow:hidden}
+.po-card-h{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 16px;background:#3a2722;color:#fff}
+.po-card-name{font-family:var(--f-head);font-weight:800;font-size:15px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.po-card-meta{font-size:11.5px;color:rgba(220,198,170,.75);margin-top:3px}
+.po-card-meta code{font-family:var(--f-mono);font-size:11px;color:var(--tan)}
+.po-sup{display:flex;align-items:center;gap:6px;font-size:11.5px;color:rgba(255,255,255,.75)}
+.po-sup input{width:170px;padding:6px 10px;border-radius:9px;border:1px solid rgba(220,198,170,.35);background:rgba(255,255,255,.06);color:#fff;font-size:12.5px;outline:none}
+.po-big{font-size:12px;color:rgba(220,198,170,.8)}.po-big b{font-size:18px;color:#fff}
+.po-card-sum{padding:9px 16px;background:#FAF5EE;font-size:12.5px;color:var(--brown);border-bottom:1px solid rgba(220,198,170,.5)}
+.po-card-sum b{color:var(--dark)}
+.pos{color:var(--org-fg)!important;font-weight:800}.neg{color:var(--red-fg)!important;font-weight:800}
+.po-st{font-size:10.5px;padding:3px 9px;border-radius:999px;font-weight:700;font-family:var(--f-body)}
+.st-wait{background:#ece6dd;color:#5B4636}.st-go{background:#FDF0E6;color:#B0632A}.st-done{background:var(--grn-bg);color:var(--grn-fg)}.st-short{background:var(--red-bg);color:var(--red-fg)}
+.po-tbl{width:100%;border-collapse:collapse;font-size:12.5px;min-width:560px}
+.po-tbl th{font-size:9.5px;font-family:var(--f-head);text-transform:uppercase;letter-spacing:.06em;color:var(--brown);background:var(--cream);padding:8px;text-align:center;white-space:nowrap}
+.po-tbl td{padding:7px 8px;text-align:center;border-top:1px solid rgba(220,198,170,.45);color:var(--dark)}
+.po-tbl .l{padding-left:16px}
+.po-sw{display:inline-block;padding:2px 8px;border-radius:6px;font-size:10.5px;font-weight:700;margin-right:4px}
+.po-prog{display:flex;align-items:center;gap:8px;justify-content:center}
+.po-prog span{font-size:11.5px;color:var(--brown);min-width:48px;text-align:left}
+.po-bar-o{width:110px;height:7px;border-radius:99px;background:#EFE7DC;overflow:hidden}
+.po-bar-i{height:100%;background:var(--green);border-radius:99px}.po-bar-i.over{background:var(--org-fg)}
+.po-rem{color:#B0632A;font-weight:800}
+.po-act{white-space:nowrap}
+.po-tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:7px}
+.po-tag.ok{background:var(--grn-bg);color:var(--grn-fg)}.po-tag.short{background:var(--red-bg);color:var(--red-fg)}
+.po-hist{padding:10px 16px;border-top:1px solid rgba(220,198,170,.5);font-size:12px;color:var(--dark)}
+.po-hist-h{font-family:var(--f-head);font-weight:800;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--brown);margin-bottom:5px}
+.po-hist-r{padding:4px 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}.po-hist-r.rev .po-hist-txt{opacity:.5;text-decoration:line-through}
+.po-link.danger{color:var(--red-fg)}
+.po-muted{color:#9A8070;font-size:11.5px}
+.po-card-f{display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px;border-top:1px solid rgba(220,198,170,.5);background:#FDFBF7}
+.po-sum-h{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid rgba(220,198,170,.5);font-family:var(--f-head);font-size:13px;color:var(--dark)}
+.po-sum-b{max-height:300px;overflow:auto;padding:4px 16px 10px}
+.po-sum-day{padding:8px 0;border-bottom:1px dashed rgba(220,198,170,.7)}
+.po-sum-dh{display:flex;justify-content:space-between;font-size:13px;color:var(--dark);margin-bottom:4px}
+.po-sum-sup{margin:4px 0 4px 10px}.po-sum-sn{font-size:12px;color:var(--brown);margin-bottom:3px}
+.po-setup{background:#FFF8E8;border:1px solid #E8D29A;border-radius:12px;padding:14px 16px;font-size:13px;color:var(--dark)}
+.po-err{background:#2A211C;color:#F3D9C9;padding:10px 12px;border-radius:9px;font-size:11px;white-space:pre-wrap;word-break:break-word;max-height:200px;overflow:auto;margin:0}
+.po-setup pre{background:#2A211C;color:#DCC6AA;padding:12px;border-radius:9px;font-size:11px;overflow:auto;max-height:260px;margin:10px 0}
+.po-ov{position:fixed;inset:0;background:rgba(42,33,28,.55);z-index:2000;display:none;align-items:center;justify-content:center;padding:16px}
+.po-modal{background:#fff;border-radius:16px;max-width:520px;width:100%;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.po-modal.wide{max-width:760px}
+.po-modal-h{background:var(--dark);padding:14px 20px;color:var(--tan);font-family:var(--f-head);font-weight:800;font-size:14px}
+.po-modal-b{padding:16px 20px;font-size:13px;color:var(--dark);overflow:auto}
+.po-modal-b .po-tbl{min-width:0}
+.po-modal-f{display:flex;gap:8px;padding:0 20px 18px}
+.po-mbtn{flex:1;padding:10px;border-radius:9px;border:1px solid rgba(220,198,170,.7);background:var(--cream);color:var(--brown);font-weight:700;font-size:12px;cursor:pointer}
+.po-mbtn.go{background:var(--dark);color:var(--tan);border-color:var(--dark)}
+.po-mbtn.danger{background:var(--red-fg);color:#fff;border-color:var(--red-fg)}
+.po-ncc{border:2px solid var(--dark);border-radius:12px;padding:16px;background:#fff}
+.po-ncc-t{font-family:var(--f-head);font-weight:900;font-size:18px;letter-spacing:.08em;text-align:center;margin-bottom:8px}
+.po-ncc-m{font-size:13px;line-height:1.7;margin-bottom:10px}
+.po-ncc-tbl{width:100%;border-collapse:collapse;font-size:14px}
+.po-ncc-tbl th,.po-ncc-tbl td{border:1px solid #cfc3b3;padding:7px;text-align:center}
+.po-ncc-tbl th{background:var(--cream);font-family:var(--f-head);font-size:12px}
+.po-ncc-tot td{font-weight:800;background:#FAF5EE}
+@media(max-width:760px){.po-form{grid-template-columns:1fr 1fr}.po-sup input{width:130px}}
+@media(max-width:480px){.po-form{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -548,6 +686,12 @@ select:focus,input[type=text]:focus,input[type=date]:focus{border-color:var(--te
     </a>
     <a class="nav-item" onclick="goPage('ord')" href="#">
       <div class="nav-ico">🚚</div><div><div class="nav-name">Ord Hàng</div><div class="nav-desc">Theo dõi đợt nhập</div></div>
+    </a>
+    <a class="nav-item" onclick="goPage('poNew')" href="#">
+      <div class="nav-ico">🧾</div><div><div class="nav-name">Tạo order NCC</div><div class="nav-desc">Đặt hàng xưởng theo màu · size</div></div>
+    </a>
+    <a class="nav-item" onclick="goPage('poList')" href="#">
+      <div class="nav-ico">📦</div><div><div class="nav-name">Đơn đặt chờ về</div><div class="nav-desc">Nhận hàng từng đợt · chốt thiếu</div></div>
     </a>
     <a class="nav-item" onclick="goPage('dash')" href="#">
       <div class="nav-ico">📊</div><div><div class="nav-name">Dashboard</div><div class="nav-desc">Dự báo & cảnh báo</div></div>
@@ -612,7 +756,7 @@ select:focus,input[type=text]:focus,input[type=date]:focus{border-color:var(--te
         <div style="margin-top:6px;font-family:var(--f-mono);font-size:10px;color:#60a5fa;white-space:pre-wrap;max-height:140px;overflow-y:auto;background:#f8f9ff;border:1px solid var(--tan);border-radius:6px;padding:8px" id="dbgTxt"></div>
       </details>
       <div class="tagline">Confidence isn't just a look, it's a lifestyle.</div>
-      <div style="text-align:center;font-family:var(--f-mono);font-size:9px;color:#9A8070;margin-top:6px">Bản sort: <b>2026-10-08 · CB01 = 1 lót + 1 đùi</b></div>
+      <div style="text-align:center;font-family:var(--f-mono);font-size:9px;color:#9A8070;margin-top:6px">Bản sort: <b>2026-09-28 · TikTok đọc theo toạ độ cột</b></div>
     </div>
   </div>
 
@@ -765,6 +909,37 @@ select:focus,input[type=text]:focus,input[type=date]:focus{border-color:var(--te
   </div>
   <div id="dashContent"><div style="color:#9A8070;font-size:13px;text-align:center;padding:40px">Bấm "Cập nhật dữ liệu" để tải</div></div>
   <div id="dashSummary" style="margin-top:8px"></div>
+</div>
+</div>
+
+<!-- PAGE: TẠO ORDER NCC ──────────────────────────────── -->
+<div class="page" id="page-poNew">
+<div class="page-inner">
+  <div><div class="page-title">Tạo order NCC</div><div class="page-sub">Đặt hàng với xưởng · chỉ ghi số đặt, <b>chưa cộng kho</b> — số này hiện ở cột Đang về của trang Kho</div></div>
+  <div class="card"><div class="card-body">
+    <div class="po-form">
+      <label class="po-f">Tên đơn order *<input id="poNewName" type="text" placeholder="VD: Cloud Lô 5"></label>
+      <label class="po-f">Sản phẩm *<select id="poNewProd" onchange="poNewProdChange()"></select></label>
+      <label class="po-f">Ngày order<input id="poNewOrdDate" type="date"></label>
+      <label class="po-f">Ngày về dự kiến<input id="poNewArrDate" type="date"></label>
+      <label class="po-f">Tên NCC<input id="poNewSup" type="text" list="poSupList" placeholder="Sửa được sau ở thẻ lô"></label>
+      <label class="po-f">Ghi chú<input id="poNewNote" type="text"></label>
+    </div>
+    <datalist id="poSupList"></datalist>
+    <div id="poNewTable" style="margin-top:16px"></div>
+    <div class="po-new-foot"><div>TỔNG ĐẶT: <b id="poNewTotal">0</b></div><button class="po-go" onclick="poCreate()">✓ Tạo đơn order</button></div>
+  </div></div>
+</div>
+</div>
+
+<!-- PAGE: ĐƠN ĐẶT CHỜ VỀ ─────────────────────────────── -->
+<div class="page" id="page-poList">
+<div class="page-inner">
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:8px">
+    <div><div class="page-title">Đơn đặt chờ về</div><div class="page-sub">Nhập số hàng về từng đợt → cộng thẳng vào kho · xưởng không giao nữa thì Chốt thiếu</div></div>
+    <button class="btn btn-terra" onclick="loadPoList()">↺ Tải lại</button>
+  </div>
+  <div id="poListContent"><div class="po-empty">Đang tải...</div></div>
 </div>
 </div>
 
@@ -1098,6 +1273,8 @@ function goPage(p){
   if(p==='inventory'){loadInventoryNew();}
   if(p==='sales'){initSalesPage();}
   if(p==='staff'){renderStaff();}
+  if(p==='poNew'){poNewInit();}
+  if(p==='poList'){loadPoList();}
 }
 
 // ═══ SUPABASE CLIENT ═════════════════════════════════════════════
@@ -1135,7 +1312,7 @@ async function sbInsert(table,rows){
     headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal'},
     body:JSON.stringify(rows)
   });
-  if(!res.ok)throw new Error(`Supabase insert ${res.status}`);
+  if(!res.ok){let t='';try{t=await res.text();}catch(_){}throw new Error(`Supabase insert ${res.status}${t?' — '+t.slice(0,300):''}`);}
   return true;
 }
 async function sbUpsert(table,rows,onConflict){
@@ -1783,7 +1960,7 @@ function buildPickFromGroups(groups){
     if(g.items){   // đọc theo toạ độ cột — số cái đã tính sẵn từ phân loại
       g.items.forEach(it=>{
         if(it.code==='OTHER'){const key=`${it.seller||'Không mã'} · ${it.color?pColor(it.color):'?'} · ${it.size}`;inv.OTHER[key]=(inv.OTHER[key]||0)+it.pieces;}
-        else addPickItem(inv,it.code,it.color,it.size,it.code==='CB01'?it.qty:it.pieces);   // CB01 = 1 bộ (1 NBD + 1 NB01) → cộng theo số bộ, addPickItem tự chia vào 2 SP
+        else addPickItem(inv,it.code,it.color,it.size,it.pieces);
       });
       return;
     }
@@ -1862,6 +2039,7 @@ async function loadPickStock(){
     const toDMY=v=>{v=String(v||'');return v.includes('/')?v:(v?v.split('-').reverse().join('/'):'');};
     const t=new Date();const todayDMY=`${String(t.getDate()).padStart(2,'0')}/${String(t.getMonth()+1).padStart(2,'0')}/${t.getFullYear()}`;const todayYMD=t.toISOString().split('T')[0];
     ORD_HOME_ROWS=ol.filter(r=>r.status==='Đã về nhà'&&(r.qty||0)>0).map(r=>{const pk=SALES_PMAP[r.prod]||r.prod;let d=toDMY(r.arr_date)||toDMY(r.ord_date)||todayDMY;if(d.split('/').reverse().join('-')>todayYMD)d=todayDMY;return {date:d,prod:pk,color:salesCanonColor(pk,r.color),size:r.size,qty:r.qty||0,lot:r.dot_name||'Lô'};});
+    await loadPoArrRows();
     PICK_STOCK={};Object.entries(PICK_PMAP).forEach(([pick,sales])=>{try{PICK_STOCK[pick]=khoNhaNow(sales);}catch(_){PICK_STOCK[pick]={};}});
     PICK_STOCK_READY=true;
   }catch(_){PICK_STOCK_READY=false;}
@@ -2093,7 +2271,7 @@ async function onHtFiles(input){
         if(tb&&tb.rows.length){
           tb.rows.flatMap(tkRowToItems).forEach(it=>{
             if(it.code==='OTHER'){const k=`${it.seller||'Không mã'} · ${it.color?pColor(it.color):'?'} · ${it.size}`;HT_INV.OTHER[k]=(HT_INV.OTHER[k]||0)+it.pieces;}
-            else addPickItem(HT_INV,it.code,it.color,it.size,it.code==='CB01'?it.qty:it.pieces);   // CB01: theo số bộ
+            else addPickItem(HT_INV,it.code,it.color,it.size,it.pieces);
           });
           totalPages++;continue;
         }
@@ -3543,12 +3721,14 @@ async function computeInvData(){
     sbSelect('kho_target'),
   ]);
   targetRows.forEach(r=>{if(INV_TARGET[r.prod]!==undefined)INV_TARGET[r.prod]=r.target_qty||0;});
+  (targetRows||[]).forEach(r=>{const k=String(r.prod||'');if(/^(KEEP|TS)\|/.test(k))INV_COLOR_SET[k]=Number(r.target_qty)||0;});invSetLocalSave();
   SALES_ALL=[...SEED_SALES,...salesRows].map(normSalesRow).filter(r=>r.date);
   (function(){const toDMY=v=>{v=String(v||'');return v.includes('/')?v:(v?v.split('-').reverse().join('/'):'');};
     const t=new Date();const todayDMY=`${String(t.getDate()).padStart(2,'0')}/${String(t.getMonth()+1).padStart(2,'0')}/${t.getFullYear()}`;const todayYMD=t.toISOString().split('T')[0];
     ORD_HOME_ROWS=ordRowsAll.filter(r=>r.status==='Đã về nhà'&&(r.qty||0)>0).map(r=>{const pk=SALES_PMAP[r.prod]||r.prod;let d=toDMY(r.arr_date)||toDMY(r.ord_date)||todayDMY;if(d.split('/').reverse().join('-')>todayYMD)d=todayDMY;return {date:d,prod:pk,color:salesCanonColor(pk,r.color),size:r.size,qty:r.qty||0,lot:r.dot_name||'Lô'};});})();
+  await loadPoArrRows();   // hàng NCC đã về → Kho nhà; còn về → Đang về
   const secRows=ordRowsAll.filter(r=>r.status==='Kho SEC');
-  const dangRows=ordRowsAll.filter(r=>r.status==='Đang về');
+  const dangRows=[...ordRowsAll.filter(r=>r.status==='Đang về'),...poRemainRows()];
   // Đồng bộ số kiểm kho từ Supabase → mọi máy đều thấy (nếu bảng kho_counts chưa tạo hoặc offline thì dùng bản local)
   try{
     const kc=await sbSelect('kho_counts','select=prod,date,color,size,counted');
@@ -3659,49 +3839,707 @@ async function saveTargetFromDash(pk){
   }catch(e){toast('Lỗi lưu mục tiêu: '+e.message,'err');}
 }
 
+// ═══ QUẢN LÝ KHO — bảng theo từng MÀU (logic mới) ═══════════════════
+// Mỗi màu có: Mức muốn giữ (app tự đặt theo bán 7 ngày, nhập tay để ghi đè), Target sale (cái/ngày), SL muốn order.
+// Lưu đồng bộ vào bảng kho_target với prod = "KEEP|<SP>|<Màu>" / "TS|<SP>|<Màu>" (+ bản sao trong máy).
+let INV_COLOR_SET={};   // key "KEEP|QNB|ĐEN" → số
+try{INV_COLOR_SET=JSON.parse(localStorage.getItem('inv_color_set')||'{}')||{};}catch(_){INV_COLOR_SET={};}
+function invSetLocalSave(){try{localStorage.setItem('inv_color_set',JSON.stringify(INV_COLOR_SET));}catch(_){}}
+function invColorId(pk,col){return pk+'_'+String(col).normalize('NFD').replace(/[^a-z0-9]/gi,'_');}
+
+// Mức muốn giữ tự đặt theo số bán 7 ngày của cả màu
+function invAutoKeep(s7){
+  if(s7<3)return 0;                 // 🚫 Cắt mã
+  const perDay=s7/7;
+  if(perDay>20)return 300;
+  if(perDay>10)return 200;
+  return 100;
+}
+// Chia tổng W theo trọng số, làm tròn sao cho tổng = đúng W (phần dư lớn nhất được +1)
+function invRoundTo(vals,W){
+  const fl=vals.map(v=>Math.floor(v));let rest=W-fl.reduce((s,x)=>s+x,0);
+  const ord=vals.map((v,i)=>({i,f:v-Math.floor(v)})).sort((a,b)=>b.f-a.f);
+  for(let k=0;rest>0&&ord.length;k=(k+1)%ord.length){fl[ord[k].i]++;rest--;}
+  return fl;
+}
+// Tính toàn bộ số liệu 1 màu
+function invColorCalc(pk,col){
+  const cfg=INV_PROD_CFG[pk],pd=(INV_DATA[pk]||{})[col]||{};
+  const rows=cfg.sizes.map(sz=>{const d=pd[sz]||{};return {size:sz,ton:d.khoNha||0,sec:d.khoSec||0,dangve:d.dangve||0,s7:d.s7||0,s30:d.s30||0};});
+  const s7=rows.reduce((s,r)=>s+r.s7,0),s30=rows.reduce((s,r)=>s+r.s30,0);
+  const autoKeep=invAutoKeep(s7);
+  const saved=INV_COLOR_SET['KEEP|'+pk+'|'+col];
+  const keep=(saved!==undefined&&saved!==null&&saved!=='')?Number(saved):autoKeep;
+  const ts=Number(INV_COLOR_SET['TS|'+pk+'|'+col]||0);
+  rows.forEach(r=>{
+    r.pct=s30>0?r.s30/s30:0;
+    r.kd=r.ton+r.sec+r.dangve;                    // Khả dụng = Tồn kho + Kho SEC + Đang về
+    r.db20=Math.round(r.s30/30*20);              // Dự báo 20 ngày
+    r.mucTieu=keep*r.pct;                        // Mục tiêu riêng
+    r.hut=Math.max(0,Math.round(r.mucTieu-(r.kd-r.db20)));
+    r.tsSize=ts*r.pct;                           // Target sale của size (cái/ngày)
+    r.due=r.tsSize>0?Math.floor(r.kd/r.tsSize):null;  // số ngày đủ bán theo Target sale
+    r.status=keep===0?'cut':r.hut>0?'thieu':'on';
+  });
+  return {rows,s7,s30,autoKeep,keep,isAuto:!(saved!==undefined&&saved!==null&&saved!==''),ts};
+}
+// Chia "SL muốn order" ra từng size
+function invSplitOrder(c,W){
+  W=Math.max(0,Math.round(W||0));
+  if(!W)return c.rows.map(()=>0);
+  const need=c.rows.map(r=>c.ts>0?Math.max(0,20*r.tsSize-r.kd):r.hut);
+  const N=need.reduce((s,x)=>s+x,0);
+  let pct=c.rows.map(r=>r.pct);
+  if(!pct.some(p=>p>0))pct=c.rows.map(()=>1/c.rows.length);   // chưa có số bán → chia đều
+  let raw;
+  if(N>W)raw=need.map(x=>W*x/N);                                // thiếu nhiều hơn số đặt → chia theo tỉ lệ thiếu
+  else if(N>0)raw=need.map((x,i)=>x+(W-N)*pct[i]);              // bù đủ phần thiếu, dư chia theo %Bán
+  else raw=pct.map(p=>W*p);                                     // không size nào thiếu → chia theo %Bán
+  return invRoundTo(raw,W);
+}
+const INV_ST={on:['🟢','Ổn','kv-on'],thieu:['🔴','Thiếu','kv-thieu'],cut:['🚫','Cắt mã','kv-cut']};
+
 function renderInventoryNew(){
   const prodsToShow=curInvTab==='ALL'?Object.keys(INV_PROD_CFG):[curInvTab];
   if(!Object.keys(INV_DATA).length){document.getElementById('inventoryContent').innerHTML='<div style="padding:30px;text-align:center;color:#9A8070">Bấm "↺ Tính lại" để tải</div>';return;}
   let html='';
   prodsToShow.forEach(pk=>{
-    if(!INV_PROD_CFG[pk])return;
-    const cfg=INV_PROD_CFG[pk],pkData=INV_DATA[pk]||{},target=INV_TARGET[pk]||0;
-    let totNha=0,totSec=0,totKD=0,totS7=0,totS30=0,totS60=0,totDb20=0,totHut=0;
-    cfg.colors.forEach(col=>cfg.sizes.forEach(sz=>{const d=pkData[col]?.[sz]||{};totNha+=(d.khoNha||0);totSec+=(d.khoSec||0);totKD+=(d.tongKD||0);totS7+=(d.s7||0);totS30+=(d.s30||0);totS60+=(d.s60||0);totDb20+=(d.db20||0);totHut+=(d.hut||0);}));
-    const daysLeft=totS30>0?Math.round((totKD-target)/(totS30/30)):999;
-    let actionTxt,actionCls;
-    if(daysLeft<=0){actionTxt='🔴 ORDER NGAY';actionCls='da-red';}else if(daysLeft<=7){actionTxt=`🟠 Order trong ${daysLeft}ng`;actionCls='da-org';}else if(daysLeft<=14){actionTxt=`🟡 Còn ${daysLeft}ng`;actionCls='da-yel';}else{actionTxt=`🟢 Ổn`;actionCls='da-grn';}
-    let tbody='';
-    cfg.colors.forEach((col,ci)=>{
-      const bg=cfg.clrBg[col]||'#2A211C',fg=cfg.clrFg[col]||'#DCC6AA';
-      cfg.sizes.forEach((sz,si)=>{
-        const d=pkData[col]?.[sz]||{khoNha:0,khoSec:0,tongKD:0,s7:0,s30:0,s60:0,db20:0,hut:0,deadline:'—',deadlineDays:null,pct:0};
-        const rowBg=d.hut>0?'background:var(--red-bg)':d.deadlineDays!==null&&d.deadlineDays<=7?'background:var(--org-bg)':d.deadlineDays!==null&&d.deadlineDays<=14?'background:var(--yel-bg)':'';
-        const dlCls=d.deadlineDays!==null&&d.deadlineDays<=0?'dl-red':d.deadlineDays!==null&&d.deadlineDays<=7?'dl-org':d.deadlineDays!==null&&d.deadlineDays<=14?'dl-yel':'dl-grn';
-        const hutHtml=d.hut>0?`<span class="hut-red">-${d.hut.toLocaleString()}c</span>`:'<span style="color:#ccc">—</span>';
-        const colorCell=si===0?`<td rowspan="${cfg.sizes.length}" style="padding:0;min-width:52px"><div style="background:${bg};color:${fg};font-weight:700;font-size:11px;writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg);height:${cfg.sizes.length*34}px;display:flex;align-items:center;justify-content:center;letter-spacing:.04em">${col}</div></td>`:'';
-        tbody+=`<tr style="${rowBg}">${colorCell}<td style="font-size:11px;font-weight:600;color:var(--dark);padding-left:10px;text-align:left">${sz}</td><td style="text-align:center;font-weight:700;color:${d.khoNha>0?'var(--dark)':'#ccc'}">${d.khoNha||'—'}</td><td style="text-align:center;color:${d.khoSec>0?'var(--org-fg)':'#ccc'};font-weight:${d.khoSec>0?700:400}">${d.khoSec||'—'}</td><td style="text-align:center;font-weight:800;font-size:13px;color:${d.tongKD>0?'var(--dark)':'#ccc'}">${d.tongKD||'—'}</td><td style="text-align:center;color:#9A8070">${d.s7||'—'}</td><td style="text-align:center;font-weight:600">${d.s30||'—'}</td><td style="text-align:center;color:#9A8070">${d.s60||'—'}</td><td style="text-align:center;color:var(--brown)">${d.db20||'—'}</td><td style="text-align:center">${hutHtml}</td><td style="text-align:center" class="${dlCls}">${d.deadline}</td><td style="text-align:center;color:#9A8070;font-size:10px">${(d.pct*100).toFixed(1)}%</td></tr>`;
-      });
-    });
-    const totHutHtml=totHut>0?`<span class="hut-red">-${totHut.toLocaleString()}c</span>`:'—';
-    tbody+=`<tr class="tfoot"><td colspan="2" style="text-align:left;padding-left:10px">TỔNG</td><td>${totNha.toLocaleString()}</td><td>${totSec.toLocaleString()}</td><td>${totKD.toLocaleString()}</td><td>${totS7.toLocaleString()}</td><td>${totS30.toLocaleString()}</td><td>${totS60.toLocaleString()}</td><td>${totDb20.toLocaleString()}</td><td>${totHutHtml}</td><td>—</td><td>100%</td></tr>`;
-    html+=`<div class="dash-prod-block" style="margin-bottom:16px">
-      <div class="dash-prod-title"><div class="dash-prod-name ${RULES[pk]?.cls||'dp-nbd'}" style="display:flex;align-items:center;gap:8px"><div style="width:10px;height:10px;border-radius:50%;background:${cfg.dot};flex-shrink:0"></div>${cfg.name} <span style="font-size:9px;opacity:.6">${cfg.code}</span></div><div class="dash-action ${actionCls}">${actionTxt}</div></div>
-      <div class="dash-sum" style="flex-wrap:wrap">
-        <div class="dsm">Kho nhà: <b>${totNha.toLocaleString()}c</b></div>
-        <div class="dsm">Kho SEC: <b>${totSec.toLocaleString()}c</b></div>
-        <div class="dsm">Tổng KD: <b>${totKD.toLocaleString()}c</b></div>
-        <div class="dsm">Mục tiêu: <b id="target-disp-${pk}">${target.toLocaleString()}c</b></div>
-        <div class="order-inp-row"><span style="font-size:10px;color:rgba(220,198,170,.6)">Mức muốn luôn giữ:</span><input class="order-inp" type="number" id="target-inp-${pk}" value="${target}" min="0" step="50" oninput="previewTarget('${pk}')"><button onclick="saveTarget('${pk}')" style="font-size:9px;padding:3px 9px;border-radius:6px;border:1px solid rgba(190,115,94,.4);background:rgba(190,115,94,.15);color:var(--tan);cursor:pointer;margin-left:4px">Lưu</button></div>
-      </div>
-      <div class="dash-tbl-wrap"><table class="dash-tbl" style="width:100%"><thead><tr><th class="l" style="min-width:52px">Màu</th><th class="l" style="min-width:60px">Size</th><th class="th-ton">Kho nhà</th><th class="th-ton">Kho SEC</th><th class="th-ton" style="background:var(--dark);color:var(--tan)">Tổng KD</th><th class="th-ban">7D</th><th class="th-ban">30D</th><th class="th-ban">60D</th><th class="th-db">Dự báo 20ng</th><th class="th-db">Hụt</th><th class="th-db">Deadline</th><th class="th-db">%Bán</th></tr></thead><tbody>${tbody}</tbody></table></div>
-      <div style="padding:8px 16px;border-top:1px solid rgba(220,198,170,.1);font-size:10px;color:rgba(220,198,170,.4);background:var(--dark);display:flex;align-items:center;gap:8px">
-        <button onclick="openUpdateKho('${pk}')" style="font-size:10px;background:rgba(190,115,94,.15);border:1px solid rgba(190,115,94,.3);color:var(--tan);cursor:pointer;padding:3px 10px;border-radius:5px">✏️ Đếm kho</button>
-        <span>Snapshot gần nhất: ${getLatestSnapDate(pk)}</span>
-      </div>
-    </div>`;
+    const cfg=INV_PROD_CFG[pk];if(!cfg)return;
+    html+=`<div class="kv-prod"><div class="kv-prod-head"><div style="width:10px;height:10px;border-radius:50%;background:${cfg.dot}"></div>${cfg.name} <span style="font-size:10px;opacity:.55">${cfg.code}</span>
+      <span style="flex:1"></span>
+      <button onclick="openUpdateKho('${pk}')" class="kv-mini">✏️ Đếm kho</button><span style="font-size:10px;color:#9A8070">Snapshot: ${getLatestSnapDate(pk)}</span></div>`;
+    cfg.colors.forEach(col=>{html+=invColorBlock(pk,col);});
+    html+=`</div>`;
   });
   document.getElementById('inventoryContent').innerHTML=html||'<div style="color:#9A8070;padding:30px;text-align:center">Không có dữ liệu</div>';
+}
+function invColorBlock(pk,col){
+  const id=invColorId(pk,col);
+  const c=invColorCalc(pk,col);
+  const ordW=Number(INV_COLOR_SET['ORDW|'+pk+'|'+col]||0);
+  const alloc=invSplitOrder(c,ordW);
+  const dash='<span class="kv-dash">—</span>';
+  const n=v=>v>0?v.toLocaleString():dash;
+  let body='';
+  const T={ton:0,sec:0,dangve:0,kd:0,s7:0,s30:0,db20:0,hut:0,alloc:0};
+  c.rows.forEach((r,i)=>{
+    T.ton+=r.ton;T.sec+=r.sec;T.dangve+=r.dangve;T.kd+=r.kd;T.s7+=r.s7;T.s30+=r.s30;T.db20+=r.db20;T.hut+=r.hut;T.alloc+=alloc[i];
+    const st=INV_ST[r.status];
+    const dueCls=r.due===null?'':r.due<=7?'kv-due-red':r.due<=14?'kv-due-org':'';
+    body+=`<tr${r.status==='thieu'?' class="kv-row-thieu"':''}>
+      <td class="kv-l">${r.size}</td>
+      <td class="kv-ton">${n(r.ton)}</td>
+      <td class="kv-sec">${n(r.sec)}</td>
+      <td>${n(r.kd)}</td>
+      <td class="kv-dv">${n(r.dangve)}</td>
+      <td class="kv-7d">${n(r.s7)}</td>
+      <td class="kv-30d">${n(r.s30)}</td>
+      <td>${n(r.db20)}</td>
+      <td class="kv-hut">${r.hut>0?r.hut.toLocaleString():dash}</td>
+      <td><span class="kv-pill ${st[2]}">${st[0]} ${st[1]}</span></td>
+      <td>${(r.pct*100).toFixed(1)}%</td>
+      <td class="kv-due ${dueCls}">${r.due===null?dash:r.due+' ngày'}</td>
+      <td class="kv-ord" id="kvo-${id}-${i}">${alloc[i]>0?alloc[i]:dash}</td>
+    </tr>`;
+  });
+  const anyThieu=c.rows.some(r=>r.status==='thieu');
+  const stT=c.keep===0?INV_ST.cut:anyThieu?INV_ST.thieu:INV_ST.on;
+  const tsDue=c.ts>0?Math.floor(T.kd/c.ts):null;
+  body+=`<tr class="kv-foot">
+    <td class="kv-l">Cộng ${col}</td><td>${n(T.ton)}</td><td>${n(T.sec)}</td><td>${n(T.kd)}</td><td>${n(T.dangve)}</td>
+    <td>${n(T.s7)}</td><td>${n(T.s30)}</td><td>${n(T.db20)}</td><td>${T.hut>0?T.hut.toLocaleString():dash}</td>
+    <td><span class="kv-pill ${stT[2]}">${stT[0]} ${stT[1]}</span></td><td>100%</td>
+    <td>${tsDue===null?dash:tsDue+' ngày'}</td><td class="kv-ord" id="kvo-${id}-tot">${T.alloc>0?T.alloc.toLocaleString():dash}</td></tr>`;
+  const keepHint=c.isAuto?`tự đặt (bán ${c.s7}c/7ng)`:`đã nhập tay · tự đặt ${c.autoKeep}`;
+  return `<div class="kv-blk" id="kvb-${id}">
+    <div class="kv-head">
+      <div class="kv-name">${col}</div>
+      <div class="kv-ctrls">
+        <label>Mức muốn giữ:<input type="number" min="0" step="50" id="kvk-${id}" value="${c.keep}" placeholder="${c.autoKeep}"></label>
+        <button class="kv-btn" onclick="invSaveKeep('${pk}','${col}')">Lưu</button>
+        <span class="kv-hint" title="Để trống rồi bấm Lưu để quay về số app tự đặt">${keepHint}</span>
+        <label>Target sale:<input type="number" min="0" step="1" id="kvt-${id}" value="${c.ts||''}" placeholder="0" onchange="invSaveTs('${pk}','${col}')"></label><span class="kv-hint">c/ngày</span>
+        <label>SL muốn order:<input type="number" min="0" step="10" id="kvw-${id}" value="${ordW||''}" placeholder="0" oninput="invOrderInput('${pk}','${col}')"></label>
+        <button class="kv-go" onclick="invOpenOrder('${pk}','${col}')">✓ Tạo đơn Order</button>
+      </div>
+    </div>
+    <div class="kv-wrap"><table class="kv-tbl"><thead><tr>
+      <th class="kv-l">Size</th><th class="kv-th-ton">Tồn kho</th><th>Kho SEC</th><th>Khả dụng</th><th>Đang về</th><th>7D</th><th>30D</th>
+      <th>Dự báo 20ng</th><th>Hụt</th><th>Trạng thái</th><th>%Bán</th><th class="kv-th-due">Due day</th><th class="kv-th-ord">SL order</th>
+    </tr></thead><tbody>${body}</tbody></table></div>
+  </div>`;
+}
+function invRerenderColor(pk,col){
+  const el=document.getElementById('kvb-'+invColorId(pk,col));
+  if(el){el.outerHTML=invColorBlock(pk,col);}
+}
+// Lưu 1 giá trị cài đặt theo màu (đồng bộ Supabase qua bảng kho_target, lỗi thì vẫn giữ trong máy)
+async function invSaveSetting(key,v){
+  if(v===null)delete INV_COLOR_SET[key];else INV_COLOR_SET[key]=v;
+  invSetLocalSave();
+  try{
+    if(v===null){await sbDelete('kho_target','prod=eq.'+encodeURIComponent(key));return true;}
+    const H={'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json'};
+    const now=new Date().toISOString();
+    const res=await fetch(`${SB_URL}/rest/v1/kho_target?prod=eq.${encodeURIComponent(key)}`,{method:'PATCH',headers:{...H,'Prefer':'return=representation'},body:JSON.stringify({target_qty:v,updated_at:now})});
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    let got=[];try{got=await res.json();}catch(_){}
+    if(!Array.isArray(got)||!got.length)await sbInsert('kho_target',[{prod:key,target_qty:v,updated_at:now}]);
+    return true;
+  }catch(e){console.warn('Lưu kho_target',key,e&&e.message);return false;}
+}
+async function invSaveKeep(pk,col){
+  const raw=document.getElementById('kvk-'+invColorId(pk,col)).value.trim();
+  const v=raw===''?null:Math.max(0,parseInt(raw)||0);
+  const ok=await invSaveSetting('KEEP|'+pk+'|'+col,v);
+  invRerenderColor(pk,col);
+  toast(v===null?`✓ ${col}: dùng lại mức app tự đặt`:`✓ Đã lưu mức muốn giữ ${col}: ${v.toLocaleString()}c${ok?'':' (chỉ lưu trong máy)'}`,ok?'ok':'err');
+}
+async function invSaveTs(pk,col){
+  const raw=document.getElementById('kvt-'+invColorId(pk,col)).value.trim();
+  const v=raw===''||!(parseInt(raw)>0)?null:parseInt(raw);
+  const ok=await invSaveSetting('TS|'+pk+'|'+col,v);
+  invRerenderColor(pk,col);
+  if(!ok)toast('Target sale chỉ lưu trong máy (chưa đồng bộ được)','err');
+}
+// Gõ SL muốn order → chia lại cột SL order ngay
+function invOrderInput(pk,col){
+  const id=invColorId(pk,col);
+  const W=Math.max(0,parseInt(document.getElementById('kvw-'+id).value)||0);
+  if(W)INV_COLOR_SET['ORDW|'+pk+'|'+col]=W;else delete INV_COLOR_SET['ORDW|'+pk+'|'+col];
+  invSetLocalSave();
+  const alloc=invSplitOrder(invColorCalc(pk,col),W);
+  alloc.forEach((q,i)=>{const el=document.getElementById(`kvo-${id}-${i}`);if(el)el.innerHTML=q>0?q:'<span class="kv-dash">—</span>';});
+  const t=document.getElementById(`kvo-${id}-tot`);if(t)t.innerHTML=W>0?W.toLocaleString():'<span class="kv-dash">—</span>';
+}
+function invOpenOrder(pk,col){
+  const id=invColorId(pk,col);
+  const W=Math.max(0,parseInt(document.getElementById('kvw-'+id)?.value)||0);
+  if(!W){toast('Nhập "SL muốn order" trước đã','err');return;}
+  const alloc=invSplitOrder(invColorCalc(pk,col),W);
+  delete INV_COLOR_SET['ORDW|'+pk+'|'+col];invSetLocalSave();
+  poPrefillFromKho(pk,col,alloc);
+  toast(`Đã điền sẵn ${W.toLocaleString()}c ${col} — kiểm tra tên lô, NCC, ngày về rồi bấm Tạo đơn order`,'ok');
+}
+
+
+// ═══ ĐẶT NCC: Tạo order NCC + Đơn đặt chờ về ═══════════════════════
+// Bảng supplier_orders: mỗi dòng = 1 mã (màu·size) trong 1 lô (cùng po_code).
+// Bảng transactions: bút toán Nhập/Xuất khi hàng THẬT SỰ về (ref_type='po', ref_id={po_code}-r{đợt}-{id dòng}).
+// Đặt hàng KHÔNG đụng kho. Bút toán được đọc như "hàng về" để cộng vào Kho nhà (khoNhaNow → getArrRows).
+let PO_ROWS=[];        // supplier_orders
+let PO_TX=[];          // transactions ref_type=po
+let PO_ARR_ROWS=[];    // bút toán → dòng "hàng về" cho tính kho
+let PO_READY=false,PO_MISSING=false,PO_BUSY=false;
+let PO_NCC_LIST=[];
+let PO_VIEW='lot',PO_TAB='open',PO_NCC='ALL',PO_SUM_SORT='desc';
+let PO_NEW={pk:'',qty:{}};
+
+const PO_FIX_SQL=`-- Vá bảng supplier_orders / transactions đã có sẵn (chạy lại nhiều lần cũng không sao)
+alter table supplier_orders add column if not exists po_code text;
+alter table supplier_orders add column if not exists name text;
+alter table supplier_orders add column if not exists supplier_name text default '';
+alter table supplier_orders add column if not exists ord_date date default current_date;
+alter table supplier_orders add column if not exists arr_date date;
+alter table supplier_orders add column if not exists product_code text;
+alter table supplier_orders add column if not exists product_name text default '';
+alter table supplier_orders add column if not exists qty int default 0;
+alter table supplier_orders add column if not exists received int default 0;
+alter table supplier_orders add column if not exists status text default 'Chờ về';
+alter table supplier_orders add column if not exists closed boolean default false;
+alter table supplier_orders add column if not exists short_qty int default 0;
+alter table supplier_orders add column if not exists close_note text default '';
+alter table supplier_orders add column if not exists note text default '';
+alter table transactions add column if not exists product_code text;
+alter table transactions add column if not exists type text;
+alter table transactions add column if not exists quantity int default 0;
+alter table transactions add column if not exists date date default current_date;
+alter table transactions add column if not exists ref_type text default '';
+alter table transactions add column if not exists ref_id text;
+alter table transactions add column if not exists note text default '';
+notify pgrst, 'reload schema';`;
+const PO_SQL=`create table if not exists supplier_orders(
+  id bigint generated always as identity primary key,
+  po_code text not null,
+  name text not null,
+  supplier_name text default '',
+  ord_date date default current_date,
+  arr_date date,
+  product_code text not null,
+  product_name text default '',
+  qty int not null default 0,
+  received int not null default 0,
+  status text default 'Chờ về',
+  closed boolean default false,
+  short_qty int default 0,
+  close_note text default '',
+  note text default '',
+  created_at timestamptz default now()
+);
+create index if not exists supplier_orders_po on supplier_orders(po_code);
+
+create table if not exists transactions(
+  id bigint generated always as identity primary key,
+  product_code text not null,
+  type text not null,              -- 'Nhập' / 'Xuất'
+  quantity int not null default 0,
+  date date default current_date,
+  ref_type text default '',
+  ref_id text,
+  note text default '',
+  created_at timestamptz default now()
+);
+create unique index if not exists transactions_ref on transactions(ref_id);
+
+alter table supplier_orders enable row level security;
+alter table transactions enable row level security;
+create policy "app all" on supplier_orders for all using (true) with check (true);
+create policy "app all" on transactions for all using (true) with check (true);`;
+
+function poEsc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function poCode(pk,col,sz){return pk+'·'+col+'·'+sz;}
+function poParse(code){const p=String(code||'').split('·');return {pk:p[0]||'',color:p[1]||'',size:p.slice(2).join('·')||''};}
+function poDMY(ymd){ymd=String(ymd||'').slice(0,10);return /^\d{4}-\d{2}-\d{2}$/.test(ymd)?ymd.split('-').reverse().join('/'):ymd;}
+// Công thức theo đặc tả
+const poRemain=r=>r.closed?0:Math.max(0,(r.qty||0)-(r.received||0));
+const poOver=r=>Math.max(0,(r.received||0)-(r.qty||0));
+const poShort=r=>r.closed?Math.max(0,(r.qty||0)-(r.received||0)):0;
+const poRowDone=r=>(r.received||0)>=(r.qty||0)||r.closed;
+function poRowStatus(r){return r.closed?'Chốt thiếu':(r.received||0)>=(r.qty||0)?'Đã về':(r.received||0)>0?'Đang về':'Chờ về';}
+
+// ── Supabase helpers trả về dòng (để kiểm tra thật sự sửa/xoá được) ──
+async function poReq(method,path,body){
+  const res=await fetch(`${SB_URL}/rest/v1/${path}`,{method,headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json','Prefer':'return=representation'},body:body?JSON.stringify(body):undefined});
+  if(!res.ok){let t='';try{t=await res.text();}catch(_){}throw new Error(`Supabase ${res.status}${t?': '+t.slice(0,160):''}`);}
+  try{return await res.json();}catch(_){return [];}
+}
+const poPatch=(table,params,body)=>poReq('PATCH',`${table}?${params}`,body);
+const poDel=(table,params)=>poReq('DELETE',`${table}?${params}`);
+
+// Bút toán đã bị xoá đơn hoàn ngược (có ref_id-XOAPO)
+function poReversedSet(tx){const s=new Set();(tx||PO_TX).forEach(t=>{const m=String(t.ref_id||'').match(/^(.*)-XOAPO$/);if(m)s.add(m[1]);});return s;}
+function poBuildArrRows(){
+  const lotName={};PO_ROWS.forEach(r=>{lotName[r.po_code]=r.name;});
+  PO_ARR_ROWS=[];
+  const rev=poReversedSet();
+  PO_TX.forEach(t=>{
+    const ref=String(t.ref_id||'');
+    // Đợt/lô đã xoá: bỏ CẢ bút toán Nhập lẫn bút toán hoàn (Xuất) → kho, hàng mới về… như chưa từng nhập
+    if(rev.has(ref)||/-XOAPO$/.test(ref))return;
+    const c=poParse(t.product_code);if(!c.pk||!(t.quantity>0))return;
+    const sign=t.type==='Xuất'?-1:1;
+    const po=String(t.ref_id||'').split('-r')[0];
+    const m=String(t.ref_id||'').match(/-r(\d+)-/);
+    const lot=(lotName[po]||(String(t.note||'').match(/\[(?:XOÁ )?LÔ ([^\]]+)\]/)||[])[1]||po)+(m?` Đ${m[1]}`:'')+(sign<0?' (hoàn)':'');
+    let color=c.color;try{color=salesCanonColor(c.pk,c.color);}catch(_){}
+    PO_ARR_ROWS.push({date:poDMY(t.date),prod:c.pk,color,size:c.size,qty:sign*(t.quantity||0),lot});
+  });
+}
+async function loadPoData(){
+  try{
+    const [rows,tx]=await Promise.all([sbSelectAll('supplier_orders','order=id.asc'),sbSelectAll('transactions','ref_type=eq.po&order=id.asc')]);
+    PO_ROWS=rows||[];PO_TX=tx||[];PO_MISSING=false;PO_READY=true;
+  }catch(e){
+    const msg=String(e&&e.message||'');
+    if(/42P01|does not exist|404|PGRST205|schema cache/i.test(msg))PO_MISSING=true;
+    PO_ROWS=[];PO_TX=[];PO_READY=false;console.warn('supplier_orders/transactions:',msg);
+  }
+  poBuildArrRows();
+}
+// Gọi ở mọi chỗ đang nạp ORD_HOME_ROWS → Kho nhà luôn tính cả hàng NCC đã về
+async function loadPoArrRows(){try{await loadPoData();}catch(_){PO_ARR_ROWS=[];}}
+// Còn về của các lô NCC → cộng vào cột Đang về ở trang Kho
+function poRemainRows(){return PO_ROWS.filter(r=>poRemain(r)>0).map(r=>{const c=poParse(r.product_code);return {prod:c.pk,color:c.color,size:c.size,qty:poRemain(r)};});}
+
+// ── Hộp thoại dùng chung ──
+function poModal(title,bodyHtml,buttons){
+  let ov=document.getElementById('poOverlay');
+  if(!ov){ov=document.createElement('div');ov.id='poOverlay';ov.className='po-ov';document.body.appendChild(ov);}
+  ov.innerHTML=`<div class="po-modal"><div class="po-modal-h">${title}</div><div class="po-modal-b">${bodyHtml}</div><div class="po-modal-f" id="poModalF"></div></div>`;
+  const f=ov.querySelector('#poModalF');
+  buttons.forEach(b=>{const el=document.createElement('button');el.className='po-mbtn'+(b.primary?' go':'')+(b.danger?' danger':'');el.textContent=b.label;el.onclick=()=>{if(b.keep!==true)poCloseModal();b.onClick&&b.onClick();};f.appendChild(el);});
+  ov.style.display='flex';
+  ov.onclick=e=>{if(e.target===ov)poCloseModal();};
+}
+function poCloseModal(){const ov=document.getElementById('poOverlay');if(ov)ov.style.display='none';}
+function poAsk(title,bodyHtml,okLabel,danger){return new Promise(res=>{poModal(title,bodyHtml,[{label:'Hủy',onClick:()=>res(false)},{label:okLabel||'Đồng ý',primary:!danger,danger:!!danger,onClick:()=>res(true)}]);const ov=document.getElementById('poOverlay');ov.onclick=e=>{if(e.target===ov){poCloseModal();res(false);}};});}
+function poShowDbError(title,msg){
+  console.error(title,msg);
+  poModal('⚠ '+title,`<div style="margin-bottom:8px">Supabase trả về:</div><pre class="po-err">${poEsc(msg)}</pre>
+    <div style="margin:10px 0 6px">Nếu lỗi nói <b>thiếu cột</b> (column … does not exist / Could not find the … column), chạy đoạn SQL này trong Supabase → SQL Editor rồi thử lại:</div>
+    <pre class="po-err">${poEsc(PO_FIX_SQL)}</pre>
+    <div class="po-muted">Nếu lỗi khác (VD "null value in column …", "violates check constraint"), chụp màn hình hộp này gửi mình.</div>`,
+    [{label:'📋 Copy lỗi + SQL',keep:true,onClick:()=>{navigator.clipboard&&navigator.clipboard.writeText(msg+'\n\n'+PO_FIX_SQL).then(()=>toast('✓ Đã copy','ok'));}},{label:'Đóng',primary:true}]);
+  document.querySelector('#poOverlay .po-modal').classList.add('wide');
+}
+function poSetupHtml(){
+  return `<div class="po-setup"><b>Chưa có bảng trên Supabase.</b> Vào Supabase → SQL Editor, dán đoạn dưới rồi bấm Run (chỉ làm 1 lần), sau đó bấm ↺ Tải lại.
+  <pre id="poSqlPre">${poEsc(PO_SQL)}</pre><button class="btn btn-ghost" onclick="navigator.clipboard&&navigator.clipboard.writeText(PO_SQL).then(()=>toast('✓ Đã copy SQL','ok'))">📋 Copy SQL</button></div>`;
+}
+
+// ═══ TRANG 1: TẠO ORDER MỚI ═══════════════════════════════════════
+async function poNewInit(){
+  const sel=document.getElementById('poNewProd');
+  if(sel&&!sel.options.length){sel.innerHTML='<option value="">— Chọn sản phẩm —</option>'+Object.keys(INV_PROD_CFG).map(pk=>`<option value="${pk}">${poEsc(INV_PROD_CFG[pk].name)}</option>`).join('');}
+  const od=document.getElementById('poNewOrdDate');if(od&&!od.value)od.value=localYMD();
+  if(!PO_READY&&!PO_MISSING)await loadPoData();
+  poFillSupplierList();
+  if(PO_NEW.pk&&sel)sel.value=PO_NEW.pk;
+  poNewRender();
+  if(!Object.keys(INV_DATA).length){try{await computeInvData();poNewRender();}catch(_){}}
+}
+function poFillSupplierList(){
+  const dl=document.getElementById('poSupList');if(!dl)return;
+  const set=[...new Set(PO_ROWS.map(r=>String(r.supplier_name||'').trim()).filter(Boolean))].sort();
+  dl.innerHTML=set.map(s=>`<option value="${poEsc(s)}">`).join('');
+}
+function poSuggestName(pk){
+  const cfg=INV_PROD_CFG[pk];if(!cfg)return '';
+  const n=new Set(PO_ROWS.filter(r=>poParse(r.product_code).pk===pk).map(r=>r.po_code)).size;
+  return `${cfg.name} Lô ${n+1}`;
+}
+function poNewProdChange(){
+  const pk=document.getElementById('poNewProd').value;
+  if(pk!==PO_NEW.pk){PO_NEW={pk,qty:{}};}
+  const nm=document.getElementById('poNewName');if(nm&&!nm.value.trim()&&pk)nm.placeholder='VD: '+poSuggestName(pk);
+  poNewRender();
+}
+function poNewRender(){
+  const box=document.getElementById('poNewTable');if(!box)return;
+  const pk=PO_NEW.pk,cfg=INV_PROD_CFG[pk];
+  if(PO_MISSING){box.innerHTML=poSetupHtml();return;}
+  if(!cfg){box.innerHTML='<div class="po-empty">Chọn sản phẩm để hiện bảng màu · size</div>';poNewTotals();return;}
+  box.innerHTML=`<div class="po-new-grid">${cfg.colors.map((col,ci)=>{
+    const bg=cfg.clrBg[col]||'#2A211C',fg=cfg.clrFg[col]||'#DCC6AA';
+    return `<div class="po-new-blk"><div class="po-new-h" style="background:${bg};color:${fg}"><span>${poEsc(col)}</span><span id="poNewCT-${ci}">0</span></div>
+      <table class="po-new-tbl"><thead><tr><th class="l">Size</th><th>Tồn hiện tại</th><th>SL đặt</th></tr></thead><tbody>
+      ${cfg.sizes.map((sz,si)=>{const d=INV_DATA[pk]?.[col]?.[sz];const ton=d?d.khoNha:null;const v=PO_NEW.qty[col+'|'+sz]||'';
+        return `<tr><td class="l">${poEsc(sz)}</td><td class="po-ton">${ton===null?'…':ton||'<span class="kv-dash">—</span>'}</td>
+        <td><input type="number" min="0" step="1" class="po-qinp" id="poq-${ci}-${si}" value="${v}" placeholder="0" oninput="poNewQty(${ci},${si},this.value)"></td></tr>`;}).join('')}
+      </tbody></table></div>`;}).join('')}</div>`;
+  poNewTotals();
+}
+function poNewQty(ci,si,v){const cfg=INV_PROD_CFG[PO_NEW.pk];const k=cfg.colors[ci]+'|'+cfg.sizes[si];const n=Math.max(0,parseInt(v)||0);if(n)PO_NEW.qty[k]=n;else delete PO_NEW.qty[k];poNewTotals();}
+function poNewTotals(){
+  const cfg=INV_PROD_CFG[PO_NEW.pk];let tot=0;
+  if(cfg)cfg.colors.forEach((col,ci)=>{const s=cfg.sizes.reduce((a,sz)=>a+(PO_NEW.qty[col+'|'+sz]||0),0);tot+=s;const el=document.getElementById('poNewCT-'+ci);if(el)el.textContent=s?s.toLocaleString()+'c':'0';});
+  const t=document.getElementById('poNewTotal');if(t)t.textContent=tot.toLocaleString();
+}
+async function poCreate(){
+  if(PO_BUSY)return;
+  const name=document.getElementById('poNewName').value.trim();
+  const pk=PO_NEW.pk,cfg=INV_PROD_CFG[pk];
+  if(!name){toast('Nhập tên đơn order','err');document.getElementById('poNewName').focus();return;}
+  if(!cfg){toast('Chọn sản phẩm','err');return;}
+  const items=[];cfg.colors.forEach(col=>cfg.sizes.forEach(sz=>{const q=PO_NEW.qty[col+'|'+sz]||0;if(q>0)items.push({col,sz,q});}));
+  if(!items.length){toast('Nhập SL đặt cho ít nhất 1 size','err');return;}
+  const po='PO'+String(Date.now()).slice(-8);
+  const ordDate=document.getElementById('poNewOrdDate').value||localYMD();
+  const arrDate=document.getElementById('poNewArrDate').value||null;
+  const sup=document.getElementById('poNewSup').value.trim();
+  const note=document.getElementById('poNewNote').value.trim();
+  const rows=items.map(it=>({po_code:po,name,supplier_name:sup,ord_date:ordDate,arr_date:arrDate,product_code:poCode(pk,it.col,it.sz),product_name:`${cfg.name} · ${it.col} · ${it.sz}`,qty:it.q,received:0,status:'Chờ về',closed:false,note}));
+  PO_BUSY=true;showLoading('Đang tạo đơn order...');
+  try{
+    await sbInsert('supplier_orders',rows);
+    hideLoading();
+    const tot=items.reduce((s,x)=>s+x.q,0);
+    toast(`✓ Đã tạo ${name} (${po}) · ${tot.toLocaleString()}c · chưa cộng kho, chỉ tính vào Đang về`,'ok');
+    // Xoá trắng form để tạo lô tiếp
+    ['poNewName','poNewArrDate','poNewNote'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    document.getElementById('poNewOrdDate').value=localYMD();
+    PO_NEW={pk:'',qty:{}};document.getElementById('poNewProd').value='';
+    await loadPoData();poFillSupplierList();poNewRender();
+    INV_DATA={};   // trang Kho tính lại cột Đang về khi mở
+  }catch(e){hideLoading();const m=String(e.message||'');
+    if(/insert 404|42P01|PGRST205/.test(m)){PO_MISSING=true;poNewRender();toast('Chưa có bảng supplier_orders — làm theo hướng dẫn trên trang','err');}
+    else poShowDbError('Lỗi tạo đơn',m);}
+  finally{PO_BUSY=false;}
+}
+// Từ trang Kho: mở trang Tạo order NCC, điền sẵn SL đã chia cho 1 màu
+function poPrefillFromKho(pk,col,alloc){
+  const cfg=INV_PROD_CFG[pk];
+  PO_NEW={pk,qty:{}};cfg.sizes.forEach((sz,i)=>{if(alloc[i]>0)PO_NEW.qty[col+'|'+sz]=alloc[i];});
+  goPageProg('poNew');
+  const nm=document.getElementById('poNewName');if(nm&&!nm.value.trim())nm.value=poSuggestName(pk);
+  poNewInit();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ═══ TRANG 2: ĐƠN ĐẶT CHỜ VỀ ══════════════════════════════════════
+async function loadPoList(){
+  showLoading('Tải đơn đặt...');
+  await loadPoData();
+  hideLoading();
+  renderPoList();
+}
+function poLots(){
+  const m={};PO_ROWS.forEach(r=>{(m[r.po_code]=m[r.po_code]||{po:r.po_code,name:r.name,sup:String(r.supplier_name||'').trim(),ord:r.ord_date,arr:r.arr_date,note:r.note,rows:[]}).rows.push(r);});
+  return Object.values(m).map(l=>{
+    l.done=l.rows.every(poRowDone);
+    l.qty=l.rows.reduce((s,r)=>s+(r.qty||0),0);l.rec=l.rows.reduce((s,r)=>s+(r.received||0),0);
+    l.over=l.rows.reduce((s,r)=>s+poOver(r),0);l.short=l.rows.reduce((s,r)=>s+poShort(r),0);l.remain=l.rows.reduce((s,r)=>s+poRemain(r),0);
+    l.pk=poParse(l.rows[0].product_code).pk;
+    l.status=l.done?(l.short>0?'Chốt thiếu':'Đã về'):l.rec>0?'Đang về':'Chờ về';
+    return l;
+  }).sort((a,b)=>String(b.ord||'').localeCompare(String(a.ord||''))||String(b.po).localeCompare(String(a.po)));
+}
+function poRounds(po){
+  const rev=poReversedSet();const m={};
+  PO_TX.forEach(t=>{const mm=String(t.ref_id||'').match(/^(.+)-r(\d+)-(\d+)$/);if(!mm||mm[1]!==po||t.type!=='Nhập')return;
+    const n=+mm[2];(m[n]=m[n]||{n,date:t.date,items:[],nrev:0}).items.push({code:t.product_code,q:t.quantity});if(rev.has(t.ref_id))m[n].nrev++;});
+  Object.values(m).forEach(r=>{r.rev=r.nrev>0&&r.nrev===r.items.length;});
+  return Object.values(m).sort((a,b)=>a.n-b.n);
+}
+function poSetView(v){PO_VIEW=v;renderPoList();}
+function poSetTab(t){PO_TAB=t;renderPoList();}
+function poSetNcc(n){PO_NCC=n;renderPoList();}
+function poSetSumSort(s){PO_SUM_SORT=s;renderPoList();}
+function renderPoList(){
+  const box=document.getElementById('poListContent');if(!box)return;
+  if(PO_MISSING){box.innerHTML=poSetupHtml();return;}
+  const lots=poLots();
+  let html=poSummaryHtml(lots);
+  html+=`<div class="po-bar"><div class="po-seg"><button class="${PO_VIEW==='lot'?'on':''}" onclick="poSetView('lot')">Theo lô hàng</button><button class="${PO_VIEW==='prod'?'on':''}" onclick="poSetView('prod')">Theo sản phẩm</button></div></div>`;
+  html+=PO_VIEW==='prod'?poProdViewHtml(lots):poLotViewHtml(lots);
+  box.innerHTML=html;
+}
+// Tổng hợp nhận hàng theo ngày, tách theo NCC
+function poSummaryHtml(lots){
+  const supOf={},nameOf={};lots.forEach(l=>{supOf[l.po]=l.sup||'Chưa gắn NCC';nameOf[l.po]=l.name;});
+  const rev=poReversedSet();const byDate={};
+  PO_TX.forEach(t=>{if(t.type!=='Nhập'||rev.has(t.ref_id))return;const po=String(t.ref_id||'').replace(/-r\d+-\d+$/,'');const sup=supOf[po]||'Chưa gắn NCC';const d=String(t.date||'').slice(0,10);
+    const D=(byDate[d]=byDate[d]||{tot:0,sup:{}});D.tot+=t.quantity||0;const S=(D.sup[sup]=D.sup[sup]||{tot:0,items:{}});S.tot+=t.quantity||0;S.items[t.product_code]=(S.items[t.product_code]||0)+(t.quantity||0);});
+  const dates=Object.keys(byDate).sort();if(PO_SUM_SORT==='desc')dates.reverse();
+  const body=dates.length?dates.map(d=>{const D=byDate[d];
+    return `<div class="po-sum-day"><div class="po-sum-dh"><b>${poDMY(d)}</b><span>${D.tot.toLocaleString()}c</span></div>
+    ${Object.entries(D.sup).sort((a,b)=>b[1].tot-a[1].tot).map(([s,S])=>`<div class="po-sum-sup"><div class="po-sum-sn">${poEsc(s)} · <b>${S.tot.toLocaleString()}c</b></div><div class="po-chips">${Object.entries(S.items).map(([c,q])=>{const p=poParse(c);return `<span class="po-chip">${poEsc((INV_PROD_CFG[p.pk]||{}).code||p.pk)} ${poEsc(p.color)}·${poEsc(p.size)}: <b>${q}</b></span>`;}).join('')}</div></div>`).join('')}</div>`;}).join(''):'<div class="po-empty">Chưa có đợt hàng nào về</div>';
+  return `<div class="card po-sum"><div class="po-sum-h"><b>Tổng hợp nhận hàng theo ngày</b><div class="po-seg sm"><button class="${PO_SUM_SORT==='desc'?'on':''}" onclick="poSetSumSort('desc')">Mới nhất</button><button class="${PO_SUM_SORT==='asc'?'on':''}" onclick="poSetSumSort('asc')">Cũ nhất</button></div></div><div class="po-sum-b">${body}</div></div>`;
+}
+function poLotViewHtml(lots){
+  const open=lots.filter(l=>!l.done),done=lots.filter(l=>l.done);
+  const list=PO_TAB==='open'?open:done;
+  const sups=[...new Set(list.map(l=>l.sup||''))];
+  const hasNo=sups.includes('');const named=sups.filter(Boolean).sort();
+  if(PO_NCC!=='ALL'&&!sups.includes(PO_NCC==='__none'?'':PO_NCC))PO_NCC='ALL';
+  let html=`<div class="po-bar"><div class="po-seg"><button class="${PO_TAB==='open'?'on':''}" onclick="poSetTab('open')">Đang về <i>${open.length}</i></button><button class="${PO_TAB==='done'?'on':''}" onclick="poSetTab('done')">Đã về <i>${done.length}</i></button></div>
+    <div class="po-chips">${(PO_NCC_LIST=[['ALL','Tất cả'],...(hasNo?[['__none','Chưa gắn NCC']]:[]),...named.map(s=>[s,s])]).map(([k,l],i)=>`<button class="po-fchip ${PO_NCC===k?'on':''}" onclick="poSetNcc(PO_NCC_LIST[${i}][0])">${poEsc(l)}</button>`).join('')}</div></div>`;
+  const groups=[...(hasNo?['']:[]),...named].filter(s=>PO_NCC==='ALL'||(PO_NCC==='__none'?s==='':s===PO_NCC));
+  if(!list.length)return html+`<div class="po-empty">${PO_TAB==='open'?'Không có lô nào đang chờ về':'Chưa có lô nào về đủ'}</div>`;
+  groups.forEach(s=>{const ls=list.filter(l=>(l.sup||'')===s);if(!ls.length)return;
+    const q=ls.reduce((a,l)=>a+l.qty,0),r=ls.reduce((a,l)=>a+l.rec,0);
+    html+=`<div class="po-grp-h">${s?poEsc(s):'Chưa gắn NCC'} <span>${ls.length} lô · đã về ${r.toLocaleString()}/${q.toLocaleString()}c${q?` (${Math.round(Math.min(r,q)/q*100)}%)`:''}</span></div>`;
+    ls.forEach(l=>{html+=poLotCard(l);});});
+  return html;
+}
+const PO_ST_CLS={'Chờ về':'st-wait','Đang về':'st-go','Đã về':'st-done','Chốt thiếu':'st-short'};
+function poLotCard(l){
+  const cfg=INV_PROD_CFG[l.pk]||{name:l.pk,clrBg:{},clrFg:{}};
+  const rows=l.rows.slice().sort((a,b)=>{const A=poParse(a.product_code),B=poParse(b.product_code);const ci=(cfg.colors||[]).indexOf(A.color)-(cfg.colors||[]).indexOf(B.color);return ci||((cfg.sizes||[]).indexOf(A.size)-(cfg.sizes||[]).indexOf(B.size));});
+  const body=rows.map(r=>{
+    const p=poParse(r.product_code);const q=r.qty||0,rec=r.received||0;const pct=q?Math.round(rec/q*100):0;
+    const bg=(cfg.clrBg||{})[p.color]||'#2A211C',fg=(cfg.clrFg||{})[p.color]||'#DCC6AA';
+    let act;
+    if(r.closed)act=`<span class="po-tag short">Chốt thiếu −${poShort(r)}</span><button class="po-link" onclick="poReopen(${r.id})">Mở lại</button>`;
+    else if(rec>=q)act=`<span class="po-tag ok">Đủ${poOver(r)?` · dư +${poOver(r)}`:''}</span>`;
+    else act=`<button class="po-sbtn" onclick="poCloseRow(${r.id})">Chốt thiếu</button>`;
+    return `<tr><td class="l"><span class="po-sw" style="background:${bg};color:${fg}">${poEsc(p.color)}</span> ${poEsc(p.size)}</td>
+      <td><div class="po-prog"><div class="po-bar-o"><div class="po-bar-i${rec>q?' over':''}" style="width:${Math.min(100,pct)}%"></div></div><span>${rec}/${q}</span></div></td>
+      <td>${pct}%</td><td class="${poRemain(r)?'po-rem':''}">${poRemain(r)||'<span class="kv-dash">—</span>'}</td>
+      <td>${r.closed||l.done?'<span class="kv-dash">—</span>':`<input type="number" min="0" class="po-rinp" id="por-${r.id}" placeholder="0">`}</td>
+      <td class="po-act">${act}</td></tr>`;}).join('');
+  const rounds=poRounds(l.po);
+  const hist=rounds.length?`<div class="po-hist"><div class="po-hist-h">Lịch sử các đợt về</div>${rounds.map(rd=>`<div class="po-hist-r${rd.rev?' rev':''}"><span class="po-hist-txt"><b>Đợt ${rd.n}</b> · ${poDMY(rd.date)} · ${rd.items.map(it=>{const p=poParse(it.code);return `${poEsc(p.color)}·${poEsc(p.size)} <b>${it.q}</b>`;}).join(', ')} <span class="po-muted">= ${rd.items.reduce((s,x)=>s+x.q,0)}c</span></span>${rd.rev?' <span class="po-tag short">đã xoá</span>':` <button class="po-link danger" onclick="poDeleteRound(${JSON.stringify(l.po).replace(/"/g,'&quot;')},${rd.n})">Xoá đợt</button>`}</div>`).join('')}</div>`:'';
+  const po=JSON.stringify(l.po).replace(/"/g,'&quot;');
+  return `<div class="po-card">
+    <div class="po-card-h">
+      <div class="po-card-t"><div class="po-card-name">${poEsc(l.name)} <span class="po-st ${PO_ST_CLS[l.status]||''}">${l.status}</span></div>
+        <div class="po-card-meta">${poEsc(cfg.name)} · <code>${poEsc(l.po)}</code> · đặt ${poDMY(l.ord)||'—'} · về dự kiến <b>${poDMY(l.arr)||'—'}</b>${l.note?` · ${poEsc(l.note)}`:''}</div></div>
+      <label class="po-sup">NCC <input type="text" list="poSupList" value="${poEsc(l.sup)}" placeholder="Tên NCC / xưởng" onchange="poSaveSup(${po},this.value)"></label>
+    </div>
+    <div class="po-card-sum">Đặt <b>${l.qty.toLocaleString()}</b> · Về <b>${l.rec.toLocaleString()}</b> · Dư <b class="${l.over?'pos':''}">+${l.over}</b> · Thiếu <b class="${l.short?'neg':''}">−${l.short}</b>${l.remain?` · Còn về <b>${l.remain.toLocaleString()}</b>`:''}</div>
+    <div class="kv-wrap"><table class="po-tbl"><thead><tr><th class="l">Mã</th><th>Tiến độ</th><th>%</th><th>Còn lại</th><th>SL về</th><th></th></tr></thead><tbody>${body}</tbody></table></div>
+    ${hist}
+    <div class="po-card-f">
+      ${l.done?'':`<button class="po-go" onclick="poReceive(${po})">✓ Xác nhận hàng về — cập nhật kho</button>`}
+      <button class="po-sbtn" onclick="poSendNcc(${po})">📤 Gửi đơn NCC</button>
+      ${l.rows.some(r=>!poRowDone(r))?`<button class="po-sbtn" onclick="poCloseLot(${po})">Chốt cả lô</button>`:''}
+      <button class="po-sbtn danger" onclick="poDeleteLot(${po})">🗑 Xoá đơn</button>
+    </div></div>`;
+}
+function poProdViewHtml(lots){
+  const byPk={};PO_ROWS.forEach(r=>{const p=poParse(r.product_code);(byPk[p.pk]=byPk[p.pk]||[]).push(r);});
+  const pks=Object.keys(INV_PROD_CFG).filter(pk=>byPk[pk]);
+  if(!pks.length)return '<div class="po-empty">Chưa có đơn đặt nào</div>';
+  return pks.map(pk=>{const cfg=INV_PROD_CFG[pk];const rs=byPk[pk];
+    const agg={};rs.forEach(r=>{const p=poParse(r.product_code);const k=p.color+'|'+p.size;const a=(agg[k]=agg[k]||{color:p.color,size:p.size,qty:0,rec:0,rem:0,short:0,lots:new Set()});a.qty+=r.qty||0;a.rec+=r.received||0;a.rem+=poRemain(r);a.short+=poShort(r);if(poRemain(r))a.lots.add(r.name);});
+    const items=Object.values(agg).sort((a,b)=>cfg.colors.indexOf(a.color)-cfg.colors.indexOf(b.color)||cfg.sizes.indexOf(a.size)-cfg.sizes.indexOf(b.size));
+    const rem=items.reduce((s,x)=>s+x.rem,0),q=items.reduce((s,x)=>s+x.qty,0);
+    return `<div class="po-card"><div class="po-card-h"><div class="po-card-t"><div class="po-card-name">${poEsc(cfg.name)}</div><div class="po-card-meta">${new Set(rs.map(r=>r.po_code)).size} lô</div></div><div class="po-big">còn về <b>${rem.toLocaleString()}</b> / ${q.toLocaleString()}</div></div>
+    <div class="kv-wrap"><table class="po-tbl"><thead><tr><th class="l">Mã</th><th>Tiến độ</th><th>Đặt</th><th>Về</th><th>Còn về</th><th class="l">Lô còn chờ</th></tr></thead><tbody>
+    ${items.map(a=>{const bg=cfg.clrBg[a.color]||'#2A211C',fg=cfg.clrFg[a.color]||'#DCC6AA';const pct=a.qty?Math.round(a.rec/a.qty*100):0;
+      return `<tr><td class="l"><span class="po-sw" style="background:${bg};color:${fg}">${poEsc(a.color)}</span> ${poEsc(a.size)}</td><td><div class="po-prog"><div class="po-bar-o"><div class="po-bar-i" style="width:${Math.min(100,pct)}%"></div></div><span>${pct}%</span></div></td><td>${a.qty}</td><td>${a.rec}</td><td class="${a.rem?'po-rem':''}">${a.rem||'<span class="kv-dash">—</span>'}${a.short?` <span class="po-tag short">−${a.short}</span>`:''}</td><td class="l po-muted">${[...a.lots].map(poEsc).join(', ')}</td></tr>`;}).join('')}
+    </tbody></table></div></div>`;}).join('');
+}
+function poFind(id){return PO_ROWS.find(r=>r.id===id);}
+async function poSaveSup(po,v){
+  v=String(v||'').trim();
+  try{const got=await poPatch('supplier_orders','po_code=eq.'+encodeURIComponent(po),{supplier_name:v});
+    if(!got.length)throw new Error('không sửa được dòng nào (kiểm tra quyền UPDATE)');
+    PO_ROWS.forEach(r=>{if(r.po_code===po)r.supplier_name=v;});toast(`✓ Đã lưu NCC: ${v||'(trống)'}`,'ok');poFillSupplierList();renderPoList();}
+  catch(e){toast('Lỗi lưu NCC: '+e.message,'err');}
+}
+// Xác nhận hàng về: cả lô 1 lượt = 1 đợt
+async function poReceive(po){
+  if(PO_BUSY)return;
+  const rows=PO_ROWS.filter(r=>r.po_code===po);
+  const items=rows.map(r=>({r,v:Math.max(0,parseInt(document.getElementById('por-'+r.id)?.value)||0)})).filter(x=>x.v>0&&!x.r.closed);
+  if(!items.length){toast('Nhập "SL về" cho ít nhất 1 dòng','err');return;}
+  const overs=items.filter(x=>(x.r.received||0)+x.v>(x.r.qty||0));
+  if(overs.length){
+    const ok=await poAsk('Có dòng giao dư — kiểm tra lại',`<div style="margin-bottom:8px">Các dòng dưới đây sẽ về <b>nhiều hơn số đặt</b>. Kiểm tra có gõ nhầm không (VD 230 thay vì 23):</div>
+      <table class="po-tbl"><thead><tr><th class="l">Mã</th><th>Đặt</th><th>Đã về</th><th>Nhập đợt này</th><th>Dư</th></tr></thead><tbody>${overs.map(x=>{const p=poParse(x.r.product_code);return `<tr><td class="l">${poEsc(p.color)}·${poEsc(p.size)}</td><td>${x.r.qty}</td><td>${x.r.received||0}</td><td><b>${x.v}</b></td><td class="pos">+${(x.r.received||0)+x.v-x.r.qty}</td></tr>`;}).join('')}</tbody></table>`,'Đúng, nhận hết vào kho');
+    if(!ok)return;
+  }
+  PO_BUSY=true;showLoading('Đang cập nhật kho...');
+  try{
+    const tx=await sbSelectAll('transactions',`ref_id=like.${encodeURIComponent(po+'-r*')}&order=id.asc`);
+    let maxR=0;(tx||[]).forEach(t=>{const m=String(t.ref_id||'').match(/-r(\d+)-\d+$/);if(m)maxR=Math.max(maxR,+m[1]);});
+    const round=maxR+1;const name=rows[0].name;const today=localYMD();
+    const plan=items.map(x=>({...x,ref:`${po}-r${round}-${x.r.id}`}));
+    const exist=new Set((await sbSelect('transactions',`select=ref_id&ref_id=in.(${plan.map(p=>'"'+p.ref+'"').join(',')})`)).map(t=>t.ref_id));
+    const fresh=plan.filter(p=>!exist.has(p.ref));
+    if(fresh.length)await sbInsert('transactions',fresh.map(p=>({product_code:p.r.product_code,type:'Nhập',quantity:p.v,date:today,ref_type:'po',ref_id:p.ref,note:`[LÔ ${name}] Đợt ${round}`})));
+    // Cộng received theo số mới nhất trên DB (tránh cộng trùng)
+    const cur=await sbSelect('supplier_orders',`id=in.(${fresh.map(p=>p.r.id).join(',')||0})`);
+    const curMap={};(cur||[]).forEach(r=>curMap[r.id]=r);
+    for(const p of fresh){const c=curMap[p.r.id]||p.r;const rec=(c.received||0)+p.v;
+      await poPatch('supplier_orders','id=eq.'+p.r.id,{received:rec,status:rec>=(c.qty||0)?'Đã về':'Đang về'});}
+    const tot=fresh.reduce((s,p)=>s+p.v,0);
+    await loadPoData();
+    try{await computeInvData();}catch(_){INV_DATA={};}   // tải lại Kho: Tồn & Đang về
+    hideLoading();
+    toast(fresh.length?`✓ ${name} · Đợt ${round}: đã cộng ${tot.toLocaleString()}c vào kho`:'Đợt này đã ghi trước đó — không ghi trùng','ok');
+    renderPoList();
+  }catch(e){hideLoading();poShowDbError('Lỗi xác nhận hàng về',String(e.message||e));}
+  finally{PO_BUSY=false;}
+}
+function poCloseDialog(list,title){
+  return new Promise(res=>{
+    poModal(title,`<div style="margin-bottom:8px">Xưởng không giao thêm. Sẽ chốt:</div>
+      <table class="po-tbl"><thead><tr><th class="l">Mã</th><th>Đặt</th><th>Đã về</th><th>Chốt thiếu</th></tr></thead><tbody>${list.map(r=>{const p=poParse(r.product_code);return `<tr><td class="l">${poEsc(p.color)}·${poEsc(p.size)}</td><td>${r.qty}</td><td>${r.received||0}</td><td class="neg">thiếu ${(r.qty||0)-(r.received||0)}</td></tr>`;}).join('')}</tbody></table>
+      <label class="po-f" style="margin-top:10px">Lý do (không bắt buộc)<input id="poCloseNote" type="text" placeholder="VD: xưởng hết vải"></label>
+      <div class="po-muted" style="margin-top:6px">Phần thiếu sẽ không còn tính vào Đang về. Không cộng/trừ kho.</div>`,
+      [{label:'Hủy',onClick:()=>res(null)},{label:'Chốt thiếu',danger:true,keep:true,onClick:()=>{const n=document.getElementById('poCloseNote').value.trim();poCloseModal();res(n);}}]);
+  });
+}
+async function poApplyClose(list){
+  const note=await poCloseDialog(list,list.length>1?`Chốt cả lô — ${poEsc(list[0].name)}`:'Chốt thiếu');
+  if(note===null)return;
+  showLoading('Đang chốt...');
+  try{
+    for(const r of list){const got=await poPatch('supplier_orders','id=eq.'+r.id,{closed:true,short_qty:Math.max(0,(r.qty||0)-(r.received||0)),close_note:note,status:'Chốt thiếu'});if(!got.length)throw new Error('không sửa được dòng (kiểm tra quyền UPDATE)');}
+    await loadPoData();INV_DATA={};hideLoading();toast(`✓ Đã chốt thiếu ${list.reduce((s,r)=>s+(r.qty||0)-(r.received||0),0)}c`,'ok');renderPoList();
+  }catch(e){hideLoading();poShowDbError('Lỗi chốt thiếu',String(e.message||e));}
+}
+function poCloseRow(id){const r=poFind(id);if(r)poApplyClose([r]);}
+function poCloseLot(po){const list=PO_ROWS.filter(r=>r.po_code===po&&!poRowDone(r));if(!list.length){toast('Không còn dòng nào thiếu','err');return;}poApplyClose(list);}
+async function poReopen(id){
+  const r=poFind(id);if(!r)return;
+  try{const got=await poPatch('supplier_orders','id=eq.'+id,{closed:false,short_qty:0,close_note:'',status:(r.received||0)>=(r.qty||0)?'Đã về':'Đang về'});if(!got.length)throw new Error('không sửa được dòng');
+    await loadPoData();INV_DATA={};toast('✓ Đã mở lại — chờ xưởng giao bù','ok');renderPoList();}
+  catch(e){toast('Lỗi mở lại: '+e.message,'err');}
+}
+async function poDeleteLot(po){
+  if(PO_BUSY)return;
+  const rows=PO_ROWS.filter(r=>r.po_code===po);if(!rows.length)return;const name=rows[0].name;
+  let tx=[];try{tx=await sbSelectAll('transactions',`ref_id=like.${encodeURIComponent(po+'-r*')}&order=id.asc`);}catch(e){toast('Lỗi đọc sổ cái: '+e.message,'err');return;}
+  const rev=poReversedSet(tx);
+  const live=tx.filter(t=>t.type==='Nhập'&&/-r\d+-\d+$/.test(t.ref_id)&&!rev.has(t.ref_id));
+  let ok;
+  if(!live.length){
+    ok=await poAsk('Xoá đơn order',`Xoá hẳn <b>${poEsc(name)}</b> (${rows.length} dòng, ${rows.reduce((s,r)=>s+(r.qty||0),0)}c)? Lô chưa có hàng về nên không đụng kho.`,'Xoá đơn',true);
+  }else{
+    const by={};live.forEach(t=>{by[t.product_code]=(by[t.product_code]||0)+(t.quantity||0);});
+    ok=await poAsk('Xoá đơn đã có hàng về',`<div style="margin-bottom:8px"><b>${poEsc(name)}</b> đã có hàng về. Xoá đơn sẽ <b>trừ lại khỏi kho</b> đúng số đã nhập:</div>
+      <table class="po-tbl"><thead><tr><th class="l">Mã</th><th>Trừ kho</th></tr></thead><tbody>${Object.entries(by).map(([c,q])=>{const p=poParse(c);return `<tr><td class="l">${poEsc(p.color)}·${poEsc(p.size)}</td><td class="neg">−${q}</td></tr>`;}).join('')}</tbody></table>`,'Trừ kho & xoá đơn',true);
+  }
+  if(!ok)return;
+  PO_BUSY=true;showLoading('Đang xoá đơn...');
+  try{
+    if(live.length){
+      const refs=live.map(t=>t.ref_id+'-XOAPO');
+      const exist=new Set((await sbSelect('transactions',`select=ref_id&ref_id=in.(${refs.map(r=>'"'+r+'"').join(',')})`)).map(t=>t.ref_id));
+      const out=live.filter(t=>!exist.has(t.ref_id+'-XOAPO')).map(t=>({product_code:t.product_code,type:'Xuất',quantity:t.quantity,date:localYMD(),ref_type:'po',ref_id:t.ref_id+'-XOAPO',note:`[XOÁ LÔ ${name}] hoàn ${t.ref_id}`}));
+      if(out.length)await sbInsert('transactions',out);
+    }
+    const del=await poDel('supplier_orders','po_code=eq.'+encodeURIComponent(po));
+    if(!del.length)throw new Error('Supabase không xoá được dòng nào — thường do chưa cấp quyền DELETE cho bảng supplier_orders'+(live.length?' (bút toán hoàn kho đã ghi; bấm Xoá lại sau khi cấp quyền, không bị trừ 2 lần)':''));
+    await loadPoData();try{await computeInvData();}catch(_){INV_DATA={};}
+    hideLoading();toast(`✓ Đã xoá ${name}${live.length?' · đã trừ lại kho':''}`,'ok');renderPoList();
+  }catch(e){hideLoading();poShowDbError('Lỗi xoá đơn',String(e.message||e));}
+  finally{PO_BUSY=false;}
+}
+
+// Xoá 1 đợt về (nhập sai): ghi bút toán Xuất hoàn đúng số, trừ received, tính lại trạng thái
+async function poDeleteRound(po,n){
+  if(PO_BUSY)return;
+  const rows=PO_ROWS.filter(r=>r.po_code===po);if(!rows.length)return;const name=rows[0].name;
+  let tx=[];try{tx=await sbSelectAll('transactions',`ref_id=like.${encodeURIComponent(po+'-r'+n+'-*')}&order=id.asc`);}catch(e){poShowDbError('Lỗi đọc sổ cái',String(e.message||e));return;}
+  const all=await sbSelectAll('transactions',`ref_id=like.${encodeURIComponent(po+'-r*')}&order=id.asc`).catch(()=>tx);
+  const rev=poReversedSet(all);
+  const live=tx.filter(t=>t.type==='Nhập'&&new RegExp('-r'+n+'-\\d+$').test(t.ref_id)&&!rev.has(t.ref_id));
+  if(!live.length){toast('Đợt này đã được xoá trước đó','err');await loadPoData();renderPoList();return;}
+  const rowOf=id=>rows.find(r=>r.id===id);
+  const lines=live.map(t=>{const id=+t.ref_id.match(/-(\d+)$/)[1];const r=rowOf(id)||{};const p=poParse(t.product_code);const rec=r.received||0;const after=Math.max(0,rec-t.quantity);
+    return `<tr><td class="l">${poEsc(p.color)}·${poEsc(p.size)}</td><td class="neg">−${t.quantity}</td><td>${rec} → <b>${after}</b> / ${r.qty??'?'}</td></tr>`;}).join('');
+  const ok=await poAsk(`Xoá Đợt ${n} — ${poEsc(name)}`,`<div style="margin-bottom:8px">Xoá đợt về ngày <b>${poDMY(live[0].date)}</b>. Số của đợt này sẽ bị bỏ ở mọi nơi: <b>Kho nhà, Hàng mới về (Đi Đơn), Tổng hợp nhận hàng</b>; phần chưa về quay lại cột <b>Đang về</b>.</div>
+    <table class="po-tbl"><thead><tr><th class="l">Mã</th><th>Trừ kho</th><th>Đã về của lô</th></tr></thead><tbody>${lines}</tbody></table>
+    <div class="po-muted" style="margin-top:8px">Sau khi xoá, nhập lại số đúng ở ô SL về (sẽ thành đợt mới).</div>`,'Xoá đợt này',true);
+  if(!ok)return;
+  PO_BUSY=true;showLoading('Đang xoá đợt...');
+  try{
+    const refs=live.map(t=>t.ref_id+'-XOAPO');
+    const exist=new Set((await sbSelect('transactions',`select=ref_id&ref_id=in.(${refs.map(r=>'"'+r+'"').join(',')})`)).map(t=>t.ref_id));
+    const fresh=live.filter(t=>!exist.has(t.ref_id+'-XOAPO'));
+    if(fresh.length)await sbInsert('transactions',fresh.map(t=>({product_code:t.product_code,type:'Xuất',quantity:t.quantity,date:localYMD(),ref_type:'po',ref_id:t.ref_id+'-XOAPO',note:`[XOÁ ĐỢT ${n} · LÔ ${name}] nhập sai`})));
+    // Chỉ trừ received cho bút toán vừa hoàn lần này (bấm 2 lần không trừ 2 lần)
+    const ids=[...new Set(fresh.map(t=>+t.ref_id.match(/-(\d+)$/)[1]))];
+    const cur=ids.length?await sbSelect('supplier_orders',`id=in.(${ids.join(',')})`):[];
+    for(const r of cur){
+      const minus=fresh.filter(t=>+t.ref_id.match(/-(\d+)$/)[1]===r.id).reduce((s,t)=>s+(t.quantity||0),0);
+      const rec=Math.max(0,(r.received||0)-minus);
+      const body={received:rec};
+      if(r.closed){body.short_qty=Math.max(0,(r.qty||0)-rec);body.status='Chốt thiếu';}
+      else body.status=rec>=(r.qty||0)?'Đã về':rec>0?'Đang về':'Chờ về';
+      const got=await poPatch('supplier_orders','id=eq.'+r.id,body);
+      if(!got.length)throw new Error('Không sửa được dòng '+r.id+' (kiểm tra quyền UPDATE). Bút toán hoàn kho đã ghi — bấm Xoá đợt lại sau khi cấp quyền.');
+    }
+    await loadPoData();try{await computeInvData();}catch(_){INV_DATA={};}
+    hideLoading();toast(`✓ Đã xoá Đợt ${n} của ${name} · trừ lại ${fresh.reduce((s,t)=>s+t.quantity,0)}c khỏi kho`,'ok');renderPoList();
+  }catch(e){hideLoading();poShowDbError('Lỗi xoá đợt',String(e.message||e));}
+  finally{PO_BUSY=false;}
+}
+// Bảng tóm tắt để chụp gửi xưởng qua Zalo
+function poSendNcc(po){
+  const rows=PO_ROWS.filter(r=>r.po_code===po);if(!rows.length)return;
+  const l=poLots().find(x=>x.po===po);const cfg=INV_PROD_CFG[l.pk]||{name:l.pk,colors:[],sizes:[],clrBg:{},clrFg:{}};
+  const anyRec=rows.some(r=>(r.received||0)>0);
+  const cols=[...new Set(rows.map(r=>poParse(r.product_code).color))].sort((a,b)=>cfg.colors.indexOf(a)-cfg.colors.indexOf(b));
+  const sizes=[...new Set(rows.map(r=>poParse(r.product_code).size))].sort((a,b)=>cfg.sizes.indexOf(a)-cfg.sizes.indexOf(b));
+  const get=(c,s)=>rows.find(r=>{const p=poParse(r.product_code);return p.color===c&&p.size===s;});
+  const cell=r=>!r?'<span class="kv-dash">—</span>':anyRec?`${r.qty}${poRemain(r)?`<div class="po-muted">còn ${poRemain(r)}</div>`:''}`:r.qty;
+  const html=`<div class="po-ncc" id="poNccSheet">
+    <div class="po-ncc-t">ĐƠN ĐẶT HÀNG</div>
+    <div class="po-ncc-m"><div><b>${poEsc(l.name)}</b> · ${poEsc(cfg.name)}</div><div>NCC: <b>${poEsc(l.sup||'—')}</b></div><div>Ngày đặt: ${poDMY(l.ord)||'—'} · Ngày cần về: <b>${poDMY(l.arr)||'—'}</b></div><div class="po-muted">Mã: ${poEsc(po)}</div></div>
+    <table class="po-ncc-tbl"><thead><tr><th class="l">Màu \\ Size</th>${sizes.map(s=>`<th>${poEsc(s)}</th>`).join('')}<th>Tổng</th></tr></thead><tbody>
+    ${cols.map(c=>{const t=sizes.reduce((s,z)=>s+((get(c,z)||{}).qty||0),0);return `<tr><td class="l"><span class="po-sw" style="background:${cfg.clrBg[c]||'#2A211C'};color:${cfg.clrFg[c]||'#DCC6AA'}">${poEsc(c)}</span></td>${sizes.map(z=>`<td>${cell(get(c,z))}</td>`).join('')}<td><b>${t}</b></td></tr>`;}).join('')}
+    <tr class="po-ncc-tot"><td class="l">TỔNG</td>${sizes.map(z=>`<td>${cols.reduce((s,c)=>s+((get(c,z)||{}).qty||0),0)}</td>`).join('')}<td>${l.qty.toLocaleString()}</td></tr></tbody></table>
+    ${anyRec?`<div class="po-muted" style="margin-top:6px">Đã nhận ${l.rec.toLocaleString()}c · còn giao <b>${l.remain.toLocaleString()}c</b></div>`:''}
+    ${l.note?`<div style="margin-top:6px">Ghi chú: ${poEsc(l.note)}</div>`:''}
+  </div><div class="po-muted" style="margin-top:8px">Chụp màn hình bảng này để gửi xưởng qua Zalo.</div>`;
+  poModal('📤 Gửi đơn NCC',html,[{label:'Đóng'}]);
+  document.querySelector('#poOverlay .po-modal').classList.add('wide');
 }
 
 function openUpdateKho(prodKey){
@@ -3843,16 +4681,17 @@ function saveKhoCounts(){try{localStorage.setItem('hannal_kho_counts',JSON.strin
   const out=SEED_ARR_D.filter(r=>r.prod===pk).map(r=>({date:r.date,prod:pk,color:r.color,size:r.size,qty:r.qty}));
   MANUAL_ARR.filter(r=>r.prod===pk).forEach(r=>out.push(r));
   ORD_HOME_ROWS.filter(r=>r.prod===pk).forEach(r=>out.push(r));
+  PO_ARR_ROWS.filter(r=>r.prod===pk).forEach(r=>out.push(r));   // hàng NCC đã về (sổ cái transactions)
   return out;
 }
 // Map ngày → tên lô về (hiện trên đầu cột ngày của bảng Hàng mới về)
 function dateLotMap(pk,from,to){
   const m={};
-  [...ORD_HOME_ROWS,...MANUAL_ARR].filter(r=>r.prod===pk&&r.lot&&salesInRange(r.date,from,to)).forEach(r=>{(m[r.date]=m[r.date]||new Set()).add(r.lot);});
+  [...ORD_HOME_ROWS,...MANUAL_ARR,...PO_ARR_ROWS].filter(r=>r.prod===pk&&r.lot&&salesInRange(r.date,from,to)).forEach(r=>{(m[r.date]=m[r.date]||new Set()).add(r.lot);});
   const out={};Object.keys(m).forEach(d=>out[d]=[...m[d]].join(', '));return out;
 }
 function arrLotLegend(pk,from,to){
-  const src=[...ORD_HOME_ROWS,...MANUAL_ARR].filter(r=>r.prod===pk&&r.lot&&salesInRange(r.date,from,to));
+  const src=[...ORD_HOME_ROWS,...MANUAL_ARR,...PO_ARR_ROWS].filter(r=>r.prod===pk&&r.lot&&salesInRange(r.date,from,to));
   if(!src.length)return '';
   const byLot={};src.forEach(r=>{const k=r.lot+'||'+r.date;(byLot[k]=byLot[k]||{lot:r.lot,date:r.date,q:0}).q+=r.qty;});
   const items=Object.values(byLot).sort((a,b)=>salesDateCmp(a.date,b.date));
@@ -3955,6 +4794,7 @@ async function loadSales(){
         return {date:d,prod:pk,color:salesCanonColor(pk,r.color),size:r.size,qty:r.qty||0,lot:r.dot_name||'Lô'};
       });
     }catch(_){ORD_HOME_ROWS=[];}
+    await loadPoArrRows();
     hideLoading();
     // Gộp số liệu gốc (Sheet) + Supabase, chuẩn hoá mã/màu
     SALES_ALL=[...SEED_SALES,...rows].map(normSalesRow).filter(r=>r.date);
@@ -3996,7 +4836,7 @@ function renderSalesOverview(){
     if(!byDate[d])byDate[d]={};
     byDate[d][r.prod]=(byDate[d][r.prod]||0)+(r.qty||0);
   });
-  const dates=Object.keys(byDate).sort(salesDateCmp);
+  const dates=Object.keys(byDate).sort((a,b)=>salesDateCmp(b,a));   // ngày gần nhất lên đầu
   const prods=['QNB','NBL','BSL','GY3','CLD','LUN'];
 
   if(!dates.length){
