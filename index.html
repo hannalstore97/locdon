@@ -24,7 +24,12 @@ html,body{height:100%;font-family:var(--f-body);-webkit-font-smoothing:antialias
 
 /* ── SIDEBAR ── */
 .sb{width:240px;flex-shrink:0;background:var(--ink);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;border-right:1px solid rgba(255,255,255,.06)}
-.sb-top{padding:24px 20px 16px}
+.sb-top{padding:24px 20px 16px;flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(220,198,170,.35) transparent}
+.sb-top::-webkit-scrollbar{width:8px}
+.sb-top::-webkit-scrollbar-track{background:transparent}
+.sb-top::-webkit-scrollbar-thumb{background:rgba(220,198,170,.3);border-radius:8px;border:2px solid var(--ink)}
+.sb-top::-webkit-scrollbar-thumb:hover{background:rgba(220,198,170,.55)}
+.sb-foot{flex-shrink:0}
 .sb-brand{display:flex;align-items:center;gap:10px;margin-bottom:20px}
 .sb-logo{width:40px;height:40px;border-radius:10px;background:var(--cream);display:flex;align-items:center;justify-content:center;padding:5px;flex-shrink:0}
 .sb-brand-name{font-family:var(--f-head);font-size:11px;font-weight:800;color:var(--white);letter-spacing:.1em;text-transform:uppercase}
@@ -884,30 +889,9 @@ select:focus,input[type=text]:focus,input[type=date]:focus{border-color:var(--te
 <div class="page" id="page-dash">
 <div class="page-inner">
   <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:8px">
-    <div><div class="page-title">Master Dashboard</div><div class="page-sub">Dự báo tồn kho · Min stock + Lead time 20 ngày</div></div>
+    <div><div class="page-title">Master Dashboard</div><div class="page-sub">Tổng quan bán hàng · ghi chú sản phẩm — số tồn & đặt hàng xem ở Quản lý kho</div></div>
     <button class="btn btn-terra" onclick="loadDash()">↺ Cập nhật dữ liệu</button>
   </div>
-  <details style="background:#fff;border:1px solid var(--tan);border-radius:10px;padding:0 14px;margin:10px 0 4px" open>
-    <summary style="cursor:pointer;font-size:12px;font-weight:700;color:var(--brown);padding:10px 0">ℹ️ Nguyên lý tính toán — bấm để ẩn/hiện</summary>
-    <div style="display:grid;gap:6px;font-size:11.5px;line-height:1.55;color:#5B4636;padding:2px 0 12px">
-      <div>• <b>Dự báo 20ng</b> = (Bán 30 ngày ÷ 30) × 20 — hàng dự kiến bán ra trong 20 ngày tới.</div>
-      <div>• <b>Hụt</b> = nếu 20 ngày tới <b>không có hàng về</b>, tồn còn lại (Tổng KD − Dự báo 20ng) sẽ thiếu so với mục tiêu bao nhiêu. <b>Hụt = 0</b> nghĩa là vẫn đủ, chưa cần nhập. <i>(Mục tiêu = "Mức muốn luôn giữ" × %bán — đổi ô đó thì Hụt & Deadline cập nhật ngay.)</i></div>
-      <div>• <b>Deadline</b> = còn mấy ngày nữa tồn tụt xuống dưới mục tiêu (theo tốc độ bán hiện tại). <b>"Đã trễ"</b> = đang thiếu rồi, cần nhập gấp.</div>
-      <div>• <b>Cần nhập</b> = đặt thêm bao nhiêu để <b>nâng tồn lên đúng "Mức muốn luôn giữ"</b> (mức tồn tổng bạn muốn luôn có), cân theo %bán & Tổng KD. Ô "Mức muốn luôn giữ" = 0 thì cột này = 0.</div>
-      <div style="color:#8a6f56"><b>Khi nào dùng cột nào?</b> → <b>Cần nhập</b>: khi muốn kho luôn duy trì ở một mức cố định. → <b>Chia nhập</b>: khi đã biết đợt này định nhập tổng bao nhiêu cái. Cả hai đều cân theo %bán & Tổng KD (mã đang thiếu nhập nhiều, mã dư nhập ít/bỏ qua).</div>
-      <div>• <b>Chia nhập</b> = phân bổ "Số lượng muốn nhập" theo %bán <b>nhưng có nhìn Tổng KD hiện tại</b>: mã đang thiếu (so với tỉ lệ bán) nhập nhiều hơn, mã còn dư nhập ít/bỏ qua — để sau khi nhập tồn từng mã cân theo %bán. <b>Tổng nhập ≈ đúng số bạn muốn.</b> Bấm <b>✓ Tạo đơn Order</b> → chọn <b>chia mấy lô</b> (1/2/3…) → tự tạo các lô sang Ord Hàng, tên tăng dần (VD NBD8, NBD9…).</div>
-    </div>
-  </details>
-  <div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 2px" id="dashProdTabs">
-    <button class="kho-tab" onclick="setDashTab('ALL',this)">Tất cả</button>
-    <button class="kho-tab on" onclick="setDashTab('QNB',this)">Quần Nịt Bụng</button>
-    <button class="kho-tab" onclick="setDashTab('NBL',this)">NB Lót</button>
-    <button class="kho-tab" onclick="setDashTab('BSL',this)">Bodysuit</button>
-    <button class="kho-tab" onclick="setDashTab('GY3',this)">Gym3</button>
-    <button class="kho-tab" onclick="setDashTab('CLD',this)">Cloud</button>
-    <button class="kho-tab" onclick="setDashTab('LUN',this)">Luna</button>
-  </div>
-  <div id="dashContent"><div style="color:#9A8070;font-size:13px;text-align:center;padding:40px">Bấm "Cập nhật dữ liệu" để tải</div></div>
   <div id="dashSummary" style="margin-top:8px"></div>
 </div>
 </div>
@@ -3288,6 +3272,7 @@ function deadlineClass(dl){
 }
 
 function renderDash(data){
+  if(!document.getElementById('dashContent'))return;   // bảng theo sản phẩm đã bỏ khỏi Dashboard (xem Quản lý kho)
   const keys=curDashProd==='ALL'?PROD_KEYS:PROD_KEYS.filter(k=>k===curDashProd);
   let html='';
   keys.forEach(pk=>{
