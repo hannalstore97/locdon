@@ -1242,7 +1242,7 @@ function openKolPage(){
   if(!url||change){
     url=(prompt('Link trang KOL / Hoa hồng nhân viên (giữ mặc định nếu để chung thư mục với web này):', url||'hannalstore97_kol.html')||'').trim();
     if(!url)return;
-    localStorage.setItem('kolUrl',url);
+    localStorage.setItem('kolUrl',url);if(window.cloudSave)cloudSave('kolUrl');
   }
   window.open(url,'_blank','noopener');
 }
@@ -1322,7 +1322,7 @@ async function sbDelete(table,params){
 let _gsUrlTimer=null;
 function saveGsUrl(){
   const url=document.getElementById('gsUrl').value.trim();
-  localStorage.setItem('gsUrl',url);
+  localStorage.setItem('gsUrl',url);if(window.cloudSave)cloudSave('gsUrl');
 }
 function getGsUrl(){return localStorage.getItem('gsUrl')||'';}
 async function triggerSync(){
@@ -2018,7 +2018,7 @@ function renderPickTable(prod,label,cls){
 }
 async function loadPickStock(){
   try{
-    const [sl,ol]=await Promise.all([sbSelectAll('sales_log','order=date.asc'),sbSelect('ord_lots','order=prod.asc')]);
+    const [sl,ol]=await Promise.all([sbSelectAll('sales_log','order=date.asc'),sbSelect('ord_lots','order=prod.asc'),loadEdits()]);
     SALES_ALL=[...SEED_SALES,...sl].map(normSalesRow).filter(r=>r.date);
     const toDMY=v=>{v=String(v||'');return v.includes('/')?v:(v?v.split('-').reverse().join('/'):'');};
     const t=new Date();const todayDMY=`${String(t.getDate()).padStart(2,'0')}/${String(t.getMonth()+1).padStart(2,'0')}/${t.getFullYear()}`;const todayYMD=t.toISOString().split('T')[0];
@@ -2961,7 +2961,7 @@ async function loadOrd(){await loadOrdLots();}
 const KHO_CFG={QNB:{name:'Quần Nịt Bụng',colors:['ĐEN','Da'],sizes:['XS/S','M/L','XL/2XL','3XL','4XL','5XL','6XL']},NBL:{name:'Quần NB Lót',colors:['ĐEN','Da'],sizes:['XS/S','M/L','XL/2XL','3XL','4XL','5XL','6XL']},BSL:{name:'Bodysuite Lót',colors:['ĐEN','NÂU','DA'],sizes:['S','M','L','XL','2XL','3XL']},GY3:{name:'Gym3',colors:['ĐEN','NÂU'],sizes:['S','M']},CLD:{name:'Cloud',colors:['ĐEN','NÂU','HỒNG','HỒNG BABY','XANH','VÀNG','TÍM','XANH NAVY','KEM'],sizes:['S','M','L','XL']},LUN:{name:'Luna',colors:['XANH DƯƠNG','XANH MINT','XANH NAVY','ĐỎ ĐÔ','ĐEN','HỒNG'],sizes:['S','M','L','XL']}};
 let curKhoProd='QNB';
 let khoVals=(function(){try{return JSON.parse(localStorage.getItem('hannal_kho_vals')||'{}')||{};}catch(_){return {};}})();
-function saveKhoVals(){try{localStorage.setItem('hannal_kho_vals',JSON.stringify(khoVals));}catch(_){}}
+function saveKhoVals(){try{localStorage.setItem('hannal_kho_vals',JSON.stringify(khoVals));}catch(_){}if(window.cloudSave)cloudSave('hannal_kho_vals');}
 function setKhoTab(prod,el){
   curKhoProd=prod;(el&&el.parentElement?el.parentElement:document).querySelectorAll('.kho-tab').forEach(t=>t.classList.remove('on'));if(el)el.classList.add('on');
   if(!khoVals[prod])khoVals[prod]={};
@@ -3121,7 +3121,7 @@ async function loadProductNotes(){
 }
 async function saveProductNote(pk,val){
   PRODUCT_NOTES[pk]=val;
-  try{localStorage.setItem('hannal_prod_notes',JSON.stringify(PRODUCT_NOTES));}catch(_){}
+  try{localStorage.setItem('hannal_prod_notes',JSON.stringify(PRODUCT_NOTES));}catch(_){}if(window.cloudSave)cloudSave('hannal_prod_notes');
   try{
     const res=await fetch(`${SB_URL}/rest/v1/product_notes`,{
       method:'POST',
@@ -3699,6 +3699,7 @@ async function computeInvData(){
   const today=localYMD();
   const mk=(days)=>{const d=new Date();d.setDate(d.getDate()-days);return localYMD(d);};
   const from7=mk(7),from30=mk(30),from60=mk(60);
+  await loadEdits();
   const [snapRows,salesRows,ordRowsAll,targetRows]=await Promise.all([
     sbSelect('kho_snapshot','order=counted_at.desc'),
     sbSelectAll('sales_log','order=date.asc'),
@@ -3829,7 +3830,7 @@ async function saveTargetFromDash(pk){
 // Lưu đồng bộ vào bảng kho_target với prod = "KEEP|<SP>|<Màu>" / "TS|<SP>|<Màu>" (+ bản sao trong máy).
 let INV_COLOR_SET={};   // key "KEEP|QNB|ĐEN" → số
 try{INV_COLOR_SET=JSON.parse(localStorage.getItem('inv_color_set')||'{}')||{};}catch(_){INV_COLOR_SET={};}
-function invSetLocalSave(){try{localStorage.setItem('inv_color_set',JSON.stringify(INV_COLOR_SET));}catch(_){}}
+function invSetLocalSave(){try{localStorage.setItem('inv_color_set',JSON.stringify(INV_COLOR_SET));}catch(_){}if(window.cloudSave)cloudSave('inv_color_set');}
 function invColorId(pk,col){return pk+'_'+String(col).normalize('NFD').replace(/[^a-z0-9]/gi,'_');}
 
 // Mức muốn giữ tự đặt theo số bán 7 ngày của cả màu
@@ -4629,6 +4630,35 @@ let SALES_ALL=[];
 let EDIT_MODE=false;
 let EDITS=(function(){try{const e=JSON.parse(localStorage.getItem('hannal_sales_edits')||'{}');return {ord:e.ord||{},arr:e.arr||{},kho:e.kho||{}};}catch(_){return {ord:{},arr:{},kho:{}};}})();
 function saveEdits(){try{localStorage.setItem('hannal_sales_edits',JSON.stringify(EDITS));}catch(_){}}
+// ── Đồng bộ số sửa tay lên Supabase (bảng sales_edits) để mọi máy thấy giống nhau ──
+let EDITS_CLOUD_OK=null;   // null = chưa thử, false = chưa có bảng
+async function syncEditCloud(tbl,key,val){
+  try{
+    if(val==null)await sbDelete('sales_edits',`tbl=eq.${encodeURIComponent(tbl)}&k=eq.${encodeURIComponent(key)}`);
+    else await sbUpsert('sales_edits',[{tbl,k:key,qty:val,updated_at:new Date().toISOString()}],'tbl,k');
+    EDITS_CLOUD_OK=true;return true;
+  }catch(e){EDITS_CLOUD_OK=false;console.warn('sales_edits:',e&&e.message);toast('⚠ Số sửa chỉ lưu trên máy này — chưa tạo bảng sales_edits trên Supabase','err');return false;}
+}
+async function clearAllEdits(){
+  EDITS={ord:{},arr:{},kho:{}};saveEdits();
+  try{await sbDelete('sales_edits','tbl=in.(ord,arr,kho)');}catch(e){console.warn('sales_edits clear:',e&&e.message);}
+  renderSalesKpi();renderSales();toast('✓ Đã xoá sửa tay trên mọi máy — số về đúng gốc','ok');
+}
+// Đọc số sửa tay chung từ Supabase. Lần đầu: đẩy các số sửa đang có sẵn trên máy này lên (để máy khác thấy).
+async function loadEdits(){
+  try{
+    let rows=await sbSelectAll('sales_edits','select=tbl,k,qty');
+    if(!localStorage.getItem('hannal_edits_migrated')){
+      const have=new Set((rows||[]).map(r=>r.tbl+'#'+r.k));const up=[];
+      ['ord','arr','kho'].forEach(t=>Object.keys(EDITS[t]||{}).forEach(k=>{if(!have.has(t+'#'+k))up.push({tbl:t,k,qty:EDITS[t][k],updated_at:new Date().toISOString()});}));
+      if(up.length){await sbUpsert('sales_edits',up,'tbl,k');rows=(rows||[]).concat(up);}
+      localStorage.setItem('hannal_edits_migrated','1');
+    }
+    const e={ord:{},arr:{},kho:{}};
+    (rows||[]).forEach(r=>{if(e[r.tbl]&&r.k!=null)e[r.tbl][r.k]=Number(r.qty)||0;});
+    EDITS=e;saveEdits();EDITS_CLOUD_OK=true;
+  }catch(err){EDITS_CLOUD_OK=false;console.warn('Chưa đọc được sales_edits — dùng số sửa trên máy:',err&&err.message);}
+}
 function toggleEditMode(){
   if(!EDIT_MODE){const p=prompt('Nhập mật khẩu để sửa số liệu:');if(p===null)return;if(p!=='0802'){toast('Sai mật khẩu!','err');return;}EDIT_MODE=true;toast('Bật chế độ sửa — bấm vào ô để chỉnh','ok');}
   else{EDIT_MODE=false;}
@@ -4644,9 +4674,11 @@ function editCell(td){
   const cur=(EDITS[tbl][key]!=null)?EDITS[tbl][key]:(td.textContent.replace(/[^\d-]/g,'')||'0');
   const inp=prompt(`Sửa ${lbl} · ${SALES_PROD_NAMES[pk]} · ${c} ${s} · ${d}\n(để trống = xoá sửa, về số gốc)`,cur);
   if(inp===null)return;
+  let newVal=null;
   if(inp.trim()===''){delete EDITS[tbl][key];}
-  else{const v=parseInt(inp);if(isNaN(v)){toast('Số không hợp lệ','err');return;}EDITS[tbl][key]=v;}
+  else{const v=parseInt(inp);if(isNaN(v)){toast('Số không hợp lệ','err');return;}EDITS[tbl][key]=v;newVal=v;}
   saveEdits();renderSalesKpi();renderSales();
+  syncEditCloud(tbl,key,newVal);
 }
 // Gộp override lên dữ liệu gốc (thay thế ô date|color|size)
 function mergeOverride(rows,ovr,pk){
@@ -4657,12 +4689,12 @@ function mergeOverride(rows,ovr,pk){
 
 // Nguồn HÀNG MỚI VỀ = số nền (file) + hàng trả nhập tay + lô "Đã về nhà" (Order Hàng)
 let MANUAL_ARR=(function(){try{return JSON.parse(localStorage.getItem('hannal_manual_arr')||'[]')||[];}catch(_){return [];}})();
-function saveManualArr(){try{localStorage.setItem('hannal_manual_arr',JSON.stringify(MANUAL_ARR));}catch(_){}}
+function saveManualArr(){try{localStorage.setItem('hannal_manual_arr',JSON.stringify(MANUAL_ARR));}catch(_){}if(window.cloudSave)cloudSave('hannal_manual_arr');}
 let ORD_HOME_ROWS=[]; // lô ord_lots đã "Đã về nhà"
 // Số đếm kho thực tế (kiểm kho): recount đè lên tồn kho nhà, hiển thị ĐỎ
 let KHO_COUNTS=(function(){try{return JSON.parse(localStorage.getItem('hannal_kho_counts')||'{}')||{};}catch(_){return {};}})();
 let KHO_COUNT_LOG=(function(){try{return JSON.parse(localStorage.getItem('hannal_kho_count_log')||'[]')||[];}catch(_){return [];}})();
-function saveKhoCounts(){try{localStorage.setItem('hannal_kho_counts',JSON.stringify(KHO_COUNTS));localStorage.setItem('hannal_kho_count_log',JSON.stringify(KHO_COUNT_LOG));}catch(_){}}function getArrRows(pk){
+function saveKhoCounts(){try{localStorage.setItem('hannal_kho_counts',JSON.stringify(KHO_COUNTS));localStorage.setItem('hannal_kho_count_log',JSON.stringify(KHO_COUNT_LOG));}catch(_){}if(window.cloudSave)cloudSave('hannal_kho_counts');if(window.cloudSave)cloudSave('hannal_kho_count_log');}function getArrRows(pk){
   const out=SEED_ARR_D.filter(r=>r.prod===pk).map(r=>({date:r.date,prod:pk,color:r.color,size:r.size,qty:r.qty}));
   MANUAL_ARR.filter(r=>r.prod===pk).forEach(r=>out.push(r));
   ORD_HOME_ROWS.filter(r=>r.prod===pk).forEach(r=>out.push(r));
@@ -4764,7 +4796,7 @@ async function loadSales(){
   showLoading('Tải dữ liệu đi đơn...');
   try{
     // Lấy sales_log trong khoảng ngày — format date là dd/mm/yyyy
-    const rows=await sbSelectAll('sales_log',`order=date.asc,prod.asc`);
+    const [rows]=await Promise.all([sbSelectAll('sales_log',`order=date.asc,prod.asc`),loadEdits()]);
     // Lấy lô hàng "Đã về nhà" từ Order Hàng → cộng vào hàng mới về
     try{
       const ol=await sbSelect('ord_lots','order=prod.asc');
@@ -4959,12 +4991,12 @@ function renderSalesDetail(){
   const from=document.getElementById('salesFrom').value,to=document.getElementById('salesTo').value;
   const sc=document.getElementById('salesContent');sc.classList.toggle('edit-on',EDIT_MODE);
   let html='';
-  if(EDIT_MODE){html+=`<div style="background:rgba(190,115,94,.1);border:1px solid rgba(190,115,94,.3);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:12px;color:#a75f4c">✏️ Đang ở chế độ sửa — bấm vào ô bất kỳ để chỉnh (để trống = về số gốc). Sửa đơn đi / hàng về thì tồn kho tự tính lại. <button class="btn btn-ghost" style="font-size:10px;padding:3px 8px;margin-left:6px" onclick="if(confirm('Xoá tất cả chỉnh sửa tay?')){EDITS={ord:{},arr:{},kho:{}};saveEdits();renderSalesKpi();renderSales();}">Xoá hết sửa</button></div>`;}
+  if(EDIT_MODE){html+=`<div style="background:rgba(190,115,94,.1);border:1px solid rgba(190,115,94,.3);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:12px;color:#a75f4c">✏️ Đang ở chế độ sửa — bấm vào ô bất kỳ để chỉnh (để trống = về số gốc). Sửa đơn đi / hàng về thì tồn kho tự tính lại. <button class="btn btn-ghost" style="font-size:10px;padding:3px 8px;margin-left:6px" onclick="if(confirm('Xoá tất cả chỉnh sửa tay?')){clearAllEdits();}">Xoá hết sửa</button></div>`;}
   const _editCount=Object.keys(EDITS.ord||{}).length+Object.keys(EDITS.arr||{}).length+Object.keys(EDITS.kho||{}).length;
   if(_editCount>0&&!EDIT_MODE){
     html+=`<div style="background:#fdf0e6;border:1px solid #e5b98f;border-radius:8px;padding:9px 12px;margin-bottom:12px;font-size:12px;color:#a75f4c;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
       <span>⚠️ Đang có <b>${_editCount} ô sửa tay</b> (ô nền cam). Nếu bạn từng chỉnh 1 ô về 0 thì ô đó sẽ <b>che số thật/số mới nhập</b> — bấm nút bên phải để trả về số gốc.</span>
-      <button class="btn btn-ghost" style="font-size:10px;padding:4px 10px;white-space:nowrap" onclick="if(confirm('Xoá tất cả ${_editCount} ô sửa tay? Toàn bộ số sẽ về đúng gốc/số mới.')){EDITS={ord:{},arr:{},kho:{}};saveEdits();renderSalesKpi();renderSales();toast('✓ Đã xoá sửa tay — số về đúng gốc','ok');}">↺ Xoá tất cả sửa tay</button>
+      <button class="btn btn-ghost" style="font-size:10px;padding:4px 10px;white-space:nowrap" onclick="if(confirm('Xoá tất cả ${_editCount} ô sửa tay? Toàn bộ số sẽ về đúng gốc/số mới.')){clearAllEdits();}">↺ Xoá tất cả sửa tay</button>
     </div>`;
   }
   prods.forEach(pk=>{
@@ -5059,7 +5091,7 @@ function saveArrGrid(){
   let n=0;
   document.querySelectorAll('#arrGrid input[type=number]').forEach(inp=>{
     const q=parseInt(inp.value)||0;
-    if(q>0){MANUAL_ARR.push({date:dstr,prod:pk,color:inp.dataset.col,size:inp.dataset.sz,qty:q,lot:note});n+=q;}
+    if(q>0){MANUAL_ARR.push({id:_uid('A'),date:dstr,prod:pk,color:inp.dataset.col,size:inp.dataset.sz,qty:q,lot:note});n+=q;}
   });
   if(!n){toast('Chưa nhập số nào!','err');return;}
   saveManualArr();
@@ -5084,7 +5116,7 @@ function staffDefault(){return [
 ];}
 let STAFF=(function(){try{const s=JSON.parse(localStorage.getItem(STAFF_KEY));if(Array.isArray(s)&&s.length)return s.map(x=>Object.assign({leaves:{}},x));}catch(_){}
   return staffDefault();})();
-function saveStaff(){try{localStorage.setItem(STAFF_KEY,JSON.stringify(STAFF));}catch(_){}}
+function saveStaff(){try{localStorage.setItem(STAFF_KEY,JSON.stringify(STAFF));}catch(_){}if(window.cloudSave)cloudSave('hannal_staff_v1');}
 // Sửa 1 lần: Nhi vào làm 04/06/2026 (trước ghi nhầm 01/05/2026)
 (function(){try{if(localStorage.getItem('hannal_nhi_start_fix'))return;const nhi=STAFF.find(function(x){return x.id==='nhi'||x.name==='Nhi';});if(nhi&&nhi.start==='2026-05-01'){nhi.start='2026-06-04';saveStaff();}localStorage.setItem('hannal_nhi_start_fix','1');}catch(_){}})();
 
@@ -5373,7 +5405,7 @@ function refreshSalaryCom(){
 // ═══ MODAL + LỊCH SỬ ═════════════════════════════════════════════
 const LEAVE_LOG_KEY='hannal_leave_log_v1', SAL_LOG_KEY='hannal_salary_log_v1';
 function loadLog(k){try{const a=JSON.parse(localStorage.getItem(k));return Array.isArray(a)?a:[];}catch(_){return [];}}
-function saveLog(k,a){try{localStorage.setItem(k,JSON.stringify(a));}catch(_){}}
+function saveLog(k,a){try{localStorage.setItem(k,JSON.stringify(a));}catch(_){}if(window.cloudSave)cloudSave(k);}
 function _uid(p){return p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
 function logLeave(action,emp,date,note){const a=loadLog(LEAVE_LOG_KEY);a.push({id:_uid('L'),ts:Date.now(),empId:emp.id,empName:emp.name,action:action,date:date,note:note||''});saveLog(LEAVE_LOG_KEY,a);}
 function logSalary(snap){snap.id=snap.id||_uid('S');const a=loadLog(SAL_LOG_KEY);a.push(snap);saveLog(SAL_LOG_KEY,a);}
@@ -5476,6 +5508,173 @@ function askDelHist(kind,id,ts){
       if(kind==='leave')openLeaveHistory();else openSalaryHistory();
     }});
 }
+</script>
+<script>
+// ═══ ĐỒNG BỘ MỌI MÁY (bảng app_state trên Supabase) ══════════════
+// Mọi dữ liệu trước đây chỉ nằm trong trình duyệt từng máy giờ được ghi lên Supabase.
+// Máy nào sửa → lưu lên ngay; các máy khác tự tải lại mỗi 15 giây / khi quay lại tab.
+// 2 máy cùng sửa khác chỗ → gộp cả hai (không đè mất của nhau).
+function cIsObj(x){return x!==null&&typeof x==='object'&&!Array.isArray(x);}
+function cStable(x){if(x===undefined)return 'u';return JSON.stringify(x,function(k,v){return cIsObj(v)?Object.keys(v).sort().reduce(function(o,kk){o[kk]=v[kk];return o;},{}):v;});}
+function cEq(a,b){return cStable(a)===cStable(b);}
+function cClone(x){return x===undefined?undefined:JSON.parse(JSON.stringify(x));}
+function cIdent(x){
+  if(!cIsObj(x))return null;
+  if(x.id!=null)return 'i:'+x.id;
+  if(x.ts!=null)return 't:'+x.ts+'|'+(x.prod||'');
+  if(x.date!=null&&Object.keys(x).length<=2)return 'd:'+x.date;   // ngày nghỉ {date,note}
+  return null;
+}
+// Gộp 3 chiều: b = bản chung lần trước, l = máy này, c = trên Supabase
+function merge3(b,l,c,pref){
+  if(cEq(l,c))return l;
+  if(cEq(l,b))return c;
+  if(cEq(c,b))return l;
+  if(cIsObj(l)&&cIsObj(c)){
+    const bb=cIsObj(b)?b:{},out={};
+    new Set([...Object.keys(l),...Object.keys(c)]).forEach(function(k){const v=merge3(bb[k],l[k],c[k],pref);if(v!==undefined)out[k]=v;});
+    return out;
+  }
+  if(Array.isArray(l)&&Array.isArray(c)){
+    const ba=Array.isArray(b)?b:[],all=l.concat(c,ba);
+    if(all.length&&all.every(function(x){return cIdent(x)!=null;})){
+      const m=function(a){const o={};a.forEach(function(x){o[cIdent(x)]=x;});return o;};
+      const mb=m(ba),ml=m(l),mc=m(c);
+      const keys=[...new Set(l.map(cIdent).concat(c.map(cIdent)))];
+      const out=keys.map(function(k){return merge3(mb[k],ml[k],mc[k],pref);}).filter(function(v){return v!==undefined;});
+      if(out.length>1&&out.every(function(x){return typeof x.ts==='number';})){
+        const ref=l.length>1?l:c;const desc=ref.length>1&&ref[0].ts>ref[ref.length-1].ts;
+        out.sort(function(a,b2){return desc?b2.ts-a.ts:a.ts-b2.ts;});
+      }
+      return out;
+    }
+  }
+  return pref==='cloud'?c:l;
+}
+function _lsGet(k,def){try{const v=localStorage.getItem(k);return v==null?def:JSON.parse(v);}catch(_){return def;}}
+function _lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(_){}}
+function _lsHas(k){try{return localStorage.getItem(k)!=null;}catch(_){return false;}}
+const CLOUD_REG={
+  gsUrl:{had:()=>_lsHas('gsUrl'),get:()=>localStorage.getItem('gsUrl')||'',set:v=>{localStorage.setItem('gsUrl',v||'');const el=document.getElementById('gsUrl');if(el&&document.activeElement!==el)el.value=v||'';}},
+  kolUrl:{had:()=>_lsHas('kolUrl'),get:()=>localStorage.getItem('kolUrl')||'',set:v=>{localStorage.setItem('kolUrl',v||'');}},
+  hannal_kho_vals:{had:()=>_lsHas('hannal_kho_vals'),get:()=>khoVals,set:v=>{khoVals=v||{};_lsSet('hannal_kho_vals',khoVals);}},
+  hannal_prod_notes:{had:()=>_lsHas('hannal_prod_notes'),get:()=>_lsGet('hannal_prod_notes',{}),set:v=>{_lsSet('hannal_prod_notes',v||{});Object.assign(PRODUCT_NOTES,v||{});}},
+  inv_color_set:{had:()=>_lsHas('inv_color_set'),get:()=>INV_COLOR_SET,set:v=>{INV_COLOR_SET=v||{};_lsSet('inv_color_set',INV_COLOR_SET);}},
+  hannal_manual_arr:{had:()=>_lsHas('hannal_manual_arr'),get:()=>MANUAL_ARR,set:v=>{MANUAL_ARR=v||[];_lsSet('hannal_manual_arr',MANUAL_ARR);}},
+  hannal_kho_counts:{had:()=>_lsHas('hannal_kho_counts'),get:()=>KHO_COUNTS,set:v=>{KHO_COUNTS=v||{};_lsSet('hannal_kho_counts',KHO_COUNTS);}},
+  hannal_kho_count_log:{had:()=>_lsHas('hannal_kho_count_log'),get:()=>KHO_COUNT_LOG,set:v=>{KHO_COUNT_LOG=v||[];_lsSet('hannal_kho_count_log',KHO_COUNT_LOG);}},
+  hannal_staff_v1:{had:()=>_lsHas(STAFF_KEY),get:()=>STAFF,set:v=>{STAFF=(v||[]).map(x=>Object.assign({leaves:{}},x));_lsSet(STAFF_KEY,STAFF);}},
+  hannal_leave_log_v1:{had:()=>_lsHas(LEAVE_LOG_KEY),get:()=>loadLog(LEAVE_LOG_KEY),set:v=>{_lsSet(LEAVE_LOG_KEY,v||[]);}},
+  hannal_salary_log_v1:{had:()=>_lsHas(SAL_LOG_KEY),get:()=>loadLog(SAL_LOG_KEY),set:v=>{_lsSet(SAL_LOG_KEY,v||[]);}},
+};
+// Hàng về/trả cũ chưa có mã → gán mã để gộp giữa các máy không bị trùng/mất
+(function(){let ch=false;MANUAL_ARR.forEach(function(r){if(!r.id){r.id=_uid('A');ch=true;}});if(ch)_lsSet('hannal_manual_arr',MANUAL_ARR);})();
+
+let CLOUD_BASE={},CLOUD_TIMERS={},CLOUD_PULLING=false,CLOUD_ERR_SHOWN=false,CLOUD_PENDING=new Set();
+function cloudFail(e){
+  console.warn('app_state:',e&&e.message);
+  const el=document.getElementById('gsStatus');
+  if(el){el.textContent='⚠ Chưa đồng bộ được giữa các máy';el.className='sb-gs-status err';}
+  if(!CLOUD_ERR_SHOWN){CLOUD_ERR_SHOWN=true;toast('⚠ Chưa đồng bộ được — kiểm tra đã tạo bảng app_state trên Supabase chưa','err');}
+}
+// Gọi mỗi khi dữ liệu thay đổi trên máy này
+function cloudSave(key){
+  if(!CLOUD_REG[key])return;
+  clearTimeout(CLOUD_TIMERS[key]);
+  CLOUD_TIMERS[key]=setTimeout(function(){delete CLOUD_TIMERS[key];cloudFlush(key);},400);
+}
+async function cloudFlush(key){
+  const R=CLOUD_REG[key];const local=cClone(R.get());
+  if(cEq(local,CLOUD_BASE[key]))return;
+  try{
+    const rows=await sbSelect('app_state','select=value&key=eq.'+encodeURIComponent(key));
+    let val=local;
+    if(rows&&rows.length){
+      val=merge3(CLOUD_BASE[key],local,rows[0].value,'local');
+      if(!cEq(val,local)){R.set(cClone(val));cloudChanged([key]);}
+    }
+    await sbUpsert('app_state',[{key:key,value:val,updated_at:new Date().toISOString()}],'key');
+    CLOUD_BASE[key]=cClone(val);
+  }catch(e){cloudFail(e);}
+}
+// Tải dữ liệu mới nhất từ Supabase về máy này
+async function cloudPull(){
+  if(CLOUD_PULLING)return;CLOUD_PULLING=true;
+  const changed=[];
+  try{
+    const rows=await sbSelectAll('app_state','select=key,value');
+    const by={};(rows||[]).forEach(function(r){by[r.key]=r.value;});
+    const push=[],now=new Date().toISOString();
+    Object.keys(CLOUD_REG).forEach(function(key){
+      if(CLOUD_TIMERS[key])return;                 // đang chờ lưu thay đổi của máy này
+      const R=CLOUD_REG[key],has=Object.prototype.hasOwnProperty.call(by,key),c=by[key];
+      const mig='cloud_mig_'+key;
+      if(!localStorage.getItem(mig)){
+        // Lần đầu máy này đồng bộ: gộp dữ liệu sẵn có trên máy với bản chung (bản chung được ưu tiên khi trùng)
+        const local=R.had()?cClone(R.get()):undefined;
+        const val=has?merge3(undefined,local,c,'cloud'):local;
+        if(val!==undefined){
+          if(!cEq(val,R.get())){R.set(cClone(val));changed.push(key);}
+          if(!has||!cEq(val,c))push.push({key:key,value:val,updated_at:now});
+        }
+        CLOUD_BASE[key]=cClone(val);
+        localStorage.setItem(mig,'1');
+      }else if(has&&!cEq(c,CLOUD_BASE[key])){
+        // Máy khác vừa sửa
+        const local=cClone(R.get());
+        const val=merge3(CLOUD_BASE[key],local,c,'local');
+        if(!cEq(val,local)){R.set(cClone(val));changed.push(key);}
+        CLOUD_BASE[key]=cClone(val);
+        if(!cEq(val,c))push.push({key:key,value:val,updated_at:now});
+      }
+    });
+    if(push.length)await sbUpsert('app_state',push,'key');
+    const st=document.getElementById('gsStatus');
+    if(st&&CLOUD_ERR_SHOWN){st.textContent='✓ Đồng bộ · '+new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'});st.className='sb-gs-status ok';CLOUD_ERR_SHOWN=false;}
+  }catch(e){cloudFail(e);}
+  // Số sửa tay ở Đi Đơn (bảng sales_edits)
+  try{const before=cStable(EDITS);await loadEdits();if(cStable(EDITS)!==before)changed.push('edits');}catch(_){}
+  CLOUD_PULLING=false;
+  if(changed.length)cloudChanged(changed);
+}
+function cloudChanged(keys){keys.forEach(function(k){CLOUD_PENDING.add(k);});cloudRerender();}
+// Vẽ lại trang đang mở theo số mới (đợi nếu đang gõ dở trong ô nhập)
+function cloudRerender(){
+  if(!CLOUD_PENDING.size)return;
+  const ae=document.activeElement;
+  if(ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)&&ae.closest('.main')){setTimeout(cloudRerender,2000);return;}
+  const ks=CLOUD_PENDING;CLOUD_PENDING=new Set();
+  const has=function(){return [].slice.call(arguments).some(function(k){return ks.has(k);});};
+  const vis=function(id){const p=document.getElementById('page-'+id);return p&&p.classList.contains('active');};
+  try{
+    if(vis('staff')&&has('hannal_staff_v1','hannal_leave_log_v1','hannal_salary_log_v1')){
+      renderStaff();
+      const sv=document.getElementById('staffSalaryView');
+      if(SAL_UNLOCKED&&sv&&sv.style.display!=='none')renderSalary();
+    }
+    if(vis('sales')&&has('edits','hannal_manual_arr','hannal_kho_counts')&&SALES_DATA.length){renderSalesKpi();renderSales();}
+    if(vis('inventory')){
+      if(has('edits','hannal_manual_arr','hannal_kho_counts'))loadInventoryNew();
+      else if(has('inv_color_set')&&Object.keys(INV_DATA).length)renderInventoryNew();
+      const kk=document.getElementById('invSecKiemKho');
+      if(kk&&kk.style.display!=='none'){if(has('hannal_kho_vals'))renderKhoTable();if(has('hannal_kho_count_log'))renderKhoHistory();}
+    }
+    if(vis('dash')&&has('hannal_prod_notes','edits','hannal_manual_arr','hannal_kho_counts'))loadDash();
+  }catch(e){console.warn('cloudRerender:',e);}
+}
+// Đóng tab khi còn thay đổi chưa gửi → gửi ngay
+window.addEventListener('pagehide',function(){
+  Object.keys(CLOUD_TIMERS).forEach(function(key){
+    clearTimeout(CLOUD_TIMERS[key]);
+    try{fetch(`${SB_URL}/rest/v1/app_state?on_conflict=key`,{method:'POST',keepalive:true,
+      headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},
+      body:JSON.stringify([{key:key,value:CLOUD_REG[key].get(),updated_at:new Date().toISOString()}])});}catch(_){}
+  });
+});
+window.addEventListener('DOMContentLoaded',function(){cloudPull();});
+window.addEventListener('focus',function(){cloudPull();});
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')cloudPull();});
+setInterval(function(){if(document.visibilityState==='visible')cloudPull();},15000);
 </script>
 </body>
 </html>
