@@ -1494,7 +1494,7 @@ function getShopeeItems(raw){
       const code=mc[1].toUpperCase(),combo=!!mc[2]||/\+/.test(mc[3]);
       const colors=shpColorsOf(mc[3]),size=nGroupSize(code,mc[4]);
       lines.push({no,code,combo,colors,size,qty,raw:cmp,ok:true});
-      if(code==='CB01'){res.push({code,color:colors[0]||'',size,qty,line:no});continue;}
+      if(code==='CB01'){res.push({code,color:colors.join('+'),size,qty,line:no});continue;}
       // Combo nhiều màu → mỗi màu × SL của dòng (để bảng soạn hàng đếm đúng số cái)
       colors.forEach(c=>res.push({code,color:c,size,qty,line:no,combo}));
       continue;
@@ -1502,7 +1502,7 @@ function getShopeeItems(raw){
     const fr=skuParseFree(cmp,desc);
     if(fr){
       lines.push({no,code:fr.code,combo:fr.combo,colors:fr.colors,size:fr.size,qty,raw:cmp,ok:true,viaSku:true});
-      if(fr.code==='CB01'){res.push({code:fr.code,color:fr.colors[0]||'',size:fr.size,qty,line:no});continue;}
+      if(fr.code==='CB01'){res.push({code:fr.code,color:fr.colors.join('+'),size:fr.size,qty,line:no});continue;}
       fr.colors.forEach(c=>res.push({code:fr.code,color:c,size:fr.size,qty,line:no,combo:fr.combo}));
       continue;
     }
@@ -1515,7 +1515,7 @@ function getShopeeItems(raw){
         const code=nameCodes[0],combo=/\+/.test(mn[1]);
         const colors=shpColorsOf(mn[1]),size=nGroupSize(code,mn[2]);
         lines.push({no,code,combo,colors,size,qty,raw:cmp,ok:true,viaName:true});
-        if(code==='CB01'){res.push({code,color:colors[0]||'',size,qty,line:no});continue;}
+        if(code==='CB01'){res.push({code,color:colors.join('+'),size,qty,line:no});continue;}
         colors.forEach(c=>res.push({code,color:c,size,qty,line:no,combo}));
         continue;
       }
@@ -1791,6 +1791,8 @@ function tkRowToItems(r){
   const per=m&&m[2]?Math.max(1,+m[2]):(isCombo&&colors.length===1?2:1);
   if(!code||!m)return[{code:'OTHER',name:r.name,seller:sel,color:m?m[3]:'',size:m?nSize(m[4]):'?',qty:r.qty,pieces:r.qty*per,raw:sku,why:!m?'không đọc được phân loại':(sel?`mã ${sel} chưa có trong hệ thống`:'không có Seller SKU')}];
   const size=nSize(m[4]);
+  // CB01 = 1 bộ (màu 1 → NB01, màu 2 → NBD) — không tách, giữ nguyên chuỗi màu cho addPickItem
+  if(code==='CB01')return[{code,color:colors.join('+'),size,qty:r.qty,pieces:r.qty,combo:true,how,raw:sku}];
   if(colors.length>1)return colors.map(c=>({code,color:c,size,qty:r.qty,pieces:r.qty,combo:true,how,raw:sku}));
   return[{code,color:colors[0],size,qty:r.qty,pieces:r.qty*per,combo:isCombo||per>=2,how,raw:sku}];
 }
@@ -1905,8 +1907,17 @@ function initPickInv(){
   }
   return inv;
 }
+// CB01 = combo 2 quần: màu THỨ NHẤT → NB01, màu THỨ HAI → NBD. VD "Nude+Đen" = NB01 Nude + NBD Đen.
+// Chỉ ghi 1 màu → cả 2 quần cùng màu đó.
+function cb01Colors(raw){
+  const r=(raw||'').normalize('NFC').replace(/\bcombo\b/ig,' ');
+  let parts=r.split('+').map(x=>x.trim()).filter(Boolean);
+  if(parts.length<2){const m=[...r.matchAll(SHP_RE_COLOR)].map(x=>x[0]);if(m.length>=2)parts=m;}
+  const c1=parts[0]||'',c2=parts[1]||c1;
+  return{nb01:c1,nbd:c2};
+}
 function addPickItem(inv,code,rawColor,rawSize,qty){
-  const col=pColor(rawColor);qty=qty||1;
+  let col=pColor(rawColor);qty=qty||1;
   const addTo=(prod)=>{
     const sz=pSize(rawSize,prod);
     const colors=PICK_COLORS[prod],sizes=PICK_SIZES[prod];
@@ -1917,7 +1928,7 @@ function addPickItem(inv,code,rawColor,rawSize,qty){
     if(!sizes.includes(sz)){const k=`${prod}·${col}·${sz}`;inv.OTHER[k]=(inv.OTHER[k]||0)+qty;return;}
     inv[prod][c][sz]=(inv[prod][c][sz]||0)+qty;
   };
-  if(code==='CB01'){addTo('NBD');addTo('NB01');}
+  if(code==='CB01'){const cc=cb01Colors(rawColor);col=pColor(cc.nb01);addTo('NB01');col=pColor(cc.nbd);addTo('NBD');}
   else if(code==='NBD')  addTo('NBD');
   else if(code==='NB01') addTo('NB01');
   else if(code==='JS01') addTo('JS01');
@@ -2008,7 +2019,9 @@ function getGHNItems(raw){
     const code=extCode(m[1]);if(!code)continue;
     const qty=parseInt(m[5]||m[6]||'1')||1;
     const size=nGroupSize(code,m[4]);
-    m[3].split('+').map(x=>x.trim()).filter(Boolean).forEach(c=>res.push({code,color:c,size,qty}));
+    const cl=m[3].split('+').map(x=>x.trim()).filter(Boolean);
+    if(code==='CB01')res.push({code,color:cl.join('+'),size,qty});   // CB01: màu 1 → NB01, màu 2 → NBD (addPickItem tự tách)
+    else cl.forEach(c=>res.push({code,color:c,size,qty}));
   }
   return res;
 }
@@ -2073,7 +2086,7 @@ async function lzdReadPdfPage(pg){
   return {...lzdParseText(await lzdOcrPage(pg)),src:'ocr'};
 }
 function lzdAddToInv(inv,r,tag,warn){
-  r.items.forEach(it=>{const q=it.qty||1;it.colors.forEach(c=>addPickItem(inv,it.code,c,it.size,q));});
+  r.items.forEach(it=>{const q=it.qty||1;if(it.code==='CB01')addPickItem(inv,it.code,it.colors.join('+'),it.size,q);else it.colors.forEach(c=>addPickItem(inv,it.code,c,it.size,q));});
   const sum=r.items.reduce((a,it)=>a+(it.qty||1),0);
   if(r.warn)warn.push(`${tag}: ${r.warn}`);
   if(r.slTotal!=null&&r.slTotal!==sum)warn.push(`${tag}: SL nhãn = ${r.slTotal} nhưng đọc được ${sum} — kiểm tra lại`);
@@ -2167,7 +2180,7 @@ async function showPickTable(){
   let totalItems=0,otherItems=0;
   Object.entries(PICK_INV).forEach(([pk,prod])=>{if(pk==='OTHER'){Object.values(prod||{}).forEach(v=>{otherItems+=(v||0);});return;}if(typeof prod==='object')Object.values(prod).forEach(col=>{if(typeof col==='object')Object.values(col).forEach(v=>{totalItems+=(v||0);});});});
   if(otherItems)totalItems=`${totalItems+otherItems} (gồm ${otherItems} SP khác)`;
-  document.getElementById('pickNote').innerHTML=`Tổng ${totalItems} sản phẩm đếm từ PDF. CB01 đã cộng vào cả NBD và NB01.`+(PICK_STOCK_READY?` · <span style="color:#c0392b;font-weight:700">■ HẾT KHO</span> (kho nhà = 0 → thay size/màu khác) · <span style="color:#b5651d;font-weight:700">■ còn ít</span> (không đủ đơn)`:` · <span style="color:#9A8070">(không tải được tồn kho để cảnh báo)</span>`);
+  document.getElementById('pickNote').innerHTML=`Tổng ${totalItems} sản phẩm đếm từ PDF. CB01 đã tách: màu 1 → NB01, màu 2 → NBD.`+(PICK_STOCK_READY?` · <span style="color:#c0392b;font-weight:700">■ HẾT KHO</span> (kho nhà = 0 → thay size/màu khác) · <span style="color:#b5651d;font-weight:700">■ còn ít</span> (không đủ đơn)`:` · <span style="color:#9A8070">(không tải được tồn kho để cảnh báo)</span>`);
   const pc=document.getElementById('pickCard');pc.style.display='block';
 }
 let _salesWriting=false,_lastSalesIds=[],_pendingSales=null;
@@ -2757,7 +2770,7 @@ async function runPickingList(buf,fname){
   products.forEach(p=>{
     p.variations.forEach(v=>{
       const code=pickListCode(v.seller,p.name);
-      const cs=v.sku.match(/^(?:\d+\s*c\s+)?([A-Za-zÀ-ỹ]+(?:\s+[A-Za-zÀ-ỹ]+)?)\s*,\s*(.+)$/i);
+      const cs=v.sku.match(/^(?:\d+\s*c\s+)?([A-Za-zÀ-ỹ]+(?:\s*\+\s*[A-Za-zÀ-ỹ]+|\s+[A-Za-zÀ-ỹ]+)*)\s*,\s*(.+)$/i);
       if(!code||!cs){
         const key=`${p.name.slice(0,40)} · ${v.sku}`;inv.OTHER[key]=(inv.OTHER[key]||0)+v.qty;
         unknown.push({name:p.name,sku:v.sku,seller:v.seller});return;
