@@ -821,6 +821,25 @@ select:focus,input[type=text]:focus,input[type=date]:focus{border-color:var(--te
     </div>
   </div>
 
+  <!-- Lazada (ngoài sàn LZD) -->
+  <div class="card" id="lzdCard">
+    <div class="card-body" style="padding:18px 22px">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <div style="font-family:var(--f-head);font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--brown)">🛒 Lazada (LZD)</div>
+          <input type="date" id="lzdDate" style="padding:5px 9px;border:1px solid rgba(220,198,170,.6);border-radius:7px;font-size:12px;color:var(--dark);background:var(--cream)">
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-ghost" onclick="document.getElementById('lzdFiles').click()" style="font-size:11px">📎 Chọn file PDF Lazada</button>
+          <button class="btn btn-terra" id="lzdWriteBtn" onclick="confirmLzdSales()" style="font-size:11px" disabled>☁ Ghi vào Đi Đơn</button>
+        </div>
+      </div>
+      <input type="file" id="lzdFiles" accept="application/pdf" multiple style="display:none" onchange="onLzdFiles(this)">
+      <div style="font-size:11px;color:#9A8070;margin-bottom:8px">Đọc cột <b>Mã Hàng</b> cuối mỗi dòng dạng <b>MÃ-Màu-Size</b> (VD <b>NB-Đen-XXL</b> = Quần Nịt Bụng Dài NBD · Đen · XL/2XL), SL lấy ở cột SL. Nhãn Lazada là ảnh nên máy đọc chữ trên ảnh — mỗi nhãn mất 1–2 giây.</div>
+      <div id="lzdContent"><div style="color:#9A8070;font-size:12px;text-align:center;padding:18px">Chưa có file — bấm "📎 Chọn file PDF Lazada"</div></div>
+    </div>
+  </div>
+
   <!-- Stats — dưới cùng -->
   <div class="card" id="statsCard" style="display:none">
     <div class="card-body" style="padding:18px 22px">
@@ -1201,6 +1220,7 @@ window.addEventListener('DOMContentLoaded',async ()=>{
   setKhoTab('QNB',document.querySelector('#invSecKiemKho .kho-tab'));
   const _kcd=document.getElementById('khoCountDate');if(_kcd)_kcd.value=new Date().toISOString().split('T')[0];
   const _htd=document.getElementById('htDate');if(_htd&&!_htd.value)_htd.value=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().split('T')[0];
+  const _lzd=document.getElementById('lzdDate');if(_lzd&&!_lzd.value)_lzd.value=localYMD();
   // Auto-load nếu đã có URL Sheet
   if(getGsUrl()){
     showSbConnecting();
@@ -1970,26 +1990,122 @@ function buildPickFromGroups(groups){
 }
 
 // ── PARSER ĐƠN HOẢ TỐC / NGOẠI SÀN (GHN + gộp chung) ──
-// GHN dạng "CODE color size : Nc"  (VD "NB01 nude 3XL : 1c")
+// Mã sản phẩm dùng chung cho GHN + Lazada. "NB" (mã hàng Lazada "NB-Đen-L") = Quần Nịt Bụng Dài NBD.
+const EXT_CODE_ALIAS={NB:'NBD'};
+const EXT_CODE_LIST=['NBD','NB01','GY3','JS01','CB01','CLOUD','LUNA'];
+function extCode(raw){const c=String(raw||'').toUpperCase().replace(/\s/g,'');return EXT_CODE_ALIAS[c]||(EXT_CODE_LIST.includes(c)?c:null);}
+const EXT_CODES_RE='NBD|NB01|NB|JS01|GY3|CB01|CLOUD|LUNA';
+const EXT_COL='Hồng\\s*Baby|Hong\\s*Baby|Baby\\s*Pink|Xanh\\s*Navy|Xanh\\s*Mint|Xanh\\s*Dương|Xanh\\s*Duong|Đỏ\\s*Đô|Đỏ|Mint|Burgundy|Đen|Den|Black|Nude|Nâu|Nau|Brown|Da|Kem|Cream|Hồng|Hong|Pink|Navy|Xanh|Blue|Vàng|Vang|Yellow|Tím|Tim|Purple';
+const EXT_SZ='XS\\/S|M\\/L|XL\\/2XL|XL\\/XXL|XXXL|[2-6]XL|XXL|XL|XS|S|M|L';
+// GHN: ghi tay "MÃ Màu Size", không cần dấu phẩy, hoa/thường đều được:
+//   "Cloud Hồng S" · "NBD đen M/L" · "Luna Xanh Mint L x2" · "NB01 nude 3XL : 2c" · "Cloud Combo Đen + Hồng M"
+// SL mặc định 1; muốn nhiều hơn ghi "x2" / ": 2" / "SL 2" / "2c" ngay sau size.
+const GHN_RE=new RegExp(`(?<![A-Za-z0-9À-ỹ])(${EXT_CODES_RE})(?![A-Za-z0-9])\\s*[-:,]?\\s*(combo\\s*)?((?:${EXT_COL})(?:\\s*\\+\\s*(?:${EXT_COL}))*)\\s*[-,]?\\s*(?:size\\s*)?(${EXT_SZ})(?![A-Za-z0-9/])(?:\\s*(?:(?:[:x×*]|SL\\s*:?)\\s*(\\d{1,3})(?:\\s*c(?:ái|ai)?)?|(\\d{1,3})\\s*c(?:ái|ai)?)(?![A-Za-zÀ-ỹ0-9]))?`,'gi');
 function getGHNItems(raw){
-  const t=(raw||'').replace(/\u00A0/g,' ').replace(/\s+/g,' ').normalize('NFC');
-  const res=[];let m;
-  const re=new RegExp(`\\b(NBD|NB01|JS01|GY3|CB01|CLOUD|LUNA)\\s+([A-Za-zÀ-ỹ+ ]{1,25}?)\\s*${SZP}\\s*:\\s*(\\d+)`,'gi');
-  while((m=re.exec(t))!==null){
-    const code=m[1].toUpperCase();let colorRaw=(m[2]||'').trim();const size=nSize(m[3]);const qty=parseInt(m[4])||1;
-    if(!size||qty<=0)continue;
-    if(/combo/i.test(colorRaw)){
-      const uniq=[...new Set([...colorRaw.matchAll(/Đen|Den|Nude|Nâu|Nau|Da|Hồng\s*Baby|Hong\s*Baby|Kem|Hồng|Hong|Vàng|Vang|Tím|Tim|Xanh\s*Navy|Navy|Xanh\s*Mint|Xanh\s*Dương|Mint|Đỏ\s*Đô|Đỏ|Xanh/gi)].map(x=>x[0].toLowerCase()))];
-      uniq.forEach(c=>res.push({code,color:c,size,qty:1}));
-    }else res.push({code,color:colorRaw,size,qty});
+  const t=(raw||'').replace(/ /g,' ').normalize('NFC').replace(/\s+/g,' ');
+  const res=[];
+  for(const m of t.matchAll(GHN_RE)){
+    const code=extCode(m[1]);if(!code)continue;
+    const qty=parseInt(m[5]||m[6]||'1')||1;
+    const size=nGroupSize(code,m[4]);
+    m[3].split('+').map(x=>x.trim()).filter(Boolean).forEach(c=>res.push({code,color:c,size,qty}));
   }
   return res;
 }
-// Thử lần lượt Shopee/SPX → TikTok → GHN
+// Nhãn GHN → đọc mã ghi tay trước; còn lại thử Shopee/SPX → TikTok → GHN
 function getExpressItems(text){
+  if(/\bGHN\b|Giao\s*H[àa]ng\s*Nhanh/i.test(text||'')){const g=getGHNItems(text);if(g.length)return g;}
   let sh=getShopeeItems(text).filter(i=>i.code&&i.code!=='OTHER');if(sh.length)return sh;
   let tk=getTkItems(text).filter(i=>i.code&&i.code!=='OTHER');if(tk.length)return tk;
   return getGHNItems(text);
+}
+
+// ═══ LAZADA (ngoài sàn LZD) ═══════════════════════════════════════
+// Nhãn Lazada/BEST Express in chữ dạng hình vẽ (không có lớp text) → đọc bằng OCR (tesseract.js, tiếng Việt).
+// Nhận diện theo cột MÃ HÀNG cuối mỗi dòng: "<MÃ>-<Màu>-<Size>" (VD NB-Đen-XXL), không dựa vào tên SP.
+// SL: 1 dòng hàng → lấy "SL (n)" ở tiêu đề; nhiều dòng → số ở cột SL của từng dòng. Lệch tổng → cảnh báo.
+let LZD_INV=null,_tessWorker=null,_tessLoading=null;
+const LZD_SKU_RE=new RegExp(`(?<![A-Za-z0-9])(${EXT_CODES_RE})\\s*-\\s*((?:${EXT_COL})(?:\\s*\\+\\s*(?:${EXT_COL}))*)\\s*-\\s*(${EXT_SZ})(?![A-Za-z0-9])`,'gi');
+function lzdParseText(raw){
+  const t=(raw||'').normalize('NFC').replace(/[‐-―−]/g,'-').replace(/ /g,' ');
+  const slM=t.match(/SL\s*\(\s*(\d{1,3})\s*\)/i);const slTotal=slM?+slM[1]:null;
+  const body=slM?t.slice(t.indexOf(slM[0])+slM[0].length):t;
+  const lines=body.split(/\n/).map(x=>x.trim()).filter(Boolean);
+  const items=[...body.replace(/\s+/g,' ').matchAll(LZD_SKU_RE)].map(m=>{const code=extCode(m[1]);
+    return {code,colors:m[2].split('+').map(x=>x.trim()).filter(Boolean),size:nGroupSize(code,m[3].toUpperCase()),raw:m[0]};}).filter(it=>it.code);
+  // Dòng mở đầu mỗi SP thường là "-[XS-6XL]…", số ở cuối dòng đó = SL của SP
+  const startQ=lines.filter(l=>/^\W{0,3}\[/.test(l)).map(l=>{const q=l.match(/\s(\d{1,3})\s*$/);return q?+q[1]:null;});
+  let warn='';
+  if(items.length===1){items[0].qty=slTotal||startQ[0]||1;if(slTotal&&startQ[0]&&startQ[0]!==slTotal)warn=`SL tiêu đề ${slTotal} khác SL dòng ${startQ[0]} — đang lấy ${slTotal}`;}
+  else if(items.length>1&&startQ.length===items.length&&startQ.every(q=>q)){items.forEach((it,i)=>it.qty=startQ[i]);}
+  else if(items.length>1){items.forEach(it=>it.qty=1);warn=`${items.length} dòng hàng nhưng không đọc được SL từng dòng — tạm tính mỗi dòng 1`;}
+  return {items,slTotal,warn};
+}
+function loadScriptOnce(src){return new Promise((res,rej)=>{if([...document.scripts].some(x=>x.src===src&&x.dataset.ok))return res();const el=document.createElement('script');el.src=src;el.onload=()=>{el.dataset.ok='1';res();};el.onerror=()=>rej(new Error('không tải được thư viện đọc chữ (kiểm tra mạng)'));document.head.appendChild(el);});}
+async function getOcr(){
+  if(_tessWorker)return _tessWorker;
+  if(!_tessLoading)_tessLoading=(async()=>{
+    await loadScriptOnce('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js');
+    const w=await Tesseract.createWorker('vie+eng');
+    await w.setParameters({tessedit_pageseg_mode:'6',preserve_interword_spaces:'1'});
+    _tessWorker=w;return w;
+  })().catch(e=>{_tessLoading=null;throw e;});
+  return _tessLoading;
+}
+// Chụp vùng "Danh sách SP" (từ ~55% đến ~86% chiều cao nhãn) rồi OCR
+async function lzdOcrPage(pg){
+  const vp=pg.getViewport({scale:4});
+  const cv=document.createElement('canvas');cv.width=Math.round(vp.width);cv.height=Math.round(vp.height);
+  const ctx=cv.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,cv.width,cv.height);
+  await pg.render({canvasContext:ctx,viewport:vp}).promise;
+  const x0=Math.round(cv.width*.02),y0=Math.round(cv.height*.555),w=Math.round(cv.width*.95),h=Math.round(cv.height*.31);
+  const cr=document.createElement('canvas');cr.width=w;cr.height=h;cr.getContext('2d').drawImage(cv,x0,y0,w,h,0,0,w,h);
+  const wk=await getOcr();const {data}=await wk.recognize(cr);
+  return data.text||'';
+}
+// Trang có lớp chữ → đọc chữ; trang không có chữ → OCR. Trả null nếu không phải nhãn Lazada.
+async function lzdReadPdfPage(pg){
+  const tc=await pg.getTextContent();
+  const its=tc.items.filter(x=>typeof x.str==='string').map(x=>({str:x.str.normalize('NFC'),x:x.transform[4],y:x.transform[5],w:x.width,h:x.height||Math.hypot(x.transform[2],x.transform[3])}));
+  const txt=shpBuildLines(its).map(l=>l.text).join('\n');
+  if(/Danh\s*s[áa]ch\s*SP/i.test(txt))return {...lzdParseText(txt),src:'text'};
+  if(txt.replace(/\s/g,'').length>40)return null;
+  return {...lzdParseText(await lzdOcrPage(pg)),src:'ocr'};
+}
+function lzdAddToInv(inv,r,tag,warn){
+  r.items.forEach(it=>{const q=it.qty||1;it.colors.forEach(c=>addPickItem(inv,it.code,c,it.size,q));});
+  const sum=r.items.reduce((a,it)=>a+(it.qty||1),0);
+  if(r.warn)warn.push(`${tag}: ${r.warn}`);
+  if(r.slTotal!=null&&r.slTotal!==sum)warn.push(`${tag}: SL nhãn = ${r.slTotal} nhưng đọc được ${sum} — kiểm tra lại`);
+}
+async function onLzdFiles(input){
+  const files=[...(input.files||[])];if(!files.length)return;
+  if(typeof pdfjsLib==='undefined'){toast('pdf.js chưa load, thử lại sau vài giây','err');return;}
+  LZD_INV=initPickInv();const st={files:0,pages:0,unread:0,warn:[]};
+  showLoading('Đang tải bộ đọc chữ (lần đầu hơi lâu)...');
+  try{await getOcr();}catch(e){hideLoading();toast('Lỗi: '+e.message,'err');LZD_INV=null;return;}
+  for(const f of files){
+    try{
+      const pdf=await pdfjsLib.getDocument({data:await f.arrayBuffer()}).promise;
+      for(let i=1;i<=pdf.numPages;i++){
+        document.getElementById('loadingTxt').textContent=`Đọc nhãn Lazada · ${f.name} · trang ${i}/${pdf.numPages}`;
+        st.pages++;const tag=`${f.name} T${i}`;
+        let r=null;try{r=await lzdReadPdfPage(await pdf.getPage(i));}catch(e){console.error(e);}
+        if(!r||!r.items.length){st.unread++;st.warn.push(`${tag}: không đọc được mã hàng (cần dạng MÃ-Màu-Size, VD NB-Đen-L)`);continue;}
+        lzdAddToInv(LZD_INV,r,tag,st.warn);
+      }
+      st.files++;
+    }catch(e){console.error(e);st.unread++;st.warn.push(`${f.name}: không mở được file`);}
+  }
+  hideLoading();
+  renderExtTable(LZD_INV,'lzdContent','lzdWriteBtn',`📎 ${st.files} file · ${st.pages} nhãn${st.unread?` · <span style="color:#c0392b">${st.unread} nhãn chưa đọc được</span>`:''}`,st.warn);
+}
+function confirmLzdSales(){
+  if(!LZD_INV){toast('Chưa đọc file nào!','err');return;}
+  const {items,dateStr}=buildExtItems(LZD_INV,'lzdDate','Lazada');
+  if(!items.length){toast('Không có sản phẩm nào để ghi','err');return;}
+  _pendingSales={items,dateStr,ca:'Lazada',source:'lzd'};
+  renderSalesModal('confirm',{lines:items.length,totQty:items.reduce((a,x)=>a+x.qty,0),dateStr,ca:'Lazada'});
 }
 function renderPickTable(prod,label,cls){
   const inv=PICK_INV;if(!inv||!inv[prod])return'';
@@ -2094,7 +2210,7 @@ function renderSalesModal(mode,info){
       <div style="background:var(--dark);padding:15px 20px;color:var(--tan);font-family:var(--f-head);font-weight:800;font-size:14px;letter-spacing:.04em">☁ Xác nhận ghi vào Đi Đơn?</div>
       <div style="padding:18px 20px;color:var(--dark);font-size:13px;line-height:1.75">
         Sắp ghi <b>${info.lines} dòng</b> (tổng <b>${info.totQty} sản phẩm</b>) vào Đi Đơn.<br>
-        <span style="color:#7a5a40">📅 Ngày <b>${info.dateStr}</b> · Ca <b>${info.ca}</b> · ${PLAT==='tiktok'?'TikTok':(PLAT==='picklist'?'PickingList':'Shopee')}</span>
+        <span style="color:#7a5a40">📅 Ngày <b>${info.dateStr}</b> · ${_pendingSales&&_pendingSales.source?`<b>${info.ca}</b>`:`Ca <b>${info.ca}</b> · ${PLAT==='tiktok'?'TikTok':(PLAT==='picklist'?'PickingList':'Shopee')}`}</span>
         <div style="margin-top:12px;background:var(--yel-bg);border:1px solid #e8d9a0;border-radius:8px;padding:8px 11px;font-size:11.5px;color:#8a6f0b">⚠️ Ghi trùng sẽ <b>cộng dồn</b> số liệu. Chỉ bấm 1 lần.</div>
       </div>
       <div style="display:flex;gap:8px;padding:0 20px 18px">
@@ -2143,6 +2259,11 @@ async function doSyncSales(btn){
       HT_INV=null;const fi=document.getElementById('htFiles');if(fi)fi.value='';
       const wb=document.getElementById('htWriteBtn');if(wb)wb.disabled=true;
       const hc=document.getElementById('htContent');if(hc)hc.innerHTML='<div style="color:#1A6B5C;font-size:12px;text-align:center;padding:14px">✓ Đã ghi xong. Chọn file khác nếu cần.</div>';
+    }
+    if(_pendingSales&&_pendingSales.source==='lzd'){   // dọn mục Lazada để tránh ghi trùng
+      LZD_INV=null;const fi=document.getElementById('lzdFiles');if(fi)fi.value='';
+      const wb=document.getElementById('lzdWriteBtn');if(wb)wb.disabled=true;
+      const lc=document.getElementById('lzdContent');if(lc)lc.innerHTML='<div style="color:#1A6B5C;font-size:12px;text-align:center;padding:14px">✓ Đã ghi xong. Chọn file khác nếu cần.</div>';
     }
   }catch(e){
     toast('Lỗi ghi: '+e.message,'err');
@@ -2241,7 +2362,7 @@ async function onHtFiles(input){
   if(!files.length)return;
   if(typeof pdfjsLib==='undefined'){toast('pdf.js chưa load, thử lại sau vài giây','err');return;}
   HT_INV=initPickInv();
-  let fileCount=0,totalPages=0,unread=0;
+  let fileCount=0,totalPages=0,unread=0;const htWarn=[];
   showLoading('Đọc đơn hoả tốc / ngoại sàn...');
   for(const f of files){
     try{
@@ -2257,6 +2378,12 @@ async function onHtFiles(input){
             if(it.code==='OTHER'){const k=`${it.seller||'Không mã'} · ${it.color?pColor(it.color):'?'} · ${it.size}`;HT_INV.OTHER[k]=(HT_INV.OTHER[k]||0)+it.pieces;}
             else addPickItem(HT_INV,it.code,it.color,it.size,it.pieces);
           });
+          totalPages++;continue;
+        }
+        if(text.replace(/\s/g,'').length<20){
+          // Trang không có lớp chữ (VD nhãn Lazada/BEST) → đọc bằng OCR
+          let r=null;try{document.getElementById('loadingTxt').textContent=`Đọc chữ trên ảnh · ${f.name} · trang ${i}/${pdf.numPages}`;r=await lzdReadPdfPage(pg);}catch(e){console.error(e);}
+          if(r&&r.items.length){lzdAddToInv(HT_INV,r,`${f.name} T${i}`,htWarn);}else unread++;
           totalPages++;continue;
         }
         const items=getExpressItems(text);
@@ -2277,25 +2404,37 @@ async function onHtFiles(input){
     }catch(e){console.error(e);unread++;}
   }
   hideLoading();
-  renderHtTable(fileCount,totalPages,unread);
+  renderHtTable(fileCount,totalPages,unread,htWarn);
 }
-function renderHtTable(fileCount,totalPages,unread){
-  const el=document.getElementById('htContent');if(!el)return;
-  const btn=document.getElementById('htWriteBtn');
-  if(!HT_INV){el.innerHTML='';if(btn)btn.disabled=true;return;}
+function renderHtTable(fileCount,totalPages,unread,warns){
+  renderExtTable(HT_INV,'htContent','htWriteBtn',`📎 ${fileCount} file · ${totalPages} nhãn${unread?` · <span style="color:#c0392b">${unread} nhãn chưa đọc được</span>`:''}`,warns);
+}
+function renderExtTable(INV,contentId,btnId,headHtml,warns){
+  const el=document.getElementById(contentId);if(!el)return;
+  const btn=document.getElementById(btnId);
+  if(!INV){el.innerHTML='';if(btn)btn.disabled=true;return;}
   const NAMES={NBD:'Quần NB Dài',NB01:'Quần NB Lót',JS01:'Bodysuit',GY3:'Gym3',CLOUD:'Cloud',LUNA:'Luna'};
   const chip=(t)=>`<span style="display:inline-block;background:var(--cream);border:1px solid #e8d9c8;border-radius:6px;padding:3px 8px;margin:2px;font-size:11px">${t}</span>`;
   let total=0,rowsHtml='';
   ['NBD','NB01','JS01','GY3','CLOUD','LUNA'].forEach(prod=>{
     const colors=PICK_COLORS[prod],sizes=PICK_SIZES[prod];let cells='';
-    colors.forEach(c=>sizes.forEach(s=>{const v=(HT_INV[prod][c]||{})[s]||0;if(v>0){cells+=chip(`<b>${c} ${s}</b> ×${v}`);total+=v;}}));
+    colors.forEach(c=>sizes.forEach(s=>{const v=(INV[prod][c]||{})[s]||0;if(v>0){cells+=chip(`<b>${c} ${s}</b> ×${v}`);total+=v;}}));
     if(cells)rowsHtml+=`<div style="margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:var(--brown);font-family:var(--f-head);margin-bottom:3px">${NAMES[prod]} — ${prod}</div>${cells}</div>`;
   });
-  const other=HT_INV.OTHER||{};const okeys=Object.keys(other).filter(k=>other[k]>0);
+  const other=INV.OTHER||{};const okeys=Object.keys(other).filter(k=>other[k]>0);
   if(okeys.length){okeys.forEach(k=>total+=other[k]);rowsHtml+=`<div style="margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:#c0392b;font-family:var(--f-head);margin-bottom:3px">⚠️ Không nhận dạng được</div>${okeys.map(k=>chip(`${k} ×${other[k]}`)).join('')}</div>`;}
-  if(total<=0){el.innerHTML='<div style="color:#c0392b;font-size:12px;text-align:center;padding:14px">Không đọc được sản phẩm nào từ file. Kiểm tra lại file PDF (phải có lớp text).</div>';if(btn)btn.disabled=true;return;}
-  el.innerHTML=`<div style="font-size:11px;color:#5b4636;margin-bottom:8px">📎 ${fileCount} file · ${totalPages} nhãn${unread?` · <span style="color:#c0392b">${unread} nhãn chưa đọc được</span>`:''} · <b>Tổng ${total} sản phẩm</b></div>${rowsHtml}`;
+  if(total<=0){el.innerHTML=`<div style="color:#c0392b;font-size:12px;text-align:center;padding:14px">Không đọc được sản phẩm nào từ file.${(warns&&warns.length)?'<br>'+warns.join('<br>'):''}</div>`;if(btn)btn.disabled=true;return;}
+  const wHtml=(warns&&warns.length)?`<div style="background:var(--yel-bg);border:1px solid #e8d9a0;border-radius:8px;padding:8px 11px;font-size:11px;color:#8a6f0b;margin-bottom:8px;line-height:1.6">⚠️ ${warns.join('<br>⚠️ ')}</div>`:'';
+  el.innerHTML=`<div style="font-size:11px;color:#5b4636;margin-bottom:8px">${headHtml} · <b>Tổng ${total} sản phẩm</b></div>${wHtml}${rowsHtml}`;
   if(btn)btn.disabled=false;
+}
+function buildExtItems(INV,dateId,platform){
+  const dateVal=document.getElementById(dateId)?.value||localYMD();
+  const dp=dateVal.split('-');const dateStr=dp.length===3?`${dp[2]}/${dp[1]}/${dp[0]}`:dateVal;
+  const items=[];
+  for(const[prod,colors]of Object.entries(PICK_COLORS)){for(const c of colors){for(const s of PICK_SIZES[prod]){const v=(INV[prod][c]||{})[s]||0;if(v>0)items.push({date:dateStr,prod,color:c,size:s,qty:v,platform});}}}
+  Object.entries(INV.OTHER||{}).forEach(([k,v])=>{if(v>0)items.push({date:dateStr,prod:'OTHER',color:'',size:k,qty:v,platform});});
+  return {items,dateStr};
 }
 function buildHtItems(){
   const dateVal=document.getElementById('htDate')?.value||new Date().toISOString().split('T')[0];
