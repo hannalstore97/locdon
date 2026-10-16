@@ -761,7 +761,7 @@ select:focus,input[type=text]:focus,input[type=date]:focus{border-color:var(--te
         <div style="margin-top:6px;font-family:var(--f-mono);font-size:10px;color:#60a5fa;white-space:pre-wrap;max-height:140px;overflow-y:auto;background:#f8f9ff;border:1px solid var(--tan);border-radius:6px;padding:8px" id="dbgTxt"></div>
       </details>
       <div class="tagline">Confidence isn't just a look, it's a lifestyle.</div>
-      <div style="text-align:center;font-family:var(--f-mono);font-size:9px;color:#9A8070;margin-top:6px">Bản sort: <b>2026-09-28 · TikTok đọc theo toạ độ cột</b></div>
+      <div style="text-align:center;font-family:var(--f-mono);font-size:9px;color:#9A8070;margin-top:6px">Bản sort: <b>2026-10-16 · nhận diện theo SKU</b></div>
     </div>
   </div>
 
@@ -1432,13 +1432,52 @@ const SKU_RE_ANY=new RegExp(`(?<![0-9])(${SHP_CODES})(?![0-9])`,'gi');
 function skuCodesIn(s){const t=(s||'').normalize('NFC');return [...new Set([...t.matchAll(SKU_RE_ANY),...t.replace(/\s+/g,'').matchAll(SKU_RE_ANY)].map(x=>x[1].toUpperCase()))];}
 // Phân loại NGAY SAU mã, ghi tự do không cần dấu phẩy: "<MÃ> [Combo] <Màu>[+<Màu>…] [Size] <Size>"
 //   "quần nịt bụng NBD da 3XL" · "NBD đen + da 3XL" · "SET CLOUD VÀNG S" · "NB01 Nude, M"
+//   "Cloud Hồng Baby : S" (nhãn SPX tạo tay cho KOL — màu và size ngăn bằng dấu ":")
 // Phần sau mã phải khớp TRỌN mẫu (chỉ màu + size, không chữ lạ) — thiếu màu/size hoặc có chữ khác → OTHER.
-const SKU_RE_TAIL=new RegExp(`^[-–,:|.]*(Combo)?,?((?:${SHP_COLORS})(?:\\+(?:${SHP_COLORS}))*),?(?:Size)?(${SHP_SIZES})$`,'i');
+const SKU_RE_TAIL=new RegExp(`^[-–,:|.]*(Combo)?,?((?:${SHP_COLORS})(?:\\+(?:${SHP_COLORS}))*)[,:]?(?:Size)?(${SHP_SIZES})$`,'i');
 function skuParseFree(cmp,desc){
   const codes=skuCodesIn(desc||cmp);if(codes.length!==1)return null;
   const code=codes[0];const i=cmp.toUpperCase().lastIndexOf(code);if(i<0)return null;
   const t=cmp.slice(i+code.length).match(SKU_RE_TAIL);if(!t)return null;
   return{code,combo:!!t[1]||/\+/.test(t[2]),colors:shpColorsOf(t[2]),size:nGroupSize(code,t[3])};
+}
+// ── NHẬN DIỆN TỔNG QUÁT THEO SKU (dùng chung Shopee / TikTok / Picking List) ──
+// Chạy SAU các mẫu chặt ở trên, là bước cuối trước khi đưa vào OTHER. Không phụ thuộc thứ tự hay dấu ngăn cách:
+//   "Cloud Hồng Baby : S" · "CLOUD - Hồng Baby - S" · "Hồng Baby CLOUD S" · "LUNA Xanh Mint size M" · "NBD Đen XL / XXL"
+// KHÔNG ĐOÁN — chỉ nhận khi TẤT CẢ đều đúng:
+//   • có ĐÚNG 1 mã SKU (hoặc mã đã biết chắc từ Seller SKU, truyền vào forced)
+//   • có ĐÚNG 1 màu (hoặc 1 nhóm combo nối bằng "+"), màu đó có trong danh sách màu của SP
+//   • có ĐÚNG 1 size, size đó có trong danh sách size của SP
+// Ưu tiên đọc phần NGAY SAU mã; phần sau mã có >1 màu/size → OTHER luôn (không lấy thêm từ tên SP).
+// Trả về {code,combo,colors,size} hoặc {why:'lý do'} để ghi log.
+const SKU_TOK_COLOR=new RegExp(`(?<![\\p{L}\\p{N}])((?:${SHP_COLORS})(?:\\s*\\+\\s*(?:${SHP_COLORS}))*)(?![\\p{L}\\p{N}])`,'giu');
+// Size ghép (XS/S, M/L, XL/XXL…) đứng trước trong SHP_SIZES nên được bắt trọn; "XL / XXL" tách rời vẫn quy về cùng 1 nhóm size
+const SKU_TOK_SIZE=new RegExp(`(?<![\\p{L}\\p{N}])(${SHP_SIZES})(?![\\p{L}\\p{N}])`,'giu');
+function skuProdKey(code){return code==='CB01'?'NBD':code;}
+function skuColorOk(code,c){const p=skuProdKey(code),col=pColor(c);return (PICK_COLORS[p]||[]).includes((PICK_COLOR_ALIAS[p]||{})[col]||col);}
+function skuScan(seg,code){
+  const cg=[...new Map([...seg.matchAll(SKU_TOK_COLOR)].map(x=>{const cs=shpColorsOf(x[1]);return [[...cs].sort().join('+'),cs];})).values()];
+  const sz=[...new Set([...seg.matchAll(SKU_TOK_SIZE)].map(x=>nGroupSize(code,x[1])))];
+  return {cg,sz,combo:/combo/i.test(seg)};
+}
+function skuParseAny(desc,forced){
+  const t=(desc||'').normalize('NFC').replace(/\s+/g,' ');
+  let code=forced||null;
+  if(!code){const cs=skuCodesIn(t);if(cs.length>1)return{why:`1 dòng có nhiều mã SKU (${cs.join(', ')})`};if(!cs.length)return{why:'không có mã SKU'};code=cs[0];}
+  const at=forced?-1:t.toUpperCase().lastIndexOf(code);
+  const segs=at>=0?[t.slice(at+code.length),t]:[t];
+  for(let i=0;i<segs.length;i++){
+    const s=skuScan(segs[i],code);
+    if(s.cg.length>1)return{why:`mã ${code} nhưng có ${s.cg.length} màu khác nhau (${s.cg.map(c=>c.join('+')).join(' / ')})`};
+    if(s.sz.length>1)return{why:`mã ${code} nhưng có ${s.sz.length} size khác nhau (${s.sz.join(' / ')})`};
+    if(s.cg.length!==1||s.sz.length!==1){if(i<segs.length-1)continue;return{why:`mã ${code} nhưng ${!s.cg.length?'không thấy màu':'không thấy size'}`};}
+    const colors=s.cg[0],size=s.sz[0];
+    const badC=colors.filter(c=>!skuColorOk(code,c));
+    if(badC.length)return{why:`mã ${code} không có màu "${badC.join('+')}"`};
+    if(!(PICK_SIZES[skuProdKey(code)]||[]).includes(size))return{why:`mã ${code} không có size "${size}"`};
+    return{code,combo:s.combo||colors.length>1,colors,size};
+  }
+  return{why:`mã ${code} nhưng không đọc được màu/size`};
 }
 function shpCodesInName(desc){return [...new Set([...(desc||'').normalize('NFC').matchAll(SHP_RE_NAMECODE)].map(x=>x[1].toUpperCase()))];}
 function nGroupSize(code,rawSize){
@@ -1500,8 +1539,16 @@ function getShopeeItems(raw){
         continue;
       }
     }
+    // Bước cuối: có mã SKU thì đọc màu/size ở bất kỳ dạng nào (chỉ nhận khi rõ ràng duy nhất)
+    const an=skuParseAny(desc);
+    if(an.code){
+      lines.push({no,code:an.code,combo:an.combo,colors:an.colors,size:an.size,qty,raw:cmp,ok:true,viaAny:true});
+      if(an.code==='CB01'){res.push({code:an.code,color:an.colors[0]||'',size:an.size,qty,line:no});continue;}
+      an.colors.forEach(c=>res.push({code:an.code,color:c,size:an.size,qty,line:no,combo:an.combo}));
+      continue;
+    }
     const nc=skuCodesIn(desc);
-    const why=nc.length>1?`1 dòng có nhiều mã SKU (${nc.join(', ')})`:(nc.length===1?`có mã ${nc[0]} nhưng không đọc được màu/size`:(mn?'phân loại không có mã SKU':'không đọc được phân loại'));
+    const why=nc.length?an.why:(mn?'phân loại không có mã SKU':'không đọc được phân loại');
     lines.push({no,code:'OTHER',combo:false,colors:[],size:mn?mn[2].toUpperCase():'?',qty,raw:cmp,ok:false,why});
     // Tên generic → gom về 1 khoá cố định (không phụ thuộc chỗ cắt dòng)
     const rest=cmp.replace(/^S[aả]nph[aẩ]mph[uụ]ki[eệ]nth[oờ]itrang,?/i,'').replace(mn?SHP_RE_NOCODE:/$^/,'').replace(/[-,]+$/,'');
@@ -1538,7 +1585,7 @@ function classifyShopee(pages){
       return;
     }
     const ck=nColor(L.colors[0]);
-    const push=b=>{put(b,e,idx);logs.push({t:'ok',m:`${T}: ${L.code}/${ck||L.colors[0]}/${L.size}x${L.qty}${L.viaName?' · mã lấy từ tên SP':''}`});};
+    const push=b=>{put(b,e,idx);logs.push({t:'ok',m:`${T}: ${L.code}/${ck||L.colors[0]}/${L.size}x${L.qty}${L.viaName?' · mã lấy từ tên SP':''}${L.viaAny?' · đọc tự do theo SKU':''}`});};
     if(L.code==='NBD'&&ck&&B.NBD[ck]!==undefined)push(B.NBD[ck]);
     else if(L.code==='NB01'&&ck&&B.NB01[ck]!==undefined)push(B.NB01[ck]);
     else if(L.code==='GY3'&&ck&&B.GY3[ck]!==undefined)push(B.GY3[ck]);
@@ -1769,6 +1816,16 @@ function tkRowToItems(r){
   const isCombo=!!(m&&m[1]);
   const colors=m?m[3].split('+').map(s=>s.trim()).filter(Boolean):[];
   const per=m&&m[2]?Math.max(1,+m[2]):(isCombo&&colors.length===1?2:1);
+  // Đã biết mã nhưng phân loại ghi khác mẫu chuẩn (VD "Đen - Size S", "Size M | Hồng Baby") → đọc tổng quát theo SKU.
+  // Combo 1 màu mà không ghi số cái → không biết bao nhiêu cái → OTHER (không đoán).
+  if(code&&!m){
+    const a=skuParseAny(sku,code);
+    if(a.code&&!(a.combo&&a.colors.length===1)){
+      if(a.colors.length>1)return a.colors.map(c=>({code,color:c,size:a.size,qty:r.qty,pieces:r.qty,combo:true,how:how+' · đọc tự do',raw:sku}));
+      return[{code,color:a.colors[0],size:a.size,qty:r.qty,pieces:r.qty,combo:false,how:how+' · đọc tự do',raw:sku}];
+    }
+    return[{code:'OTHER',name:r.name,seller:sel,color:'',size:'?',qty:r.qty,pieces:r.qty,raw:sku,why:a.code?`combo 1 màu không ghi số cái`:a.why}];
+  }
   if(!code||!m)return[{code:'OTHER',name:r.name,seller:sel,color:m?m[3]:'',size:m?nSize(m[4]):'?',qty:r.qty,pieces:r.qty*per,raw:sku,why:!m?'không đọc được phân loại':(sel?`mã ${sel} chưa có trong hệ thống`:'không có Seller SKU')}];
   const size=nSize(m[4]);
   if(colors.length>1)return colors.map(c=>({code,color:c,size,qty:r.qty,pieces:r.qty,combo:true,how,raw:sku}));
@@ -2619,6 +2676,12 @@ async function runPickingList(buf,fname){
     p.variations.forEach(v=>{
       const code=pickListCode(v.seller,p.name);
       const cs=v.sku.match(/^(?:\d+\s*c\s+)?([A-Za-zÀ-ỹ]+(?:\s+[A-Za-zÀ-ỹ]+)?)\s*,\s*(.+)$/i);
+      // Đã biết mã nhưng phân loại ghi khác mẫu "Màu, Size" → đọc tổng quát theo SKU (chỉ nhận khi rõ ràng, 1 màu)
+      if(code&&!cs){
+        const a=skuParseAny(v.sku,code);
+        if(a.code&&!a.combo){addPickItem(inv,code,a.colors[0],a.size,v.qty);lg('info',`#${p.no} "${v.sku}" → ${code} ${pColor(a.colors[0])} ${a.size} (đọc tự do theo SKU)`);return;}
+        lg('warn',`⚠️ #${p.no} "${v.sku}": ${a.code?'combo — không rõ số cái':a.why}`);
+      }
       if(!code||!cs){
         const key=`${p.name.slice(0,40)} · ${v.sku}`;inv.OTHER[key]=(inv.OTHER[key]||0)+v.qty;
         unknown.push({name:p.name,sku:v.sku,seller:v.seller});return;
