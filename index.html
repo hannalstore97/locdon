@@ -761,7 +761,7 @@ select:focus,input[type=text]:focus,input[type=date]:focus{border-color:var(--te
         <div style="margin-top:6px;font-family:var(--f-mono);font-size:10px;color:#60a5fa;white-space:pre-wrap;max-height:140px;overflow-y:auto;background:#f8f9ff;border:1px solid var(--tan);border-radius:6px;padding:8px" id="dbgTxt"></div>
       </details>
       <div class="tagline">Confidence isn't just a look, it's a lifestyle.</div>
-      <div style="text-align:center;font-family:var(--f-mono);font-size:9px;color:#9A8070;margin-top:6px">Bản sort: <b>2026-10-16 · nhận diện theo SKU</b></div>
+      <div style="text-align:center;font-family:var(--f-mono);font-size:9px;color:#9A8070;margin-top:6px">Bản sort: <b>2026-10-17 · nhận diện theo SKU</b></div>
     </div>
   </div>
 
@@ -2119,6 +2119,9 @@ async function showPickTable(){
     renderPickTable('LUNA','Luna — LUNA','ph-luna')+
     renderPickTable('BLUSH','Blush — BLUSH','ph-blush');
   const other=PICK_INV.OTHER,otherKeys=Object.keys(other).filter(k=>other[k]>0);
+  // Luôn xoá danh sách cũ trước — tránh còn sót "Sản phẩm khác" của file lần trước
+  document.getElementById('pickOther').style.display='none';
+  document.getElementById('pickOtherList').innerHTML='';
   if(otherKeys.length){
     document.getElementById('pickOther').style.display='block';
     document.getElementById('pickOtherList').innerHTML=otherKeys.map(k=>{
@@ -2735,7 +2738,7 @@ function renderPlSummary(r){
 function loadingSort(on){document.getElementById('progWrap').style.display=on?'block':'none';document.getElementById('btnRun').disabled=on;document.getElementById('logDot').classList.toggle('on',on);document.getElementById('progFill').className='prog-fill'+(PLAT==='tiktok'?' tk':(PLAT==='picklist'?' pl':''));}
 function prog(msg){document.getElementById('progLbl').textContent=msg;}
 function showErr(msg){const e=document.getElementById('errBox');e.textContent='✗  '+msg;e.style.display='block';}
-function clearUI(){document.getElementById('logBd').innerHTML='';document.getElementById('logCt').textContent='';document.getElementById('btnRow').style.display='none';document.getElementById('btnDl').style.display='none';document.getElementById('errBox').style.display='none';document.getElementById('statsCard').style.display='none';document.getElementById('pickCard').style.display='none';const pb=document.getElementById('plSummaryBanner');if(pb)pb.innerHTML='';}
+function clearUI(){document.getElementById('logBd').innerHTML='';document.getElementById('logCt').textContent='';document.getElementById('btnRow').style.display='none';document.getElementById('btnDl').style.display='none';document.getElementById('errBox').style.display='none';document.getElementById('statsCard').style.display='none';document.getElementById('pickCard').style.display='none';const pb=document.getElementById('plSummaryBanner');if(pb)pb.innerHTML='';document.getElementById('pickOther').style.display='none';document.getElementById('pickOtherList').innerHTML='';}
 const PFX={ok:'✓',error:'✗',warn:'⚠',multi:'◈',info:'·',debug:'→'};
 const CLS={ok:'lg-ok',error:'lg-err',warn:'lg-warn',multi:'lg-multi',info:'lg-info',debug:'lg-debug'};
 function lg(type,msg){const bd=document.getElementById('logBd');const ln=document.createElement('div');ln.className=`log-ln ${CLS[type]||'lg-info'}`;ln.innerHTML=`<span class="log-px">${PFX[type]||'·'}</span><span>${msg}</span>`;bd.appendChild(ln);bd.scrollTop=bd.scrollHeight;document.getElementById('logCt').textContent=bd.querySelectorAll('.log-ln').length+' dòng';}
