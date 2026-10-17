@@ -544,17 +544,6 @@ select:focus,input[type=text]:focus,input[type=date]:focus{border-color:var(--te
 .kv-row-thieu td.kv-ton{background:#f8e0dc}
 .kv-due-red{color:var(--red-fg);font-weight:700}.kv-due-org{color:var(--org-fg);font-weight:700}
 .kv-foot td{background:#FAF5EE;font-weight:800;font-size:13px}
-.kv-tot-blk{border:2px solid var(--terra)}
-.kv-tot-blk .kv-head{background:linear-gradient(90deg,#5B4636,#3a2722)}
-.kv-sub-h{font-family:var(--f-head);font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--brown);padding:10px 16px 6px;background:#FDFBF7;border-top:1px solid rgba(220,198,170,.5)}
-.kv-sw{display:inline-block;padding:2px 9px;border-radius:6px;font-size:11px;font-weight:700}
-.po-sum-tbl{width:100%;border-collapse:collapse;font-size:12.5px}
-.po-sum-tbl th{font-size:9.5px;font-family:var(--f-head);text-transform:uppercase;letter-spacing:.05em;color:var(--brown);background:var(--cream);padding:7px 8px;text-align:center;white-space:nowrap}
-.po-sum-tbl td{padding:6px 8px;text-align:center;border-top:1px solid rgba(220,198,170,.45)}
-.po-sum-tbl .l{text-align:left;font-weight:700}
-.po-sum-tbl tr.tt td{background:#FAF5EE;font-weight:800}
-.po-split{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px;padding:12px 14px;background:#F3F7FC;border:1px solid #cdd9ea;border-radius:12px;font-size:12px;color:#1f3f73}
-.po-split input{width:110px;padding:7px 10px;border:1px solid #b8c8de;border-radius:8px;font-size:13px;font-weight:700;color:#1f3f73;text-align:center}
 .kv-pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:700;white-space:nowrap}
 .kv-on{background:var(--grn-bg);color:var(--grn-fg)}.kv-thieu{background:var(--red-bg);color:var(--red-fg)}.kv-cut{background:#eee;color:#666}
 .kv-modal{background:#fff;border-radius:16px;max-width:440px;width:100%;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.35)}
@@ -2146,7 +2135,7 @@ function renderPickTable(prod,label,cls){
 }
 async function loadPickStock(){
   try{
-    const [sl,ol]=await Promise.all([sbSelectAll('sales_log','order=date.asc'),sbSelect('ord_lots','order=prod.asc')]);
+    const [sl,ol]=await Promise.all([sbSelectAll('sales_log','order=date.asc'),sbSelect('ord_lots','order=prod.asc'),syncEditsFromCloud()]);
     SALES_ALL=[...SEED_SALES,...sl].map(normSalesRow).filter(r=>r.date);
     const toDMY=v=>{v=String(v||'');return v.includes('/')?v:(v?v.split('-').reverse().join('/'):'');};
     const t=new Date();const todayDMY=`${String(t.getDate()).padStart(2,'0')}/${String(t.getMonth()+1).padStart(2,'0')}/${t.getFullYear()}`;const todayYMD=t.toISOString().split('T')[0];
@@ -3858,6 +3847,7 @@ async function computeInvData(){
     sbSelectAll('sales_log','order=date.asc'),
     sbSelect('ord_lots','order=prod.asc'),
     sbSelect('kho_target'),
+    syncEditsFromCloud(),
   ]);
   targetRows.forEach(r=>{if(INV_TARGET[r.prod]!==undefined)INV_TARGET[r.prod]=r.target_qty||0;});
   (targetRows||[]).forEach(r=>{const k=String(r.prod||'');if(/^(KEEP|TS)\|/.test(k))INV_COLOR_SET[k]=Number(r.target_qty)||0;});invSetLocalSave();
@@ -4038,93 +4028,6 @@ function invSplitOrder(c,W){
 }
 const INV_ST={on:['🟢','Ổn','kv-on'],thieu:['🔴','Thiếu','kv-thieu'],cut:['🚫','Cắt mã','kv-cut']};
 
-// ── TỔNG THEO SẢN PHẨM (gộp mọi màu) ──
-let INV_VIEW={};try{INV_VIEW=JSON.parse(localStorage.getItem('inv_view')||'{}')||{};}catch(_){INV_VIEW={};}
-function invSetView(pk,m){INV_VIEW[pk]=m;try{localStorage.setItem('inv_view',JSON.stringify(INV_VIEW));}catch(_){}renderInventoryNew();}
-// Mọi dòng màu·size của 1 SP, kèm "thiếu" (need) và %bán tính trên CẢ sản phẩm
-function invProdItems(pk){
-  const cfg=INV_PROD_CFG[pk];const items=[];
-  const calcs=cfg.colors.map(col=>({col,c:invColorCalc(pk,col)}));
-  calcs.forEach(({col,c})=>c.rows.forEach(r=>items.push({col,size:r.size,r,keep:c.keep,need:c.ts>0?Math.max(0,20*r.tsSize-r.kd):r.hut})));
-  const s30=items.reduce((s,x)=>s+x.r.s30,0);
-  items.forEach(x=>x.pct=s30>0?x.r.s30/s30:0);
-  return {calcs,items};
-}
-// Chia tổng W cho mọi màu·size: bù phần thiếu trước, dư chia theo %bán của cả SP (giống cách chia từng màu)
-function invSplitProd(pk,W){
-  W=Math.max(0,Math.round(W||0));
-  const {items}=invProdItems(pk);const out={};
-  if(!W||!items.length)return out;
-  const need=items.map(x=>x.need),N=need.reduce((s,x)=>s+x,0);
-  let pct=items.map(x=>x.pct);
-  // màu bị Cắt mã (mức giữ 0) không nhận phần dư
-  pct=pct.map((p,i)=>items[i].keep===0?0:p);
-  const ps=pct.reduce((a,b)=>a+b,0);
-  pct=ps>0?pct.map(p=>p/ps):items.map(()=>1/items.length);
-  let raw;
-  if(N>W)raw=need.map(x=>W*x/N);
-  else if(N>0)raw=need.map((x,i)=>x+(W-N)*pct[i]);
-  else raw=pct.map(p=>W*p);
-  invRoundTo(raw,W).forEach((q,i)=>{if(q>0)out[items[i].col+'|'+items[i].size]=q;});
-  return out;
-}
-function invTotalBlock(pk){
-  const cfg=INV_PROD_CFG[pk];const {calcs,items}=invProdItems(pk);
-  const W=Number(INV_COLOR_SET['ORDW|'+pk+'|*']||0);
-  const alloc=invSplitProd(pk,W);
-  const dash='<span class="kv-dash">—</span>';const n=v=>v>0?v.toLocaleString():dash;
-  const s30All=items.reduce((s,x)=>s+x.r.s30,0);
-  const pc=v=>s30All?(v/s30All*100).toFixed(1)+'%':'—';
-  const F=['ton','sec','kd','dangve','s7','s30','db20','hut'];
-  const sum=list=>{const t={};F.forEach(f=>t[f]=list.reduce((s,x)=>s+(x.r[f]||0),0));return t;};
-  let body='',keepAll=0;
-  calcs.forEach(({col,c},ci)=>{
-    keepAll+=c.keep;
-    const bg=(cfg.clrBg||{})[col]||'#2A211C',fg=(cfg.clrFg||{})[col]||'#DCC6AA';
-    const L=items.filter(x=>x.col===col);
-    L.forEach((x,si)=>{
-      const r=x.r,st=INV_ST[r.status],a=alloc[col+'|'+x.size]||0;
-      const cc=si===0?`<td rowspan="${L.length+1}" style="padding:0;background:${bg};width:34px"><div style="color:${fg};font-weight:800;font-size:11px;writing-mode:vertical-rl;transform:rotate(180deg);letter-spacing:.05em;margin:auto;padding:6px 0">${col}</div></td>`:'';
-      body+=`<tr${r.status==='thieu'?' class="kv-row-thieu"':''}>${cc}<td class="kv-l">${x.size}</td><td class="kv-ton">${n(r.ton)}</td><td class="kv-sec">${n(r.sec)}</td><td>${n(r.kd)}</td><td class="kv-dv">${n(r.dangve)}</td><td class="kv-7d">${n(r.s7)}</td><td class="kv-30d">${n(r.s30)}</td><td>${n(r.db20)}</td><td class="kv-hut">${r.hut>0?r.hut.toLocaleString():dash}</td><td><span class="kv-pill ${st[2]}">${st[0]} ${st[1]}</span></td><td>${pc(r.s30)}</td><td class="kv-ord" id="kvT-${pk}-${ci}-${si}">${a>0?a.toLocaleString():dash}</td></tr>`;
-    });
-    const t=sum(L),a=L.reduce((s,x)=>s+(alloc[col+'|'+x.size]||0),0);
-    const st=c.keep===0?INV_ST.cut:t.hut>0?INV_ST.thieu:INV_ST.on;
-    body+=`<tr class="kv-foot" style="font-size:12px"><td class="kv-l">Cộng ${col}<div style="font-size:10px;font-weight:600;color:#9A8070">mức giữ ${c.keep.toLocaleString()}</div></td><td>${n(t.ton)}</td><td>${n(t.sec)}</td><td>${n(t.kd)}</td><td>${n(t.dangve)}</td><td>${n(t.s7)}</td><td>${n(t.s30)}</td><td>${n(t.db20)}</td><td>${t.hut>0?t.hut.toLocaleString():dash}</td><td><span class="kv-pill ${st[2]}">${st[0]} ${st[1]}</span></td><td>${pc(t.s30)}</td><td class="kv-ord" id="kvT-${pk}-c${ci}">${a>0?a.toLocaleString():dash}</td></tr>`;
-  });
-  const T=sum(items);
-  body+=`<tr class="kv-foot" style="background:var(--dark)"><td colspan="2" class="kv-l" style="background:var(--dark);color:var(--tan)">TỔNG ${cfg.name.toUpperCase()}</td>${[T.ton,T.sec,T.kd,T.dangve,T.s7,T.s30,T.db20,T.hut].map(v=>`<td style="background:var(--dark);color:var(--tan)">${v>0?v.toLocaleString():'—'}</td>`).join('')}<td style="background:var(--dark)"></td><td style="background:var(--dark);color:var(--tan)">100%</td><td id="kvT-${pk}-tot" style="background:var(--dark);color:#F7E3A6;font-weight:900">${W>0?W.toLocaleString():'—'}</td></tr>`;
-  const hs=['Màu','Size','Tồn kho','Kho SEC','Khả dụng','Đang về','7D','30D','Dự báo 20ng','Hụt','Trạng thái','%Bán','SL order'];
-  const head=`<tr>${hs.map((h,i)=>`<th${i<2?' class="kv-l"':h==='Tồn kho'?' class="kv-th-ton"':h==='SL order'?' class="kv-th-ord"':''}>${h}</th>`).join('')}</tr>`;
-  return `<div class="kv-blk kv-tot-blk" id="kvtb-${pk}">
-    <div class="kv-head">
-      <div class="kv-name">TỔNG ${cfg.name.toUpperCase()} · tất cả màu</div>
-      <div class="kv-ctrls">
-        <span class="kv-hint">Tổng mức giữ: <b style="color:#F7E3A6">${keepAll.toLocaleString()}c</b></span>
-        <label>SL muốn order (tổng):<input type="number" min="0" step="10" id="kvTw-${pk}" value="${W||''}" placeholder="0" oninput="invProdOrderInput('${pk}')"></label>
-        <button class="kv-go" onclick="invOpenOrderAll('${pk}')">✓ Tạo đơn Order (tất cả màu)</button>
-      </div>
-    </div>
-    <div class="kv-wrap"><table class="kv-tbl"><thead>${head}</thead><tbody>${body}</tbody></table></div>
-  </div>`;
-}
-function invProdOrderInput(pk){
-  const W=Math.max(0,parseInt(document.getElementById('kvTw-'+pk).value)||0);
-  if(W)INV_COLOR_SET['ORDW|'+pk+'|*']=W;else delete INV_COLOR_SET['ORDW|'+pk+'|*'];
-  invSetLocalSave();
-  const cfg=INV_PROD_CFG[pk],alloc=invSplitProd(pk,W),dash='<span class="kv-dash">—</span>';
-  const set=(id,v,plain)=>{const el=document.getElementById(id);if(el)el.innerHTML=v>0?v.toLocaleString():(plain?'—':dash);};
-  cfg.colors.forEach((c,ci)=>{cfg.sizes.forEach((sz,si)=>set(`kvT-${pk}-${ci}-${si}`,alloc[c+'|'+sz]||0));set(`kvT-${pk}-c${ci}`,cfg.sizes.reduce((s,sz)=>s+(alloc[c+'|'+sz]||0),0));});
-  set(`kvT-${pk}-tot`,W,true);
-}
-function invOpenOrderAll(pk){
-  const W=Math.max(0,parseInt(document.getElementById('kvTw-'+pk)?.value)||0);
-  if(!W){toast('Nhập "SL muốn order (tổng)" trước đã','err');return;}
-  const alloc=invSplitProd(pk,W);
-  delete INV_COLOR_SET['ORDW|'+pk+'|*'];invSetLocalSave();
-  poPrefillFromKhoAll(pk,alloc);
-  toast(`Đã chia sẵn ${W.toLocaleString()}c cho tất cả màu — sửa từng màu nếu cần rồi bấm Tạo đơn order`,'ok');
-}
-
 function renderInventoryNew(){
   const prodsToShow=curInvTab==='ALL'?Object.keys(INV_PROD_CFG):[curInvTab];
   if(!Object.keys(INV_DATA).length){document.getElementById('inventoryContent').innerHTML='<div style="padding:30px;text-align:center;color:#9A8070">Bấm "↺ Tính lại" để tải</div>';return;}
@@ -4134,10 +4037,7 @@ function renderInventoryNew(){
     html+=`<div class="kv-prod"><div class="kv-prod-head"><div style="width:10px;height:10px;border-radius:50%;background:${cfg.dot}"></div>${cfg.name} <span style="font-size:10px;opacity:.55">${cfg.code}</span>
       <span style="flex:1"></span>
       <button onclick="openUpdateKho('${pk}')" class="kv-mini">✏️ Đếm kho</button><span style="font-size:10px;color:#9A8070">Snapshot: ${getLatestSnapDate(pk)}</span></div>`;
-    const mode=INV_VIEW[pk]||'all';
-    html+=`<div class="po-seg sm" style="margin:0 2px 10px">${[['all','Tổng + từng màu'],['tot','Chỉ xem tổng'],['col','Chỉ từng màu']].map(([k,l])=>`<button class="${mode===k?'on':''}" onclick="invSetView('${pk}','${k}')">${l}</button>`).join('')}</div>`;
-    if(mode!=='col')html+=invTotalBlock(pk);
-    if(mode!=='tot')cfg.colors.forEach(col=>{html+=invColorBlock(pk,col);});
+    cfg.colors.forEach(col=>{html+=invColorBlock(pk,col);});
     html+=`</div>`;
   });
   document.getElementById('inventoryContent').innerHTML=html||'<div style="color:#9A8070;padding:30px;text-align:center">Không có dữ liệu</div>';
@@ -4445,39 +4345,14 @@ function poNewRender(){
       ${cfg.sizes.map((sz,si)=>{const d=INV_DATA[pk]?.[col]?.[sz];const ton=d?d.khoNha:null;const v=PO_NEW.qty[col+'|'+sz]||'';
         return `<tr><td class="l">${poEsc(sz)}</td><td class="po-ton">${ton===null?'…':ton||'<span class="kv-dash">—</span>'}</td>
         <td><input type="number" min="0" step="1" class="po-qinp" id="poq-${ci}-${si}" value="${v}" placeholder="0" oninput="poNewQty(${ci},${si},this.value)"></td></tr>`;}).join('')}
-      </tbody></table></div>`;}).join('')}</div>
-    <div class="po-split">🧮 Nhập tổng cả sản phẩm → tự chia ra từng màu · size:
-      <input type="number" min="0" step="10" id="poSplitW" placeholder="VD 500">
-      <button class="po-go" onclick="poNewSplitAll()">Chia vào các màu</button>
-      <span class="po-muted">Bù màu·size đang thiếu trước, phần dư theo %bán 30 ngày. Chia xong vẫn sửa tay từng ô được.</span>
-    </div>
-    <div class="card" style="margin-top:14px;overflow:hidden"><div class="kv-sub-h" style="border-top:none">Tổng đặt theo size · màu</div><div class="kv-wrap" id="poNewSum"></div></div>`;
+      </tbody></table></div>`;}).join('')}</div>`;
   poNewTotals();
-}
-function poNewSumHtml(){
-  const cfg=INV_PROD_CFG[PO_NEW.pk];if(!cfg)return '';
-  const q=(c,s)=>PO_NEW.qty[c+'|'+s]||0,d=v=>v?v.toLocaleString():'<span class="kv-dash">—</span>';
-  let h=`<table class="po-sum-tbl"><thead><tr><th class="l">Size</th>${cfg.colors.map(c=>`<th><span class="kv-sw" style="background:${cfg.clrBg[c]||'#2A211C'};color:${cfg.clrFg[c]||'#DCC6AA'}">${poEsc(c)}</span></th>`).join('')}<th>Tổng size</th></tr></thead><tbody>`;
-  cfg.sizes.forEach(s=>{h+=`<tr><td class="l">${poEsc(s)}</td>${cfg.colors.map(c=>`<td>${d(q(c,s))}</td>`).join('')}<td><b>${d(cfg.colors.reduce((a,c)=>a+q(c,s),0))}</b></td></tr>`;});
-  const all=cfg.colors.reduce((a,c)=>a+cfg.sizes.reduce((b,s)=>b+q(c,s),0),0);
-  h+=`<tr class="tt"><td class="l">TỔNG màu</td>${cfg.colors.map(c=>`<td>${d(cfg.sizes.reduce((a,s)=>a+q(c,s),0))}</td>`).join('')}<td>${d(all)}</td></tr></tbody></table>`;
-  return h;
-}
-async function poNewSplitAll(){
-  const pk=PO_NEW.pk;if(!INV_PROD_CFG[pk]){toast('Chọn sản phẩm trước','err');return;}
-  const W=Math.max(0,parseInt(document.getElementById('poSplitW').value)||0);
-  if(!W){toast('Nhập số tổng muốn đặt','err');return;}
-  if(!INV_DATA[pk]){showLoading('Tính số bán & tồn...');try{await computeInvData();}catch(_){}hideLoading();}
-  if(Object.values(PO_NEW.qty).some(v=>v>0)&&!(await poAsk('Ghi đè số đã nhập?','Bảng đang có số lẻ từng màu. Chia lại sẽ <b>thay toàn bộ</b> bằng số chia tự động.','Chia lại')))return;
-  PO_NEW.qty=invSplitProd(pk,W);poNewRender();
-  toast(`✓ Đã chia ${W.toLocaleString()}c ra các màu · size`,'ok');
 }
 function poNewQty(ci,si,v){const cfg=INV_PROD_CFG[PO_NEW.pk];const k=cfg.colors[ci]+'|'+cfg.sizes[si];const n=Math.max(0,parseInt(v)||0);if(n)PO_NEW.qty[k]=n;else delete PO_NEW.qty[k];poNewTotals();}
 function poNewTotals(){
   const cfg=INV_PROD_CFG[PO_NEW.pk];let tot=0;
   if(cfg)cfg.colors.forEach((col,ci)=>{const s=cfg.sizes.reduce((a,sz)=>a+(PO_NEW.qty[col+'|'+sz]||0),0);tot+=s;const el=document.getElementById('poNewCT-'+ci);if(el)el.textContent=s?s.toLocaleString()+'c':'0';});
   const t=document.getElementById('poNewTotal');if(t)t.textContent=tot.toLocaleString();
-  const sm=document.getElementById('poNewSum');if(sm)sm.innerHTML=poNewSumHtml();
 }
 async function poCreate(){
   if(PO_BUSY)return;
@@ -4509,14 +4384,6 @@ async function poCreate(){
     if(/insert 404|42P01|PGRST205/.test(m)){PO_MISSING=true;poNewRender();toast('Chưa có bảng supplier_orders — làm theo hướng dẫn trên trang','err');}
     else poShowDbError('Lỗi tạo đơn',m);}
   finally{PO_BUSY=false;}
-}
-// Từ trang Kho (bảng Tổng): điền sẵn SL đã chia cho tất cả màu
-function poPrefillFromKhoAll(pk,map){
-  PO_NEW={pk,qty:Object.assign({},map)};
-  goPageProg('poNew');
-  const nm=document.getElementById('poNewName');if(nm&&!nm.value.trim())nm.value=poSuggestName(pk);
-  poNewInit();
-  window.scrollTo({top:0,behavior:'smooth'});
 }
 // Từ trang Kho: mở trang Tạo order NCC, điền sẵn SL đã chia cho 1 màu
 function poPrefillFromKho(pk,col,alloc){
@@ -4906,6 +4773,51 @@ let SALES_ALL=[];
 let EDIT_MODE=false;
 let EDITS=(function(){try{const e=JSON.parse(localStorage.getItem('hannal_sales_edits')||'{}');return {ord:e.ord||{},arr:e.arr||{},kho:e.kho||{}};}catch(_){return {ord:{},arr:{},kho:{}};}})();
 function saveEdits(){try{localStorage.setItem('hannal_sales_edits',JSON.stringify(EDITS));}catch(_){}}
+// ── Đồng bộ ô sửa tay lên Supabase (bảng sales_edits) → mọi máy cùng thấy ──
+// Mỗi ô = 1 dòng {tbl:'ord'|'arr'|'kho', k:'SP|ngày|màu|size', v:số}. Xoá sửa = ghi v=null (không cần quyền DELETE).
+const EDITS_SQL=`create table if not exists sales_edits(
+  tbl text not null,
+  k text not null,
+  v int,
+  updated_at timestamptz default now(),
+  primary key(tbl,k)
+);
+alter table sales_edits enable row level security;
+create policy "app all" on sales_edits for all using (true) with check (true);`;
+let EDITS_CLOUD_OK=null,_editsWarned=false;
+function editsWarnMissing(e){
+  console.warn('sales_edits:',e&&e.message);
+  if(_editsWarned)return;_editsWarned=true;
+  toast('⚠ Ô sửa tay chưa đồng bộ được giữa các máy — cần tạo bảng sales_edits (xem Console)','err');
+  console.info('Chạy SQL này trong Supabase → SQL Editor:\n'+EDITS_SQL);
+}
+async function editsPush(rows){
+  if(!rows.length)return true;
+  try{await sbUpsert('sales_edits',rows.map(r=>({tbl:r.tbl,k:r.k,v:r.v,updated_at:new Date().toISOString()})),'tbl,k');EDITS_CLOUD_OK=true;return true;}
+  catch(e){EDITS_CLOUD_OK=false;editsWarnMissing(e);return false;}
+}
+// Tải số sửa tay từ Supabase. Lần đầu: đẩy các ô đang chỉ có trên máy này lên trước, rồi lấy bản chung.
+async function syncEditsFromCloud(){
+  let rows;
+  try{rows=await sbSelectAll('sales_edits','select=tbl,k,v&order=tbl.asc');EDITS_CLOUD_OK=true;}
+  catch(e){EDITS_CLOUD_OK=false;editsWarnMissing(e);return;}   // chưa có bảng / mất mạng → dùng bản trong máy
+  const cloud={ord:{},arr:{},kho:{}},seen=new Set();
+  (rows||[]).forEach(r=>{if(!cloud[r.tbl])return;seen.add(r.tbl+'#'+r.k);if(r.v!=null)cloud[r.tbl][r.k]=r.v;});
+  if(!localStorage.getItem('hannal_sales_edits_pushed')){
+    const up=[];
+    ['ord','arr','kho'].forEach(t=>Object.keys(EDITS[t]||{}).forEach(k=>{if(!seen.has(t+'#'+k)){up.push({tbl:t,k,v:EDITS[t][k]});cloud[t][k]=EDITS[t][k];}}));
+    if(await editsPush(up)){try{localStorage.setItem('hannal_sales_edits_pushed','1');}catch(_){}if(up.length)toast(`✓ Đã đưa ${up.length} ô sửa tay của máy này lên để các máy khác cùng thấy`,'ok');}
+    else return;
+  }
+  EDITS=cloud;saveEdits();
+}
+// Xoá mọi ô sửa tay (trên máy này + Supabase)
+async function clearAllEdits(){
+  const rows=[];['ord','arr','kho'].forEach(t=>Object.keys(EDITS[t]||{}).forEach(k=>rows.push({tbl:t,k,v:null})));
+  EDITS={ord:{},arr:{},kho:{}};saveEdits();renderSalesKpi();renderSales();
+  const ok=await editsPush(rows);
+  toast(ok?'✓ Đã xoá sửa tay trên mọi máy — số về đúng gốc':'Đã xoá trên máy này (chưa đồng bộ được Supabase)',ok?'ok':'err');
+}
 function toggleEditMode(){
   if(!EDIT_MODE){const p=prompt('Nhập mật khẩu để sửa số liệu:');if(p===null)return;if(p!=='0802'){toast('Sai mật khẩu!','err');return;}EDIT_MODE=true;toast('Bật chế độ sửa — bấm vào ô để chỉnh','ok');}
   else{EDIT_MODE=false;}
@@ -4924,6 +4836,8 @@ function editCell(td){
   if(inp.trim()===''){delete EDITS[tbl][key];}
   else{const v=parseInt(inp);if(isNaN(v)){toast('Số không hợp lệ','err');return;}EDITS[tbl][key]=v;}
   saveEdits();renderSalesKpi();renderSales();
+  const v=EDITS[tbl][key];
+  editsPush([{tbl,k:key,v:v==null?null:v}]).then(ok=>{toast(ok?'✓ Đã lưu & đồng bộ lên mọi máy':'⚠ Chỉ lưu trên máy này (chưa đồng bộ được)',ok?'ok':'err');});
 }
 // Gộp override lên dữ liệu gốc (thay thế ô date|color|size)
 function mergeOverride(rows,ovr,pk){
@@ -5042,7 +4956,7 @@ async function loadSales(){
   showLoading('Tải dữ liệu đi đơn...');
   try{
     // Lấy sales_log trong khoảng ngày — format date là dd/mm/yyyy
-    const rows=await sbSelectAll('sales_log',`order=date.asc,prod.asc`);
+    const [rows]=await Promise.all([sbSelectAll('sales_log',`order=date.asc,prod.asc`),syncEditsFromCloud()]);
     // Lấy lô hàng "Đã về nhà" từ Order Hàng → cộng vào hàng mới về
     try{
       const ol=await sbSelect('ord_lots','order=prod.asc');
@@ -5237,12 +5151,12 @@ function renderSalesDetail(){
   const from=document.getElementById('salesFrom').value,to=document.getElementById('salesTo').value;
   const sc=document.getElementById('salesContent');sc.classList.toggle('edit-on',EDIT_MODE);
   let html='';
-  if(EDIT_MODE){html+=`<div style="background:rgba(190,115,94,.1);border:1px solid rgba(190,115,94,.3);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:12px;color:#a75f4c">✏️ Đang ở chế độ sửa — bấm vào ô bất kỳ để chỉnh (để trống = về số gốc). Sửa đơn đi / hàng về thì tồn kho tự tính lại. <button class="btn btn-ghost" style="font-size:10px;padding:3px 8px;margin-left:6px" onclick="if(confirm('Xoá tất cả chỉnh sửa tay?')){EDITS={ord:{},arr:{},kho:{}};saveEdits();renderSalesKpi();renderSales();}">Xoá hết sửa</button></div>`;}
+  if(EDIT_MODE){html+=`<div style="background:rgba(190,115,94,.1);border:1px solid rgba(190,115,94,.3);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:12px;color:#a75f4c">✏️ Đang ở chế độ sửa — bấm vào ô bất kỳ để chỉnh (để trống = về số gốc). Sửa đơn đi / hàng về thì tồn kho tự tính lại. <button class="btn btn-ghost" style="font-size:10px;padding:3px 8px;margin-left:6px" onclick="if(confirm('Xoá tất cả chỉnh sửa tay trên MỌI máy?')){clearAllEdits();}">Xoá hết sửa</button></div>`;}
   const _editCount=Object.keys(EDITS.ord||{}).length+Object.keys(EDITS.arr||{}).length+Object.keys(EDITS.kho||{}).length;
   if(_editCount>0&&!EDIT_MODE){
     html+=`<div style="background:#fdf0e6;border:1px solid #e5b98f;border-radius:8px;padding:9px 12px;margin-bottom:12px;font-size:12px;color:#a75f4c;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
       <span>⚠️ Đang có <b>${_editCount} ô sửa tay</b> (ô nền cam). Nếu bạn từng chỉnh 1 ô về 0 thì ô đó sẽ <b>che số thật/số mới nhập</b> — bấm nút bên phải để trả về số gốc.</span>
-      <button class="btn btn-ghost" style="font-size:10px;padding:4px 10px;white-space:nowrap" onclick="if(confirm('Xoá tất cả ${_editCount} ô sửa tay? Toàn bộ số sẽ về đúng gốc/số mới.')){EDITS={ord:{},arr:{},kho:{}};saveEdits();renderSalesKpi();renderSales();toast('✓ Đã xoá sửa tay — số về đúng gốc','ok');}">↺ Xoá tất cả sửa tay</button>
+      <button class="btn btn-ghost" style="font-size:10px;padding:4px 10px;white-space:nowrap" onclick="if(confirm('Xoá tất cả ${_editCount} ô sửa tay? Toàn bộ số sẽ về đúng gốc/số mới.')){clearAllEdits();}">↺ Xoá tất cả sửa tay</button>
     </div>`;
   }
   prods.forEach(pk=>{
