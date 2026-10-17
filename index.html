@@ -2135,7 +2135,7 @@ function renderPickTable(prod,label,cls){
 }
 async function loadPickStock(){
   try{
-    const [sl,ol]=await Promise.all([sbSelectAll('sales_log','order=date.asc'),sbSelect('ord_lots','order=prod.asc')]);
+    const [sl,ol]=await Promise.all([sbSelectAll('sales_log','order=date.asc'),sbSelect('ord_lots','order=prod.asc'),syncEditsFromCloud()]);
     SALES_ALL=[...SEED_SALES,...sl].map(normSalesRow).filter(r=>r.date);
     const toDMY=v=>{v=String(v||'');return v.includes('/')?v:(v?v.split('-').reverse().join('/'):'');};
     const t=new Date();const todayDMY=`${String(t.getDate()).padStart(2,'0')}/${String(t.getMonth()+1).padStart(2,'0')}/${t.getFullYear()}`;const todayYMD=t.toISOString().split('T')[0];
@@ -3847,6 +3847,7 @@ async function computeInvData(){
     sbSelectAll('sales_log','order=date.asc'),
     sbSelect('ord_lots','order=prod.asc'),
     sbSelect('kho_target'),
+    syncEditsFromCloud(),
   ]);
   targetRows.forEach(r=>{if(INV_TARGET[r.prod]!==undefined)INV_TARGET[r.prod]=r.target_qty||0;});
   (targetRows||[]).forEach(r=>{const k=String(r.prod||'');if(/^(KEEP|TS)\|/.test(k))INV_COLOR_SET[k]=Number(r.target_qty)||0;});invSetLocalSave();
@@ -4772,6 +4773,51 @@ let SALES_ALL=[];
 let EDIT_MODE=false;
 let EDITS=(function(){try{const e=JSON.parse(localStorage.getItem('hannal_sales_edits')||'{}');return {ord:e.ord||{},arr:e.arr||{},kho:e.kho||{}};}catch(_){return {ord:{},arr:{},kho:{}};}})();
 function saveEdits(){try{localStorage.setItem('hannal_sales_edits',JSON.stringify(EDITS));}catch(_){}}
+// ── Đồng bộ ô sửa tay lên Supabase (bảng sales_edits) → mọi máy cùng thấy ──
+// Mỗi ô = 1 dòng {tbl:'ord'|'arr'|'kho', k:'SP|ngày|màu|size', v:số}. Xoá sửa = ghi v=null (không cần quyền DELETE).
+const EDITS_SQL=`create table if not exists sales_edits(
+  tbl text not null,
+  k text not null,
+  v int,
+  updated_at timestamptz default now(),
+  primary key(tbl,k)
+);
+alter table sales_edits enable row level security;
+create policy "app all" on sales_edits for all using (true) with check (true);`;
+let EDITS_CLOUD_OK=null,_editsWarned=false;
+function editsWarnMissing(e){
+  console.warn('sales_edits:',e&&e.message);
+  if(_editsWarned)return;_editsWarned=true;
+  toast('⚠ Ô sửa tay chưa đồng bộ được giữa các máy — cần tạo bảng sales_edits (xem Console)','err');
+  console.info('Chạy SQL này trong Supabase → SQL Editor:\n'+EDITS_SQL);
+}
+async function editsPush(rows){
+  if(!rows.length)return true;
+  try{await sbUpsert('sales_edits',rows.map(r=>({tbl:r.tbl,k:r.k,v:r.v,updated_at:new Date().toISOString()})),'tbl,k');EDITS_CLOUD_OK=true;return true;}
+  catch(e){EDITS_CLOUD_OK=false;editsWarnMissing(e);return false;}
+}
+// Tải số sửa tay từ Supabase. Lần đầu: đẩy các ô đang chỉ có trên máy này lên trước, rồi lấy bản chung.
+async function syncEditsFromCloud(){
+  let rows;
+  try{rows=await sbSelectAll('sales_edits','select=tbl,k,v&order=tbl.asc');EDITS_CLOUD_OK=true;}
+  catch(e){EDITS_CLOUD_OK=false;editsWarnMissing(e);return;}   // chưa có bảng / mất mạng → dùng bản trong máy
+  const cloud={ord:{},arr:{},kho:{}},seen=new Set();
+  (rows||[]).forEach(r=>{if(!cloud[r.tbl])return;seen.add(r.tbl+'#'+r.k);if(r.v!=null)cloud[r.tbl][r.k]=r.v;});
+  if(!localStorage.getItem('hannal_sales_edits_pushed')){
+    const up=[];
+    ['ord','arr','kho'].forEach(t=>Object.keys(EDITS[t]||{}).forEach(k=>{if(!seen.has(t+'#'+k)){up.push({tbl:t,k,v:EDITS[t][k]});cloud[t][k]=EDITS[t][k];}}));
+    if(await editsPush(up)){try{localStorage.setItem('hannal_sales_edits_pushed','1');}catch(_){}if(up.length)toast(`✓ Đã đưa ${up.length} ô sửa tay của máy này lên để các máy khác cùng thấy`,'ok');}
+    else return;
+  }
+  EDITS=cloud;saveEdits();
+}
+// Xoá mọi ô sửa tay (trên máy này + Supabase)
+async function clearAllEdits(){
+  const rows=[];['ord','arr','kho'].forEach(t=>Object.keys(EDITS[t]||{}).forEach(k=>rows.push({tbl:t,k,v:null})));
+  EDITS={ord:{},arr:{},kho:{}};saveEdits();renderSalesKpi();renderSales();
+  const ok=await editsPush(rows);
+  toast(ok?'✓ Đã xoá sửa tay trên mọi máy — số về đúng gốc':'Đã xoá trên máy này (chưa đồng bộ được Supabase)',ok?'ok':'err');
+}
 function toggleEditMode(){
   if(!EDIT_MODE){const p=prompt('Nhập mật khẩu để sửa số liệu:');if(p===null)return;if(p!=='0802'){toast('Sai mật khẩu!','err');return;}EDIT_MODE=true;toast('Bật chế độ sửa — bấm vào ô để chỉnh','ok');}
   else{EDIT_MODE=false;}
@@ -4790,6 +4836,8 @@ function editCell(td){
   if(inp.trim()===''){delete EDITS[tbl][key];}
   else{const v=parseInt(inp);if(isNaN(v)){toast('Số không hợp lệ','err');return;}EDITS[tbl][key]=v;}
   saveEdits();renderSalesKpi();renderSales();
+  const v=EDITS[tbl][key];
+  editsPush([{tbl,k:key,v:v==null?null:v}]).then(ok=>{toast(ok?'✓ Đã lưu & đồng bộ lên mọi máy':'⚠ Chỉ lưu trên máy này (chưa đồng bộ được)',ok?'ok':'err');});
 }
 // Gộp override lên dữ liệu gốc (thay thế ô date|color|size)
 function mergeOverride(rows,ovr,pk){
@@ -4908,7 +4956,7 @@ async function loadSales(){
   showLoading('Tải dữ liệu đi đơn...');
   try{
     // Lấy sales_log trong khoảng ngày — format date là dd/mm/yyyy
-    const rows=await sbSelectAll('sales_log',`order=date.asc,prod.asc`);
+    const [rows]=await Promise.all([sbSelectAll('sales_log',`order=date.asc,prod.asc`),syncEditsFromCloud()]);
     // Lấy lô hàng "Đã về nhà" từ Order Hàng → cộng vào hàng mới về
     try{
       const ol=await sbSelect('ord_lots','order=prod.asc');
@@ -5103,12 +5151,12 @@ function renderSalesDetail(){
   const from=document.getElementById('salesFrom').value,to=document.getElementById('salesTo').value;
   const sc=document.getElementById('salesContent');sc.classList.toggle('edit-on',EDIT_MODE);
   let html='';
-  if(EDIT_MODE){html+=`<div style="background:rgba(190,115,94,.1);border:1px solid rgba(190,115,94,.3);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:12px;color:#a75f4c">✏️ Đang ở chế độ sửa — bấm vào ô bất kỳ để chỉnh (để trống = về số gốc). Sửa đơn đi / hàng về thì tồn kho tự tính lại. <button class="btn btn-ghost" style="font-size:10px;padding:3px 8px;margin-left:6px" onclick="if(confirm('Xoá tất cả chỉnh sửa tay?')){EDITS={ord:{},arr:{},kho:{}};saveEdits();renderSalesKpi();renderSales();}">Xoá hết sửa</button></div>`;}
+  if(EDIT_MODE){html+=`<div style="background:rgba(190,115,94,.1);border:1px solid rgba(190,115,94,.3);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:12px;color:#a75f4c">✏️ Đang ở chế độ sửa — bấm vào ô bất kỳ để chỉnh (để trống = về số gốc). Sửa đơn đi / hàng về thì tồn kho tự tính lại. <button class="btn btn-ghost" style="font-size:10px;padding:3px 8px;margin-left:6px" onclick="if(confirm('Xoá tất cả chỉnh sửa tay trên MỌI máy?')){clearAllEdits();}">Xoá hết sửa</button></div>`;}
   const _editCount=Object.keys(EDITS.ord||{}).length+Object.keys(EDITS.arr||{}).length+Object.keys(EDITS.kho||{}).length;
   if(_editCount>0&&!EDIT_MODE){
     html+=`<div style="background:#fdf0e6;border:1px solid #e5b98f;border-radius:8px;padding:9px 12px;margin-bottom:12px;font-size:12px;color:#a75f4c;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
       <span>⚠️ Đang có <b>${_editCount} ô sửa tay</b> (ô nền cam). Nếu bạn từng chỉnh 1 ô về 0 thì ô đó sẽ <b>che số thật/số mới nhập</b> — bấm nút bên phải để trả về số gốc.</span>
-      <button class="btn btn-ghost" style="font-size:10px;padding:4px 10px;white-space:nowrap" onclick="if(confirm('Xoá tất cả ${_editCount} ô sửa tay? Toàn bộ số sẽ về đúng gốc/số mới.')){EDITS={ord:{},arr:{},kho:{}};saveEdits();renderSalesKpi();renderSales();toast('✓ Đã xoá sửa tay — số về đúng gốc','ok');}">↺ Xoá tất cả sửa tay</button>
+      <button class="btn btn-ghost" style="font-size:10px;padding:4px 10px;white-space:nowrap" onclick="if(confirm('Xoá tất cả ${_editCount} ô sửa tay? Toàn bộ số sẽ về đúng gốc/số mới.')){clearAllEdits();}">↺ Xoá tất cả sửa tay</button>
     </div>`;
   }
   prods.forEach(pk=>{
