@@ -1311,7 +1311,7 @@ async function sbUpsert(table,rows,onConflict){
     headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},
     body:JSON.stringify(rows)
   });
-  if(!res.ok)throw new Error(`Supabase upsert ${res.status}`);
+  if(!res.ok){let t='';try{t=await res.text();}catch(_){}throw new Error(`Supabase upsert ${res.status}${t?' — '+t.slice(0,300):''}`);}
   return true;
 }
 async function sbDelete(table,params){
@@ -3179,11 +3179,11 @@ async function khoSaveCount(pk,dv){
   saveKhoCounts();
   saveKhoVals();
   // đẩy lên Supabase để các máy khác cũng thấy (không chặn UI; local đã lưu nên vẫn chạy khi offline)
-  try{
-    const upRows=rows.map(r=>({prod:pk,date:dstr,color:r.color,size:r.size,counted:r.counted,system_val:r.system}));
-    await sbUpsert('kho_counts',upRows,'prod,date,color,size').catch(e=>console.warn('sync kho_counts:',e&&e.message));
-  }catch(_){}
-  toast(`✓ Đã lưu kiểm kho ${cfg.name} ngày ${dstr} · cập nhật ${n} ô vào tồn kho nhà`,'ok');
+  let kcErr='';
+  try{await kcPush(rows.map(r=>({prod:pk,date:dstr,color:r.color,size:r.size,counted:r.counted,system_val:r.system})));}
+  catch(e){kcErr=String(e.message||e);}
+  if(kcErr)kcShowError(`Kiểm kho ${cfg.name} ngày ${dstr} mới lưu trên máy này — máy khác chưa thấy`,kcErr);
+  else toast(`✓ Đã lưu kiểm kho ${cfg.name} ngày ${dstr} · cập nhật ${n} ô · mọi máy cùng thấy`,'ok');
   renderKhoHistory();
   try{loadInventoryNew();}catch(e){console.error('loadInventoryNew:',e);}
  }catch(err){
@@ -3208,12 +3208,13 @@ function renderKhoHistory(){
     </details>`;
   }).join('');
 }
-function delKhoCount(i){
+async function delKhoCount(i){
   const e=KHO_COUNT_LOG[i];if(!e)return;
   if(!confirm(`Xoá bản kiểm kho ${e.date} · ${e.prodName}? (số đỏ tương ứng cũng bị gỡ khỏi tồn kho nhà)`))return;
+  try{await kcDelete(e.prod,e.date);}
+  catch(err){kcShowError('Chưa xoá được bản kiểm kho trên Supabase — máy khác vẫn thấy số này',String(err.message||err));return;}
   e.rows.forEach(r=>{delete KHO_COUNTS[e.prod+'|'+e.date+'|'+r.color+'|'+r.size];});
-  try{sbDelete('kho_counts',`prod=eq.${encodeURIComponent(e.prod)}&date=eq.${encodeURIComponent(e.date)}`).catch(()=>{});}catch(_){}
-  KHO_COUNT_LOG.splice(i,1);saveKhoCounts();renderKhoHistory();loadInventoryNew();toast('Đã xoá bản kiểm kho','ok');
+  KHO_COUNT_LOG.splice(i,1);saveKhoCounts();renderKhoHistory();loadInventoryNew();toast('✓ Đã xoá bản kiểm kho trên mọi máy','ok');
 }
 
 async function saveKho(){
@@ -3858,12 +3859,7 @@ async function computeInvData(){
   await loadPoArrRows();   // hàng NCC đã về → Kho nhà; còn về → Đang về
   const secRows=ordRowsAll.filter(r=>r.status==='Kho SEC');
   const dangRows=[...ordRowsAll.filter(r=>r.status==='Đang về'),...poRemainRows()];
-  // Đồng bộ số kiểm kho từ Supabase → mọi máy đều thấy (nếu bảng kho_counts chưa tạo hoặc offline thì dùng bản local)
-  try{
-    const kc=await sbSelect('kho_counts','select=prod,date,color,size,counted');
-    (kc||[]).forEach(r=>{if(!(r&&r.prod&&r.date))return;let d=String(r.date).slice(0,10);if(/^\d{4}-\d{2}-\d{2}$/.test(d))d=d.split('-').reverse().join('/');KHO_COUNTS[r.prod+'|'+d+'|'+r.color+'|'+r.size]=r.counted;});
-    saveKhoCounts();
-  }catch(_){ /* bảng chưa tạo hoặc mất mạng → dùng KHO_COUNTS trong máy */ }
+  // Số kiểm kho đã đồng bộ ở syncEditsFromCloud() → syncKhoCountsFromCloud() (Supabase là bản gốc)
   INV_DATA={};
   ['QNB','NBL','BSL','GY3','CLD','LUN','BLH'].forEach(pk=>{
     const cfg=INV_PROD_CFG[pk];
@@ -4057,7 +4053,7 @@ function invColorBlock(pk,col){
     const dueCls=r.due===null?'':r.due<=7?'kv-due-red':r.due<=14?'kv-due-org':'';
     body+=`<tr${r.status==='thieu'?' class="kv-row-thieu"':''}>
       <td class="kv-l">${r.size}</td>
-      <td class="kv-ton">${n(r.ton)}</td>
+      <td class="kv-ton" style="cursor:pointer" title="Bấm để xem số này tính từ đâu" onclick="khoExplain('${pk}','${col}','${r.size}')">${n(r.ton)}</td>
       <td class="kv-sec">${n(r.sec)}</td>
       <td>${n(r.kd)}</td>
       <td class="kv-dv">${n(r.dangve)}</td>
@@ -4729,7 +4725,8 @@ async function saveKhoSnapshot(){
   saveKhoCounts();
   // PHẢI chờ upsert xong: loadInventoryNew đọc lại kho_counts từ Supabase và ghi đè KHO_COUNTS trong máy
   let cloudOk=true;
-  try{await sbUpsert('kho_counts',upRows,'prod,date,color,size');}catch(e){cloudOk=false;console.warn('sync kho_counts:',e&&e.message);}
+  let kcErr='';
+  try{await kcPush(upRows);}catch(e){cloudOk=false;kcErr=String(e.message||e);console.warn('sync kho_counts:',kcErr);}
   sbInsert('kho_snapshot',snapRows).catch(e=>console.warn('kho_snapshot:',e&&e.message));
   closeUpdateKho();
   await loadInventoryNew();
@@ -4738,7 +4735,8 @@ async function saveKhoSnapshot(){
     const bad=[];cfg.colors.forEach(col=>cfg.sizes.forEach(sz=>{const got=INV_DATA[pk]?.[col]?.[sz]?.khoNha;const want=typed[col+'|'+sz];if(got!==want)bad.push(`${col} ${sz}: nhập ${want} → hiện ${got}`);}));
     if(bad.length){toast(`⚠ ${bad.length} ô lệch sau khi lưu — xem Console`,'err');console.warn('Lệch sau Đếm kho:',bad);return;}
   }
-  toast(`✓ Đã lưu đếm kho ${cfg.name} ngày ${dstr}${cloudOk?'':' (chỉ lưu trong máy — chưa đồng bộ được Supabase)'}`,cloudOk?'ok':'err');
+  if(!cloudOk){kcShowError(`Đếm kho ${cfg.name} ngày ${dstr} mới lưu trên máy này — máy khác chưa thấy`,kcErr);return;}
+  toast(`✓ Đã lưu đếm kho ${cfg.name} ngày ${dstr} · mọi máy cùng thấy`,'ok');
 }
 
 function renderCeoFromDash(data){
@@ -4798,6 +4796,8 @@ async function editsPush(rows){
 }
 // Tải số sửa tay từ Supabase. Lần đầu: đẩy các ô đang chỉ có trên máy này lên trước, rồi lấy bản chung.
 async function syncEditsFromCloud(){
+  try{await syncManualArrFromCloud();}catch(e){console.warn('syncManualArr:',e);}
+  try{await syncKhoCountsFromCloud();}catch(e){console.warn('syncKhoCounts:',e);}   // số kiểm kho — dùng chung mọi máy   // hàng về / trả nhập tay — dùng chung mọi máy
   let rows;
   try{rows=await sbSelectAll('sales_edits','select=tbl,k,v&order=tbl.asc');EDITS_CLOUD_OK=true;}
   catch(e){EDITS_CLOUD_OK=false;editsWarnMissing(e);return;}   // chưa có bảng / mất mạng → dùng bản trong máy
@@ -4849,11 +4849,187 @@ function mergeOverride(rows,ovr,pk){
 // Nguồn HÀNG MỚI VỀ = số nền (file) + hàng trả nhập tay + lô "Đã về nhà" (Order Hàng)
 let MANUAL_ARR=(function(){try{return JSON.parse(localStorage.getItem('hannal_manual_arr')||'[]')||[];}catch(_){return [];}})();
 function saveManualArr(){try{localStorage.setItem('hannal_manual_arr',JSON.stringify(MANUAL_ARR));}catch(_){}}
+// ── Đồng bộ "Hàng về / trả" nhập tay lên Supabase (bảng manual_arr) → mọi máy cùng thấy ──
+// Mỗi dòng có client_id riêng → ghi lại nhiều lần (mất mạng, bấm lại) cũng không bị cộng trùng.
+// Dòng chưa lên được Supabase giữ cờ pending trong máy và tự đẩy lại ở lần tải sau.
+const MANUAL_ARR_SQL=`create table if not exists manual_arr(
+  id bigint generated always as identity primary key,
+  client_id text unique not null,
+  date text not null,          -- dd/mm/yyyy
+  prod text not null,
+  color text not null,
+  size text not null,
+  qty int not null default 0,
+  lot text default '',
+  created_at timestamptz default now()
+);
+alter table manual_arr enable row level security;
+create policy "app all" on manual_arr for all using (true) with check (true);
+notify pgrst, 'reload schema';`;
+let MANUAL_ARR_CLOUD_OK=null,_marrWarned=false;
+function marrUid(){return 'ma-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8);}
+let MANUAL_ARR_LAST_ERR='';
+// Hộp hướng dẫn: lỗi thật từ Supabase + SQL tạo bảng
+function marrShowSetup(){
+  if(typeof poModal!=='function')return;
+  poModal('⚠ Hàng về / trả chưa lên được Supabase',
+    `<div style="margin-bottom:6px">Supabase trả về:</div><pre class="po-err">${poEsc(MANUAL_ARR_LAST_ERR||'(không rõ lỗi)')}</pre>
+    <div style="margin:10px 0 6px"><b>Cách sửa (làm 1 lần):</b> vào Supabase → <b>SQL Editor</b> → New query → dán đoạn dưới → bấm <b>Run</b> → tải lại trang web. Số đã nhập trên máy này vẫn được giữ và sẽ tự đẩy lên, không cần nhập lại.</div>
+    <pre class="po-err">${poEsc(MANUAL_ARR_SQL)}</pre>
+    <div class="po-muted">Nếu đã chạy SQL mà vẫn báo lỗi, chụp hộp này gửi lại.</div>`,
+    [{label:'📋 Copy SQL',keep:true,onClick:()=>{navigator.clipboard&&navigator.clipboard.writeText(MANUAL_ARR_SQL).then(()=>toast('✓ Đã copy SQL','ok'));}},{label:'Đóng',primary:true}]);
+  const m=document.querySelector('#poOverlay .po-modal');if(m)m.classList.add('wide');
+}
+function marrWarnMissing(e){
+  MANUAL_ARR_LAST_ERR=String(e&&e.message||e||'');
+  console.warn('manual_arr:',e&&e.message);
+  console.info('Chạy SQL này trong Supabase → SQL Editor:\n'+MANUAL_ARR_SQL);
+  if(_marrWarned)return;_marrWarned=true;
+  marrShowSetup();
+}
+// Đẩy các dòng chưa đồng bộ lên, rồi lấy toàn bộ bản chung về thay cho bản trong máy
+async function syncManualArrFromCloud(){
+  // Dòng cũ (trước bản này) chưa có client_id → gắn id + đánh dấu cần đẩy lên
+  let changed=false;
+  MANUAL_ARR.forEach(r=>{if(!r.client_id){r.client_id=marrUid();r.pending=true;changed=true;}});
+  if(changed)saveManualArr();
+  const pend=MANUAL_ARR.filter(r=>r.pending);
+  if(pend.length){
+    try{
+      await sbUpsert('manual_arr',pend.map(r=>({client_id:r.client_id,date:r.date,prod:r.prod,color:r.color,size:r.size,qty:r.qty||0,lot:r.lot||''})),'client_id');
+      pend.forEach(r=>delete r.pending);saveManualArr();
+    }catch(e){MANUAL_ARR_CLOUD_OK=false;marrWarnMissing(e);return false;}
+  }
+  let rows;
+  try{rows=await sbSelectAll('manual_arr','select=client_id,date,prod,color,size,qty,lot&order=id.asc');}
+  catch(e){MANUAL_ARR_CLOUD_OK=false;marrWarnMissing(e);return false;}
+  MANUAL_ARR_CLOUD_OK=true;
+  MANUAL_ARR=(rows||[]).map(r=>({client_id:r.client_id,date:r.date,prod:r.prod,color:r.color,size:r.size,qty:r.qty||0,lot:r.lot||''}));
+  saveManualArr();
+  return true;
+}
 let ORD_HOME_ROWS=[]; // lô ord_lots đã "Đã về nhà"
 // Số đếm kho thực tế (kiểm kho): recount đè lên tồn kho nhà, hiển thị ĐỎ
 let KHO_COUNTS=(function(){try{return JSON.parse(localStorage.getItem('hannal_kho_counts')||'{}')||{};}catch(_){return {};}})();
 let KHO_COUNT_LOG=(function(){try{return JSON.parse(localStorage.getItem('hannal_kho_count_log')||'[]')||[];}catch(_){return [];}})();
-function saveKhoCounts(){try{localStorage.setItem('hannal_kho_counts',JSON.stringify(KHO_COUNTS));localStorage.setItem('hannal_kho_count_log',JSON.stringify(KHO_COUNT_LOG));}catch(_){}}function getArrRows(pk){
+function saveKhoCounts(){try{localStorage.setItem('hannal_kho_counts',JSON.stringify(KHO_COUNTS));localStorage.setItem('hannal_kho_count_log',JSON.stringify(KHO_COUNT_LOG));}catch(_){}}
+// ── Số kiểm kho dùng CHUNG mọi máy: Supabase (bảng kho_counts) là bản gốc ──
+// Trước đây máy nào cũng giữ thêm bản riêng trong máy và chỉ CỘNG thêm số từ Supabase vào → số đếm nào
+// lưu lên Supabase bị lỗi (hoặc xoá ở máy khác) vẫn còn trên máy cũ → 2 máy ra Tồn kho nhà khác nhau.
+const KHO_COUNTS_SQL=`create table if not exists kho_counts(
+  prod text not null,
+  date text not null,
+  color text not null,
+  size text not null,
+  counted int,
+  system_val int,
+  primary key(prod,date,color,size)
+);
+alter table kho_counts add column if not exists system_val int;
+alter table kho_counts enable row level security;
+drop policy if exists "app all" on kho_counts;
+create policy "app all" on kho_counts for all using (true) with check (true);
+notify pgrst, 'reload schema';`;
+let KHO_COUNTS_CLOUD_OK=null,KHO_COUNTS_LOCAL_ONLY=[],_kcAsked=false;
+const kcISO=d=>{const p=String(d).split('/');return p.length===3?`${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`:d;};
+const kcDMY=d=>{d=String(d||'').slice(0,10);return /^\d{4}-\d{2}-\d{2}$/.test(d)?d.split('-').reverse().join('/'):d;};
+function kcShowError(title,msg){
+  if(typeof poModal!=='function'){toast(title+': '+msg,'err');return;}
+  poModal('⚠ '+title,`<div style="margin-bottom:6px">Supabase trả về:</div><pre class="po-err">${poEsc(msg)}</pre>
+    <div style="margin:10px 0 6px">Chạy đoạn này trong Supabase → SQL Editor rồi tải lại trang (chạy lại nhiều lần cũng không sao):</div><pre class="po-err">${poEsc(KHO_COUNTS_SQL)}</pre>`,
+    [{label:'📋 Copy SQL',keep:true,onClick:()=>{navigator.clipboard&&navigator.clipboard.writeText(KHO_COUNTS_SQL).then(()=>toast('✓ Đã copy SQL','ok'));}},{label:'Đóng',primary:true}]);
+  const m=document.querySelector('#poOverlay .po-modal');if(m)m.classList.add('wide');
+}
+// rows: [{prod,date(dd/mm/yyyy),color,size,counted,system_val?}] — ném lỗi nếu không lưu được
+async function kcPush(rows){
+  if(!rows.length)return;
+  const mk=(iso,sys)=>rows.map(r=>{const o={prod:r.prod,date:iso?kcISO(r.date):r.date,color:r.color,size:r.size,counted:r.counted};if(sys&&r.system_val!=null)o.system_val=r.system_val;return o;});
+  const tries=[[false,true],[true,true],[false,false],[true,false]];   // cột date kiểu text/date · có/không cột system_val
+  let err;
+  for(const [iso,sys] of tries){
+    try{await sbUpsert('kho_counts',mk(iso,sys),'prod,date,color,size');return;}
+    catch(e){err=e;const m=String(e.message||'');
+      if(!/date|22008|22007|system_val|PGRST204/i.test(m))break;}   // lỗi khác (thiếu bảng, quyền…) → không thử tiếp
+  }
+  throw err;
+}
+async function kcDelete(prod,dstr){
+  let ok=false,last='';
+  for(const d of [dstr,kcISO(dstr)]){
+    try{await sbDelete('kho_counts',`prod=eq.${encodeURIComponent(prod)}&date=eq.${encodeURIComponent(d)}`);ok=true;}catch(e){last=String(e.message||e);}
+  }
+  if(!ok)throw new Error(last);
+}
+async function syncKhoCountsFromCloud(){
+  let rows;
+  try{rows=await sbSelectAll('kho_counts','select=prod,date,color,size,counted');}
+  catch(e){KHO_COUNTS_CLOUD_OK=false;console.warn('kho_counts:',e&&e.message);return false;}   // mất mạng / chưa có bảng → tạm dùng bản trong máy
+  KHO_COUNTS_CLOUD_OK=true;
+  const cloud={};
+  (rows||[]).forEach(r=>{if(!(r&&r.prod&&r.date)||r.counted==null)return;cloud[r.prod+'|'+kcDMY(r.date)+'|'+r.color+'|'+r.size]=r.counted;});
+  KHO_COUNTS_LOCAL_ONLY=Object.keys(KHO_COUNTS).filter(k=>!(k in cloud));
+  // Số đếm chỉ có trên máy này: tạm giữ để không mất, hỏi chủ shop đẩy lên hay bỏ
+  KHO_COUNTS_LOCAL_ONLY.forEach(k=>{cloud[k]=KHO_COUNTS[k];});
+  KHO_COUNTS=cloud;saveKhoCounts();
+  if(KHO_COUNTS_LOCAL_ONLY.length&&!_kcAsked){_kcAsked=true;setTimeout(kcAskLocalOnly,300);}
+  return true;
+}
+function kcAskLocalOnly(){
+  const keys=KHO_COUNTS_LOCAL_ONLY;if(!keys.length||typeof poModal!=='function')return;
+  const grp={};keys.forEach(k=>{const p=k.split('|');const g=p[0]+' · '+p[1];(grp[g]=grp[g]||[]).push(`${p[2]} ${p[3]}: <b>${KHO_COUNTS[k]}</b>`);});
+  const list=Object.entries(grp).sort((a,b)=>kcISO(b[0].split(' · ')[1]).localeCompare(kcISO(a[0].split(' · ')[1]))).map(([g,it])=>`<div style="margin:6px 0"><b>${poEsc((SALES_PROD_NAMES[g.split(' · ')[0]]||g.split(' · ')[0]))} · ngày ${poEsc(g.split(' · ')[1])}</b><div class="po-muted">${it.join(' · ')}</div></div>`).join('');
+  poModal('⚠ Máy này có số kiểm kho riêng — máy khác không thấy',
+    `<div style="margin-bottom:8px">Có <b>${keys.length} ô kiểm kho</b> chỉ lưu trên máy này, <b>chưa có trên Supabase</b>. Đây là lý do Tồn kho nhà của máy này khác máy kia.</div>
+    <div style="max-height:260px;overflow:auto;border:1px solid #E8D9C8;border-radius:9px;padding:6px 10px">${list}</div>
+    <div style="margin-top:10px">• <b>Đẩy lên</b>: nếu đây là số đếm thật → mọi máy dùng chung số này.<br>• <b>Bỏ</b>: nếu số này đã xoá / đếm sai → máy này dùng đúng số trên Supabase như máy khác.</div>`,
+    [{label:'Để sau',onClick:()=>{}},
+     {label:'Bỏ, dùng số trên Supabase',danger:true,onClick:()=>{keys.forEach(k=>delete KHO_COUNTS[k]);KHO_COUNTS_LOCAL_ONLY=[];saveKhoCounts();toast('✓ Đã bỏ số kiểm kho riêng của máy này','ok');kcRefreshPage();}},
+     {label:'Đẩy lên cho mọi máy',primary:true,onClick:async()=>{
+        try{await kcPush(keys.map(k=>{const p=k.split('|');return {prod:p[0],date:p[1],color:p[2],size:p[3],counted:KHO_COUNTS[k]};}));
+          KHO_COUNTS_LOCAL_ONLY=[];toast(`✓ Đã đưa ${keys.length} ô kiểm kho lên — mọi máy dùng chung`,'ok');kcRefreshPage();}
+        catch(e){kcShowError('Chưa đẩy được số kiểm kho lên Supabase',String(e.message||e));}}}]);
+  const m=document.querySelector('#poOverlay .po-modal');if(m)m.classList.add('wide');
+}
+// Bấm ô Tồn kho → giải thích con số: điểm xuất phát + từng ngày đơn đi / hàng về (theo nguồn)
+// Dùng để so 2 máy: dòng nào khác nhau giữa 2 máy là chỗ gây lệch.
+function khoExplain(pk,col,sz){
+  const today=localYMD(),K=col+'|'+sz;
+  const D=d=>kcISO(d);
+  // điểm xuất phát: số kiểm kho / ô sửa tồn gần nhất ≤ hôm nay, không có thì tồn gốc 31/05
+  let start={kind:'base',val:((SEED_KHO_BASE[pk]||{})[col]||{})[sz]||0,date:'2026-05-31',from:'2026-06-01',label:'Tồn gốc (nhúng sẵn trong web) đến 31/05/2026'};
+  Object.keys(KHO_COUNTS||{}).forEach(k=>{const p=k.split('|');if(p[0]!==pk||p[2]+'|'+p[3]!==K)return;const y=D(p[1]);
+    if(y<=today&&y>=start.date)start={kind:'count',val:KHO_COUNTS[k],date:y,from:y,label:`Kiểm kho ngày ${p[1]} (số đếm đầu ngày)`,local:KHO_COUNTS_LOCAL_ONLY.includes(k)};});
+  Object.keys(EDITS.kho||{}).forEach(k=>{const p=k.split('|');if(p[0]!==pk||p[2]+'|'+p[3]!==K)return;const y=D(p[1]);
+    if(y<=today&&y>=start.date){const nx=new Date(y);nx.setDate(nx.getDate()+1);start={kind:'edit',val:EDITS.kho[k],date:y,from:localYMD(nx),label:`Ô Tồn kho sửa tay ngày ${p[1]} (cuối ngày)`};}});
+  const inR=d=>{const y=D(d);return y>=start.from&&y<=today;};
+  const ev={};const add=(d,f,o)=>{(ev[d]=ev[d]||{ord:0,ordOv:null,arr:[],arrOv:null})[f].push?ev[d][f].push(o):(ev[d][f]+=o);};
+  SALES_ALL.filter(r=>r.prod===pk&&r.color===col&&r.size===sz&&inR(r.date)).forEach(r=>add(r.date,'ord',r.qty||0));
+  const srcs=[['Số nền',SEED_ARR_D],['Hàng về/trả nhập tay',MANUAL_ARR],['Lô "Đã về nhà" (Ord Hàng)',ORD_HOME_ROWS],['Đơn NCC đã về',PO_ARR_ROWS]];
+  srcs.forEach(([nm,list])=>list.filter(r=>r.prod===pk&&r.color===col&&r.size===sz&&inR(r.date)).forEach(r=>add(r.date,'arr',{nm,q:r.qty||0,lot:r.lot||'',local:!!r.pending})));
+  Object.keys(EDITS.ord||{}).forEach(k=>{const p=k.split('|');if(p[0]===pk&&p[2]+'|'+p[3]===K&&inR(p[1])){(ev[p[1]]=ev[p[1]]||{ord:0,ordOv:null,arr:[],arrOv:null}).ordOv=EDITS.ord[k];}});
+  Object.keys(EDITS.arr||{}).forEach(k=>{const p=k.split('|');if(p[0]===pk&&p[2]+'|'+p[3]===K&&inR(p[1])){(ev[p[1]]=ev[p[1]]||{ord:0,ordOv:null,arr:[],arrOv:null}).arrOv=EDITS.arr[k];}});
+  let cur=start.val,rows='';
+  Object.keys(ev).sort(salesDateCmp).forEach(d=>{
+    const e=ev[d];const o=e.ordOv!=null?e.ordOv:e.ord;const aSum=e.arr.reduce((s,x)=>s+x.q,0);const a=e.arrOv!=null?e.arrOv:aSum;
+    if(!o&&!a)return;cur=cur-o+a;
+    const arrTxt=e.arrOv!=null?`<b>+${a}</b> <span class="po-tag short">sửa tay</span>`:e.arr.map(x=>`+${x.q} ${poEsc(x.nm)}${x.lot?' · '+poEsc(x.lot):''}${x.local?' <span class="po-tag short">chỉ máy này</span>':''}`).join('<br>');
+    rows+=`<tr><td class="l">${d}</td><td class="neg">${o?'−'+o:''}${e.ordOv!=null?' <span class="po-tag short">sửa tay</span>':''}</td><td class="l">${a?arrTxt:''}</td><td><b>${cur}</b></td></tr>`;
+  });
+  const shown=Math.round((khoNhaNow(pk)||{})[K]||0);
+  poModal(`Tồn kho nhà · ${poEsc(SALES_PROD_NAMES[pk]||pk)} · ${poEsc(col)} ${poEsc(sz)}`,
+    `<div style="margin-bottom:8px">Bắt đầu: <b>${poEsc(start.label)}</b> = <b>${start.val}</b>${start.local?' <span class="po-tag short">chỉ máy này — máy khác không có</span>':''}</div>
+    <table class="po-tbl"><thead><tr><th class="l">Ngày</th><th>Đơn đi</th><th class="l">Hàng về (nguồn)</th><th>Tồn sau ngày</th></tr></thead><tbody>${rows||'<tr><td colspan="4" class="po-muted">Không có đơn đi / hàng về từ ngày bắt đầu</td></tr>'}</tbody></table>
+    <div style="margin-top:8px">Kết quả: <b>${cur}</b>${cur!==shown?` <span class="po-tag short">khác số đang hiện ${shown}</span>`:''}</div>
+    <div class="po-muted" style="margin-top:8px">So 2 máy: mở cùng ô này trên cả 2 máy, dòng nào khác nhau là chỗ gây lệch. Đồng bộ: kiểm kho ${KHO_COUNTS_CLOUD_OK?'✓':'✗ chưa đọc được Supabase'} · hàng về/trả ${MANUAL_ARR_CLOUD_OK?'✓':'✗ chưa đọc được Supabase'} · ô sửa tay ${EDITS_CLOUD_OK?'✓':'✗ chưa đọc được Supabase'}</div>`,
+    [{label:'Đóng',primary:true}]);
+  const m=document.querySelector('#poOverlay .po-modal');if(m)m.classList.add('wide');
+}
+function kcRefreshPage(){
+  const on=id=>{const el=document.getElementById(id);return el&&el.classList.contains('active');};
+  if(on('page-inventory'))loadInventoryNew();
+  else if(on('page-sales'))loadSales();
+  else if(on('page-dash'))loadDash();
+}function getArrRows(pk){
   const out=SEED_ARR_D.filter(r=>r.prod===pk).map(r=>({date:r.date,prod:pk,color:r.color,size:r.size,qty:r.qty}));
   MANUAL_ARR.filter(r=>r.prod===pk).forEach(r=>out.push(r));
   ORD_HOME_ROWS.filter(r=>r.prod===pk).forEach(r=>out.push(r));
@@ -5242,21 +5418,31 @@ function renderArrGrid(){
   html+=`</tbody></table>`;
   document.getElementById('arrGrid').innerHTML=html;
 }
-function saveArrGrid(){
+let _arrSaving=false;
+async function saveArrGrid(){
+  if(_arrSaving)return;
   const dateVal=document.getElementById('arrDate').value;
   if(!dateVal){toast('Chọn ngày!','err');return;}
   const pk=document.getElementById('arrProd').value;
   const note=(document.getElementById('arrNote').value||'').trim()||'Hàng trả';
   const dstr=dateVal.split('-').reverse().join('/');
-  let n=0;
+  const add=[];let n=0;
   document.querySelectorAll('#arrGrid input[type=number]').forEach(inp=>{
     const q=parseInt(inp.value)||0;
-    if(q>0){MANUAL_ARR.push({date:dstr,prod:pk,color:inp.dataset.col,size:inp.dataset.sz,qty:q,lot:note});n+=q;}
+    if(q>0){add.push({client_id:marrUid(),pending:true,date:dstr,prod:pk,color:inp.dataset.col,size:inp.dataset.sz,qty:q,lot:note});n+=q;}
   });
   if(!n){toast('Chưa nhập số nào!','err');return;}
-  saveManualArr();
-  toast(`✓ Đã cộng ${n}c hàng về (${note}) vào ${dstr}`,'ok');
-  closeAddArr();renderSalesKpi();renderSales();
+  _arrSaving=true;showLoading('Đang lưu hàng về...');
+  try{
+    MANUAL_ARR.push(...add);saveManualArr();          // giữ trong máy trước, mất mạng cũng không mất số
+    const ok=await syncManualArrFromCloud();          // đẩy lên Supabase + lấy bản chung mới nhất
+    hideLoading();
+    toast(ok?`✓ Đã cộng ${n}c hàng về (${note}) vào ${dstr} · mọi máy đều thấy`
+            :`⚠ Đã cộng ${n}c vào ${dstr} trên máy này — chưa lên Supabase, sẽ tự đẩy lại lần tải sau`,ok?'ok':'err');
+    closeAddArr();renderSalesKpi();renderSales();
+    if(!ok)marrShowSetup();   // hiện lỗi thật + SQL cần chạy
+    INV_DATA={};   // trang Kho tính lại Tồn kho nhà khi mở
+  }finally{_arrSaving=false;hideLoading();}
 }
 
 // Init khi vào trang sales
