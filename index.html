@@ -1520,7 +1520,7 @@ function getShopeeItems(raw){
       const code=mc[1].toUpperCase(),combo=!!mc[2]||/\+/.test(mc[3]);
       const colors=shpColorsOf(mc[3]),size=nGroupSize(code,mc[4]);
       lines.push({no,code,combo,colors,size,qty,raw:cmp,ok:true});
-      if(code==='CB01'){res.push({code,color:colors[0]||'',size,qty,line:no});continue;}
+      if(code==='CB01'){res.push({code,color:colors.join('+'),size,qty,line:no});continue;}
       // Combo nhiều màu → mỗi màu × SL của dòng (để bảng soạn hàng đếm đúng số cái)
       colors.forEach(c=>res.push({code,color:c,size,qty,line:no,combo}));
       continue;
@@ -1528,7 +1528,7 @@ function getShopeeItems(raw){
     const fr=skuParseFree(cmp,desc);
     if(fr){
       lines.push({no,code:fr.code,combo:fr.combo,colors:fr.colors,size:fr.size,qty,raw:cmp,ok:true,viaSku:true});
-      if(fr.code==='CB01'){res.push({code:fr.code,color:fr.colors[0]||'',size:fr.size,qty,line:no});continue;}
+      if(fr.code==='CB01'){res.push({code:fr.code,color:fr.colors.join('+'),size:fr.size,qty,line:no});continue;}
       fr.colors.forEach(c=>res.push({code:fr.code,color:c,size:fr.size,qty,line:no,combo:fr.combo}));
       continue;
     }
@@ -1541,7 +1541,7 @@ function getShopeeItems(raw){
         const code=nameCodes[0],combo=/\+/.test(mn[1]);
         const colors=shpColorsOf(mn[1]),size=nGroupSize(code,mn[2]);
         lines.push({no,code,combo,colors,size,qty,raw:cmp,ok:true,viaName:true});
-        if(code==='CB01'){res.push({code,color:colors[0]||'',size,qty,line:no});continue;}
+        if(code==='CB01'){res.push({code,color:colors.join('+'),size,qty,line:no});continue;}
         colors.forEach(c=>res.push({code,color:c,size,qty,line:no,combo}));
         continue;
       }
@@ -1550,7 +1550,7 @@ function getShopeeItems(raw){
     const an=skuParseAny(desc);
     if(an.code){
       lines.push({no,code:an.code,combo:an.combo,colors:an.colors,size:an.size,qty,raw:cmp,ok:true,viaAny:true});
-      if(an.code==='CB01'){res.push({code:an.code,color:an.colors[0]||'',size:an.size,qty,line:no});continue;}
+      if(an.code==='CB01'){res.push({code:an.code,color:an.colors.join('+'),size:an.size,qty,line:no});continue;}
       an.colors.forEach(c=>res.push({code:an.code,color:c,size:an.size,qty,line:no,combo:an.combo}));
       continue;
     }
@@ -1586,6 +1586,7 @@ function classifyShopee(pages){
     const L=lines[0],e={size:L.size,idx};
     if(!L.ok){put(B.OTHER,e,idx);logs.push({t:'warn',m:`${T}: OTHER — ${L.why}: "${L.raw.slice(-40)}"`});oc++;return;}
     // Combo 1 dòng (VD "NBD Combo Đen + Nude") → nhóm Combo riêng của sản phẩm (như bản v3.5)
+    if(L.combo&&L.code==='CB01'){put(B.CB01,e,idx);logs.push({t:'ok',m:`${T}: CB01 lót ${L.colors[0]||''} + đùi ${L.colors[1]||L.colors[0]||''}/${L.size}`});return;}
     if(L.combo){
       if(B[L.code]&&B[L.code].COMBO){put(B[L.code].COMBO,e,idx);logs.push({t:'ok',m:`${T}: ${L.code}/COMBO ${L.colors.join('+')}/${L.size}`});cc++;}
       else{put(B.MULTI,e,idx);logs.push({t:'multi',m:`${T}: MULTI (combo ${L.code} không có nhóm riêng)`});mc++;}
@@ -1832,7 +1833,8 @@ function tkRowToItems(r){
   // Combo 1 màu mà không ghi số cái → không biết bao nhiêu cái → OTHER (không đoán).
   if(code&&!m){
     const a=skuParseAny(sku,code);
-    if(a.code&&!(a.combo&&a.colors.length===1)){
+    if(a.code&&!(a.combo&&a.colors.length===1&&a.code!=='CB01')){
+      if(code==='CB01')return[{code,color:a.colors.join('+'),size:a.size,qty:r.qty,pieces:r.qty,combo:a.colors.length>1,how:how+' · đọc tự do',raw:sku}];
       if(a.colors.length>1)return a.colors.map(c=>({code,color:c,size:a.size,qty:r.qty,pieces:r.qty,combo:true,how:how+' · đọc tự do',raw:sku}));
       return[{code,color:a.colors[0],size:a.size,qty:r.qty,pieces:r.qty,combo:false,how:how+' · đọc tự do',raw:sku}];
     }
@@ -1840,6 +1842,7 @@ function tkRowToItems(r){
   }
   if(!code||!m)return[{code:'OTHER',name:r.name,seller:sel,color:m?m[3]:'',size:m?nSize(m[4]):'?',qty:r.qty,pieces:r.qty*per,raw:sku,why:!m?'không đọc được phân loại':(sel?`mã ${sel} chưa có trong hệ thống`:'không có Seller SKU')}];
   const size=nSize(m[4]);
+  if(code==='CB01')return[{code,color:colors.join('+'),size,qty:r.qty,pieces:r.qty,combo:colors.length>1,how,raw:sku}];   // CB01: 1 combo = lót màu 1 + đùi màu 2
   if(colors.length>1)return colors.map(c=>({code,color:c,size,qty:r.qty,pieces:r.qty,combo:true,how,raw:sku}));
   return[{code,color:colors[0],size,qty:r.qty,pieces:r.qty*per,combo:isCombo||per>=2,how,raw:sku}];
 }
@@ -1961,7 +1964,8 @@ function initPickInv(){
 }
 function addPickItem(inv,code,rawColor,rawSize,qty){
   const col=pColor(rawColor);qty=qty||1;
-  const addTo=(prod)=>{
+  const addTo=(prod,colArg)=>{
+    const col=colArg||pColor(rawColor);
     const sz=pSize(rawSize,prod);
     const colors=PICK_COLORS[prod],sizes=PICK_SIZES[prod];
     const ca=(PICK_COLOR_ALIAS[prod]||{})[col]||col;
@@ -1971,7 +1975,11 @@ function addPickItem(inv,code,rawColor,rawSize,qty){
     if(!sizes.includes(sz)){const k=`${prod}·${col}·${sz}`;inv.OTHER[k]=(inv.OTHER[k]||0)+qty;return;}
     inv[prod][c][sz]=(inv[prod][c][sz]||0)+qty;
   };
-  if(code==='CB01'){addTo('NBD');addTo('NB01');}
+  // CB01 = combo LÓT + ĐÙI: "CB01 Nude+Đen 5XL" → màu thứ 1 là NB01 (lót), màu thứ 2 là NBD (đùi)
+  // → Nude lót 5XL (NB01 Da) + Đen đùi 5XL (NBD Đen). Chỉ 1 màu → cả 2 cùng màu đó.
+  if(code==='CB01'){const cs=String(rawColor||'').split('+').map(s=>s.trim()).filter(Boolean);
+    if(cs.length>=2){addTo('NB01',pColor(cs[0]));addTo('NBD',pColor(cs[1]));}
+    else{addTo('NB01');addTo('NBD');}}
   else if(code==='NBD')  addTo('NBD');
   else if(code==='NB01') addTo('NB01');
   else if(code==='JS01') addTo('JS01');
@@ -2059,7 +2067,8 @@ function getGHNItems(raw){
     if(!size||qty<=0)continue;
     if(/combo/i.test(colorRaw)){
       const uniq=[...new Set([...colorRaw.matchAll(/Xanh\s*Baby|Đỏ\s*Mận|Nâu\s*Chocolate|Đen|Den|Nude|Nâu|Nau|Da|Hồng\s*Baby|Hong\s*Baby|Kem|Hồng|Hong|Vàng|Vang|Tím|Tim|Xanh\s*Navy|Navy|Xanh\s*Mint|Xanh\s*Dương|Mint|Đỏ\s*Đô|Đỏ|Xanh/gi)].map(x=>x[0].toLowerCase()))];
-      uniq.forEach(c=>res.push({code,color:c,size,qty:1}));
+      if(code==='CB01')res.push({code,color:uniq.join('+'),size,qty:1});
+      else uniq.forEach(c=>res.push({code,color:c,size,qty:1}));
     }else res.push({code,color:colorRaw,size,qty});
   }
   return res;
@@ -2089,8 +2098,9 @@ function ghnReadLabel(items){
     const mc=desc.match(/:\s*(\d+)\s*c(?:ái)?\s*$/i);
     if(mc){qty=+mc[1];desc=desc.replace(/:\s*\d+\s*c(?:ái)?\s*$/i,'').trim();}
     const a=skuParseAny(desc);
-    if(a.code&&!(a.combo&&a.colors.length===1)){
-      a.colors.forEach(c=>out.push({code:a.code,color:c,size:a.size,qty}));
+    if(a.code&&!(a.combo&&a.colors.length===1&&a.code!=='CB01')){
+      if(a.code==='CB01')out.push({code:a.code,color:a.colors.join('+'),size:a.size,qty});
+      else a.colors.forEach(c=>out.push({code:a.code,color:c,size:a.size,qty}));
     }else{
       out.push({code:'OTHER',name:`${desc}${a.why?` (${a.why})`:''}`,qty});
     }
@@ -2172,7 +2182,7 @@ async function showPickTable(){
   let totalItems=0,otherItems=0;
   Object.entries(PICK_INV).forEach(([pk,prod])=>{if(pk==='OTHER'){Object.values(prod||{}).forEach(v=>{otherItems+=(v||0);});return;}if(typeof prod==='object')Object.values(prod).forEach(col=>{if(typeof col==='object')Object.values(col).forEach(v=>{totalItems+=(v||0);});});});
   if(otherItems)totalItems=`${totalItems+otherItems} (gồm ${otherItems} SP khác)`;
-  document.getElementById('pickNote').innerHTML=`Tổng ${totalItems} sản phẩm đếm từ PDF. CB01 đã cộng vào cả NBD và NB01.`+(PICK_STOCK_READY?` · <span style="color:#c0392b;font-weight:700">■ HẾT KHO</span> (kho nhà = 0 → thay size/màu khác) · <span style="color:#b5651d;font-weight:700">■ còn ít</span> (không đủ đơn)`:` · <span style="color:#9A8070">(không tải được tồn kho để cảnh báo)</span>`);
+  document.getElementById('pickNote').innerHTML=`Tổng ${totalItems} sản phẩm đếm từ PDF. CB01 (combo lót + đùi): màu thứ 1 cộng vào NB01 lót, màu thứ 2 cộng vào NBD đùi.`+(PICK_STOCK_READY?` · <span style="color:#c0392b;font-weight:700">■ HẾT KHO</span> (kho nhà = 0 → thay size/màu khác) · <span style="color:#b5651d;font-weight:700">■ còn ít</span> (không đủ đơn)`:` · <span style="color:#9A8070">(không tải được tồn kho để cảnh báo)</span>`);
   const pc=document.getElementById('pickCard');pc.style.display='block';
 }
 let _salesWriting=false,_lastSalesIds=[],_pendingSales=null;
@@ -2753,6 +2763,7 @@ async function runPickingList(buf,fname){
       // Đã biết mã nhưng phân loại ghi khác mẫu "Màu, Size" → đọc tổng quát theo SKU (chỉ nhận khi rõ ràng, 1 màu)
       if(code&&!cs){
         const a=skuParseAny(v.sku,code);
+        if(a.code==='CB01'){addPickItem(inv,'CB01',a.colors.join('+'),a.size,v.qty);lg('info',`#${p.no} "${v.sku}" → CB01 lót ${pColor(a.colors[0])} + đùi ${pColor(a.colors[1]||a.colors[0])} ${a.size}`);return;}
         if(a.code&&!a.combo){addPickItem(inv,code,a.colors[0],a.size,v.qty);lg('info',`#${p.no} "${v.sku}" → ${code} ${pColor(a.colors[0])} ${a.size} (đọc tự do theo SKU)`);return;}
         lg('warn',`⚠️ #${p.no} "${v.sku}": ${a.code?'combo — không rõ số cái':a.why}`);
       }
