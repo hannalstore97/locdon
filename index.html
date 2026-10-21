@@ -3082,18 +3082,54 @@ async function renameLot(prod,oldName){
   }catch(e){toast('Lỗi đổi tên: '+e.message,'err');}
 }
 
+const ORD_RLS_SQL=`alter table ord_lots enable row level security;
+drop policy if exists "app all" on ord_lots;
+create policy "app all" on ord_lots for all using (true) with check (true);
+notify pgrst, 'reload schema';`;
+function ordShowDbError(title,msg){
+  if(typeof poModal!=='function'){toast(title+': '+msg,'err');return;}
+  poModal('⚠ '+title,`<div style="margin-bottom:6px">Supabase trả về:</div><pre class="po-err">${poEsc(msg)}</pre>
+    <div style="margin:10px 0 6px">Thường do bảng <b>ord_lots</b> chưa cho phép sửa. Vào Supabase → <b>SQL Editor</b> → dán đoạn dưới → <b>Run</b> → tải lại trang web rồi đổi trạng thái lại:</div>
+    <pre class="po-err">${poEsc(ORD_RLS_SQL)}</pre>`,
+    [{label:'📋 Copy SQL',keep:true,onClick:()=>{navigator.clipboard&&navigator.clipboard.writeText(ORD_RLS_SQL).then(()=>toast('✓ Đã copy SQL','ok'));}},{label:'Đóng',primary:true}]);
+  const m=document.querySelector('#poOverlay .po-modal');if(m)m.classList.add('wide');
+}
 async function updateLotStatus(prod,dotName,newStatus){
+  const body={status:newStatus};
+  if(newStatus==='Đã về nhà'){
+    // Ngày hàng THẬT SỰ về nhà — số lượng cộng vào Tồn kho nhà từ ngày này.
+    // (Trước đây dùng "ngày dự kiến về" → nếu có kiểm kho sau ngày đó thì số kiểm kho đè mất lô này.)
+    const t=new Date();const todayDMY=`${String(t.getDate()).padStart(2,'0')}/${String(t.getMonth()+1).padStart(2,'0')}/${t.getFullYear()}`;
+    const inp=prompt(`Ngày lô "${dotName}" về tới kho nhà (dd/mm/yyyy):\nSố lượng sẽ cộng vào Tồn kho nhà từ ngày này.`,todayDMY);
+    if(inp===null){renderOrdLots();return;}
+    const m=inp.trim().match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/);
+    if(!m){toast('Ngày không hợp lệ — nhập dạng dd/mm/yyyy','err');renderOrdLots();return;}
+    const iso=`${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+    if(iso>localYMD()){toast('Ngày về không được ở tương lai','err');renderOrdLots();return;}
+    // Có kiểm kho SAU ngày về → số đếm đó sẽ đè lên lô này (coi như lúc đếm hàng đã nằm trong kho)
+    const pk=SALES_PMAP[prod]||prod;let lastCnt='';
+    Object.keys(KHO_COUNTS||{}).forEach(k=>{const p=k.split('|');if(p[0]!==pk)return;const y=p[1].split('/').reverse().join('-');if(y>lastCnt)lastCnt=y;});
+    if(lastCnt&&lastCnt>iso&&!confirm(`⚠ ${SALES_PROD_NAMES[pk]||pk} có kiểm kho ngày ${lastCnt.split('-').reverse().join('/')} — SAU ngày về ${iso.split('-').reverse().join('/')}.\nSố kiểm kho đó sẽ đè lên lô này (tức là coi như lúc đếm hàng đã có trong kho, KHÔNG cộng thêm).\n\nNếu lúc đếm hàng CHƯA về, bấm Huỷ rồi chọn ngày về sau ngày đếm.\nVẫn lưu?`)){renderOrdLots();return;}
+    body.arr_date=iso;
+  }
   try{
     const res=await fetch(`${SB_URL}/rest/v1/ord_lots?prod=eq.${encodeURIComponent(prod)}&dot_name=eq.${encodeURIComponent(dotName)}`,{
       method:'PATCH',
-      headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal'},
-      body:JSON.stringify({status:newStatus})
+      headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(body)
     });
-    if(!res.ok)throw new Error('HTTP '+res.status);
-    ORD_DATA.filter(r=>r.prod===prod&&r.dot_name===dotName).forEach(r=>r.status=newStatus);
+    if(!res.ok){let t='';try{t=await res.text();}catch(_){}throw new Error('HTTP '+res.status+(t?' — '+t.slice(0,200):''));}
+    let got=[];try{got=await res.json();}catch(_){}
+    // Supabase chặn sửa (RLS) thì vẫn trả 200 nhưng không sửa dòng nào → trước đây web báo thành công giả
+    if(!Array.isArray(got)||!got.length)throw new Error('Supabase không sửa được dòng nào của đợt này — bảng ord_lots chưa cho phép UPDATE.');
+    ORD_DATA.filter(r=>r.prod===prod&&r.dot_name===dotName).forEach(r=>{r.status=newStatus;if(body.arr_date)r.arr_date=body.arr_date;});
+    INV_DATA={};   // trang Kho / Đi Đơn tính lại khi mở
     renderOrdLots();
-    toast(`✓ ${dotName} → ${newStatus}`,'ok');
-  }catch(e){toast('Lỗi: '+e.message,'err');}
+    toast(`✓ ${dotName} → ${newStatus}${body.arr_date?' · cộng vào kho nhà từ '+body.arr_date.split('-').reverse().join('/'):''}`,'ok');
+  }catch(e){
+    renderOrdLots();   // trả ô chọn về trạng thái thật
+    ordShowDbError('Chưa đổi được trạng thái '+dotName,String(e.message||e));
+  }
 }
 
 async function loadOrd(){await loadOrdLots();}
