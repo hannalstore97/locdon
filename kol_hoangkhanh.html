@@ -1217,7 +1217,7 @@ let OWNER_INV={};    // {tên: số lượt mời lại của Linh}
 let OWNER_SYNC=null; // thời điểm tải gần nhất
 async function refreshOthers(){
   try{
-    const rows=await sbSel('kol_list',`select=name,employee,prod,link,add_date,posted,good_conv&employee=neq.${encodeURIComponent(EMP)}`);
+    const rows=await sbSel('kol_list',`select=*&employee=neq.${encodeURIComponent(EMP)}`); // select=* để không lỗi khi bảng thiếu cột posted/good_conv
     OTHERS={};OWNER_LIST=[];
     (rows||[]).forEach(r=>{if(!r||!r.name)return;const key=r.name.toLowerCase();
       OTHERS[key]=r.employee||'người khác';
@@ -1225,9 +1225,10 @@ async function refreshOthers(){
     OWNER_SYNC=new Date();
     try{const inv=await sbSel('kol_invites',`select=name,kind&employee=eq.${encodeURIComponent(OWNER)}`);
       OWNER_INV={};(inv||[]).forEach(v=>{if(v.kind==='re'){const k=v.name.toLowerCase();OWNER_INV[k]=(OWNER_INV[k]||0)+1;}});}catch(_){}
-    return true;
-  }catch(e){return false;}
+    OWNER_ERR='';return true;
+  }catch(e){OWNER_ERR=String(e&&e.message||e);console.error('Không tải được KOL của Linh:',e);return false;}
 }
+let OWNER_ERR='';
 function ownerInfo(name){
   const n=norm(name||'');if(!n)return null;
   const owner=OTHERS[n];if(!owner)return null;
@@ -1265,7 +1266,7 @@ function renderOwner(){
     <td>${r.posted?'<span class="own-tag">✓ Đã lên bài</span>':mut}</td>
     <td>${r.good?'<span class="own-tag">★ Tốt</span>':mut}</td>
     <td>${r.addDate?esc(r.addDate):mut}</td></tr>`;}).join('')
-    ||`<tr><td colspan="8" style="text-align:center;color:#b9a892;padding:22px;font-size:12px">${OWNER_LIST.length?'Không có KOL khớp bộ lọc.':'Chưa tải được danh sách KOL của Linh.'}</td></tr>`;
+    ||`<tr><td colspan="8" style="text-align:center;color:#b9a892;padding:22px;font-size:12px">${OWNER_LIST.length?'Không có KOL khớp bộ lọc.':(OWNER_ERR?`Chưa tải được danh sách KOL của Linh (lỗi: ${esc(OWNER_ERR)}). Tải lại trang thử lần nữa.`:'Chưa tải được danh sách KOL của Linh.')}</td></tr>`;
 }
 document.querySelectorAll('.empn').forEach(e=>e.textContent=EMP);
 document.title='KOL của '+EMP+' — HANNALSTORE97';
