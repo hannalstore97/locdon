@@ -808,6 +808,70 @@ function sbHead(extra){return Object.assign({'apikey':SB_KEY,'Authorization':`Be
 async function sbSel(t,q=''){const r=await fetch(`${SB_URL}/rest/v1/${t}?${q}`,{headers:sbHead({'Accept':'application/json'})});if(!r.ok)throw new Error('sel '+r.status);return r.json();}
 async function sbUpsert(t,rows,onconflict){const r=await fetch(`${SB_URL}/rest/v1/${t}${onconflict?`?on_conflict=${onconflict}`:''}`,{method:'POST',headers:sbHead({'Prefer':'resolution=merge-duplicates,return=minimal'}),body:JSON.stringify(rows)});if(!r.ok)throw new Error('ups '+r.status);return true;}
 async function sbDel(t,q){const r=await fetch(`${SB_URL}/rest/v1/${t}?${q}`,{method:'DELETE',headers:sbHead({'Prefer':'return=minimal'})});if(!r.ok)throw new Error('del '+r.status);return true;}
+
+// ═══ KHOÁ KOL: 1 KOL = 1 nhân viên, không ai giành được của người khác ═══
+// Mọi lệnh lưu vào kol_list chỉ được SỬA dòng của chính mình, hoặc TẠO MỚI khi KOL chưa ai có.
+// Nếu KOL đã thuộc nhân viên khác (kể cả 2 người bấm thêm cùng lúc) → không ghi đè, gỡ khỏi danh sách mình và báo.
+const _escK=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function _refreshOthersK(){
+  try{
+    const o=await sbSel('kol_list',`select=name,employee&employee=neq.${encodeURIComponent(EMP)}`);
+    const x={};(o||[]).forEach(r=>{if(r&&r.name)x[r.name.toLowerCase()]=r.employee||'nhân viên khác';});
+    OTHERS=x;return true;
+  }catch(_){return false;}
+}
+async function _kolTaken(name){
+  const n=String(name).toLowerCase();
+  let owner='nhân viên khác';
+  try{const x=await sbSel('kol_list',`select=employee&name=eq.${encodeURIComponent(name)}`);if(x&&x[0]&&x[0].employee)owner=x[0].employee;}catch(_){}
+  OTHERS[n]=owner;
+  const i=REG.findIndex(r=>r.name.toLowerCase()===n);
+  if(i>=0){
+    const k=REG[i];REG.splice(i,1);
+    // KOL vừa thêm hôm nay mà bị người khác lấy trước → bỏ luôn lượt mời "mới" vừa ghi
+    try{if(k.addDate===TODAY&&typeof INV!=='undefined'&&typeof delInvite==='function')
+      INV.filter(v=>v.kind==='new'&&v.name.toLowerCase()===n).forEach(v=>delInvite(v.id));}catch(_){}
+  }
+  try{if(typeof clearPending==='function')clearPending(name);}catch(_){}
+  ['renderReg','renderReport','renderDash','renderSum','renderGood','renderOwner'].forEach(f=>{try{if(typeof window[f]==='function')window[f]();}catch(_){}});
+  const m=document.getElementById('addMsg');
+  if(m){m.className='addmsg err';m.innerHTML=`⛔ <b>@${_escK(name)}</b> đã thuộc <b>${_escK(owner)}</b> (người đó thêm trước) — không lưu vào danh sách của bạn.`;}
+}
+const _sbUpsertOrigK=sbUpsert;
+sbUpsert=async function(t,rows,onconflict){
+  if(t!=='kol_list')return _sbUpsertOrigK(t,rows,onconflict);
+  for(const row of rows){
+    const body=Object.assign({},row,{employee:EMP});
+    // 1) KOL đã là của mình → chỉ cập nhật
+    let r=await fetch(`${SB_URL}/rest/v1/kol_list?name=eq.${encodeURIComponent(row.name)}&employee=eq.${encodeURIComponent(EMP)}`,
+      {method:'PATCH',headers:sbHead({'Prefer':'return=representation'}),body:JSON.stringify(body)});
+    if(!r.ok)throw new Error('patch '+r.status);
+    if((await r.json()).length)continue;
+    // 2) Chưa ai có → tạo mới (nếu ai đó vừa tạo trước 1 tích tắc thì bị bỏ qua, KHÔNG ghi đè)
+    r=await fetch(`${SB_URL}/rest/v1/kol_list?on_conflict=name`,
+      {method:'POST',headers:sbHead({'Prefer':'resolution=ignore-duplicates,return=representation'}),body:JSON.stringify([body])});
+    if(!r.ok)throw new Error('ins '+r.status);
+    if((await r.json()).length)continue;
+    // 3) Đã thuộc người khác
+    await _kolTaken(row.name);
+  }
+  return true;
+};
+// Xoá KOL chỉ xoá dòng của chính mình
+delKolDb=async function(name){try{if(!SB_OK)return;await sbDel('kol_list',`name=eq.${encodeURIComponent(name)}&employee=eq.${encodeURIComponent(EMP)}`);}catch(e){}};
+// Trước mỗi lần thêm KOL: tải lại danh sách KOL của người khác (mới nhất)
+const _addKolsOrigK=addKols;
+addKols=async function(list,prod,info){
+  if(SB_OK){if(typeof refreshOthers==='function')await refreshOthers();else await _refreshOthersK();}
+  return _addKolsOrigK(list,prod,info);
+};
+// Tự cập nhật danh sách KOL của người khác mỗi phút (trang mở cả ngày vẫn chặn đúng)
+setInterval(async()=>{
+  if(!SB_OK||document.hidden)return;
+  if(typeof refreshOthers==='function'){await refreshOthers();try{if(typeof renderOwner==='function')renderOwner();}catch(_){}}
+  else await _refreshOthersK();
+},60000);
+// ═══ hết phần khoá KOL ═══
 const EMP='Nhi';
 
 function setSbBadge(){
