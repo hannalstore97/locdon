@@ -4277,7 +4277,10 @@ create policy "app all" on transactions for all using (true) with check (true);`
 
 function poEsc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function poCode(pk,col,sz){return pk+'·'+col+'·'+sz;}
-function poParse(code){const p=String(code||'').split('·');return {pk:p[0]||'',color:fixPlum(p[1]||''),size:p.slice(2).join('·')||''};}
+// Luna: lô cũ còn lưu tên màu cũ → quy về đúng 5 màu của Quản lý kho (Xanh Navy, Xanh Blue, Xanh Rêu, Đen, Tím Mận)
+const PO_COLOR_LEGACY={LUN:{'XANH DƯƠNG':'XANH BLUE','XANH DUONG':'XANH BLUE','XANH':'XANH BLUE','XANH MINT':'XANH RÊU','ĐỎ ĐÔ':'TÍM MẬN','ĐỎ':'TÍM MẬN'}};
+function poCanonColor(pk,col){const m=PO_COLOR_LEGACY[pk];if(!m)return col;const k=String(col||'').normalize('NFC').trim().toUpperCase();return m[k]||col;}
+function poParse(code){const p=String(code||'').split('·');const pk=p[0]||'';return {pk,color:poCanonColor(pk,fixPlum(p[1]||'')),size:p.slice(2).join('·')||''};}
 function poDMY(ymd){ymd=String(ymd||'').slice(0,10);return /^\d{4}-\d{2}-\d{2}$/.test(ymd)?ymd.split('-').reverse().join('/'):ymd;}
 // Công thức theo đặc tả
 const poRemain=r=>r.closed?0:Math.max(0,(r.qty||0)-(r.received||0));
