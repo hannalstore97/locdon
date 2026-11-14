@@ -806,17 +806,37 @@ select:focus,input[type=text]:focus,input[type=date]:focus{border-color:var(--te
     <div class="card-body" style="padding:18px 22px">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-          <div style="font-family:var(--f-head);font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--brown)">🚀 Hoả Tốc / Ngoại Sàn</div>
+          <div style="font-family:var(--f-head);font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--brown)">🚀 Hoả Tốc / Ngoại Sàn / Grab</div>
           <input type="date" id="htDate" style="padding:5px 9px;border:1px solid rgba(220,198,170,.6);border-radius:7px;font-size:12px;color:var(--dark);background:var(--cream)">
           <script>try{var _hd=document.getElementById('htDate');if(_hd&&!_hd.value)_hd.value=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().split('T')[0];}catch(e){}</script>
         </div>
         <div style="display:flex;gap:6px">
+          <button class="btn btn-ghost" onclick="toggleGrab()" id="grabToggleBtn" style="font-size:11px;border-color:rgba(0,166,81,.5);color:#00843f">✎ Tạo đơn tay</button>
           <button class="btn btn-ghost" onclick="document.getElementById('htFiles').click()" style="font-size:11px">📎 Chọn nhiều file PDF</button>
           <button class="btn btn-terra" id="htWriteBtn" onclick="confirmHtSales()" style="font-size:11px" disabled>☁ Ghi vào Đi Đơn</button>
         </div>
       </div>
       <input type="file" id="htFiles" accept="application/pdf" multiple style="display:none" onchange="onHtFiles(this)">
-      <div style="font-size:11px;color:#9A8070;margin-bottom:8px">Chọn nhiều nhãn PDF (GHN, SPX Hoả Tốc, đơn ngoại sàn…) — hệ thống tự đọc & đếm, rồi bấm <b>Ghi vào Đi Đơn</b>.</div>
+      <div style="font-size:11px;color:#9A8070;margin-bottom:8px">Có nhãn PDF (GHN, SPX Hoả Tốc, đơn ngoại sàn…) → <b>📎 Chọn nhiều file PDF</b> rồi bấm <b>Ghi vào Đi Đơn</b>. Đơn Grab / không có nhãn → bấm <b>✎ Tạo đơn tay</b>, chọn sản phẩm rồi trừ kho.</div>
+      <!-- Tạo đơn tay: Grab / Hoả tốc / Ngoại sàn — bấm chọn SP → xác nhận → trừ kho -->
+      <div id="grabArea" style="display:none;margin:4px 0 14px;padding:14px 16px;border:1.5px solid rgba(0,166,81,.35);border-radius:12px;background:#fbfefc">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+          <div style="font-family:var(--f-head);font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#00843f">✎ Tạo đơn tay</div>
+          <span style="font-size:11px;color:#9A8070">Nguồn:</span>
+          <div id="grabSrcTabs" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+        </div>
+        <div style="font-size:11px;color:#9A8070;margin-bottom:10px">Chọn sản phẩm → bấm vào ô màu/size để thêm (mỗi lần bấm +1). Số nhỏ trong ô là <b>tồn kho nhà</b> hiện tại. Ngày lấy theo ô ngày phía trên.</div>
+        <div id="grabProdTabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px"></div>
+        <div id="grabGrid" style="overflow-x:auto"></div>
+        <div style="margin-top:14px;border-top:1px dashed rgba(220,198,170,.8);padding-top:12px">
+          <div style="font-family:var(--f-head);font-size:9px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:#9A8070;margin-bottom:8px">Đơn đang tạo</div>
+          <div id="grabCart"></div>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+          <button class="btn btn-ghost" onclick="grabClear()">↺ Xoá hết</button>
+          <button class="btn btn-terra" id="grabSubmitBtn" onclick="confirmGrab()" style="background:#00A651;border-color:#00A651" disabled>✓ Trừ kho</button>
+        </div>
+      </div>
       <div id="htContent"><div style="color:#9A8070;font-size:12px;text-align:center;padding:18px">Chưa có file — bấm "📎 Chọn nhiều file PDF"</div></div>
     </div>
   </div>
@@ -5416,6 +5436,169 @@ function renderSalesDetail(){
     </div>`;
   });
   sc.innerHTML=html;
+}
+
+// ─── ĐƠN GRAB TẠO TAY: bấm chọn SP → hộp xác nhận → ghi sales_log (kho nhà tự trừ) ───
+let GRAB_PK='QNB',GRAB_CART=[],GRAB_LAST_IDS=[],GRAB_STOCK={};
+function _grabLocalYMD(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function _grabEsc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function _grabStock(pk){
+  if(GRAB_STOCK[pk])return GRAB_STOCK[pk];
+  try{GRAB_STOCK[pk]=khoNhaNow(pk)||{};}catch(_){GRAB_STOCK[pk]={};}
+  return GRAB_STOCK[pk];
+}
+let GRAB_SRC='Grab';
+const GRAB_SRCS=[['Grab','🛵 Grab'],['Hoả tốc','🚀 Hoả tốc'],['Ngoại sàn','🛍 Ngoại sàn']];
+function grabSetSrc(s){GRAB_SRC=s;renderGrab();}
+async function toggleGrab(){
+  const a=document.getElementById('grabArea');
+  if(a.style.display!=='none'){a.style.display='none';return;}
+  a.style.display='block';
+  GRAB_STOCK={};renderGrab();
+  document.getElementById('grabGrid').insertAdjacentHTML('afterbegin','<div id="grabLoading" style="font-size:11px;color:#9A8070;margin-bottom:6px">Đang tải tồn kho…</div>');
+  await _grabRefreshStock();
+  renderGrab();
+}
+async function _grabRefreshStock(){
+  try{await loadPickStock();}catch(_){}
+  GRAB_STOCK={};
+}
+function grabSetProd(pk){GRAB_PK=pk;renderGrab();}
+function grabAdd(pk,color,size){
+  const it=GRAB_CART.find(x=>x.prod===pk&&x.color===color&&x.size===size);
+  if(it)it.qty++;else GRAB_CART.push({prod:pk,color,size,qty:1});
+  renderGrabCart();
+}
+function grabChange(i,d){
+  const it=GRAB_CART[i];if(!it)return;
+  it.qty+=d;if(it.qty<=0)GRAB_CART.splice(i,1);
+  renderGrabCart();
+}
+function grabSetQty(i,v){
+  const it=GRAB_CART[i];if(!it)return;
+  const q=parseInt(v)||0;if(q<=0)GRAB_CART.splice(i,1);else it.qty=q;
+  renderGrabCart();
+}
+function grabClear(){GRAB_CART=[];renderGrabCart();}
+function renderGrab(){
+  const prods=['QNB','NBL','BSL','GY3','CLD','LUN','BLH'];
+  document.getElementById('grabSrcTabs').innerHTML=GRAB_SRCS.map(([v,l])=>
+    `<button class="kho-tab${v===GRAB_SRC?' on':''}" onclick="grabSetSrc('${v}')" style="font-size:11px;padding:4px 10px">${l}</button>`).join('');
+  document.getElementById('grabProdTabs').innerHTML=prods.map(pk=>
+    `<button class="kho-tab${pk===GRAB_PK?' on':''}" onclick="grabSetProd('${pk}')">${SALES_PROD_NAMES[pk]}</button>`).join('');
+  const cfg=SALES_PROD_CFG[GRAB_PK];const st=_grabStock(GRAB_PK);
+  let html=`<table class="ord-lot-tbl" style="min-width:auto"><thead><tr><th class="fix" style="min-width:64px">Size \\ Màu</th>${cfg.colors.map(c=>`<th style="min-width:78px">${_grabEsc(c)}</th>`).join('')}</tr></thead><tbody>`;
+  cfg.sizes.forEach(s=>{
+    html+=`<tr><td class="fix" style="font-size:11px;font-weight:700">${_grabEsc(s)}</td>${cfg.colors.map((c,ci)=>{
+      const ton=Math.round(st[c+'|'+s]||0);const out=ton<=0;
+      return `<td style="padding:3px"><button type="button" onclick="grabAdd('${GRAB_PK}',SALES_PROD_CFG['${GRAB_PK}'].colors[${ci}],'${s}')" title="Thêm 1 ${_grabEsc(c)} ${_grabEsc(s)}"
+        style="width:74px;padding:6px 4px;border-radius:8px;cursor:pointer;border:1px solid ${out?'#e5b4b4':'rgba(0,166,81,.35)'};background:${out?'#fdecea':'#f2fbf5'};font-family:var(--f-head);line-height:1.25">
+        <div style="font-size:12px;font-weight:800;color:${out?'#c0392b':'#00843f'}">＋</div>
+        <div style="font-size:10px;color:${out?'#c0392b':'#7a5a40'}">tồn ${ton}</div></button></td>`;
+    }).join('')}</tr>`;
+  });
+  html+=`</tbody></table>`;
+  document.getElementById('grabGrid').innerHTML=html;
+  renderGrabCart();
+}
+function renderGrabCart(){
+  const el=document.getElementById('grabCart');const btn=document.getElementById('grabSubmitBtn');
+  if(!GRAB_CART.length){el.innerHTML='<div style="color:#9A8070;font-size:12px;padding:6px 0">Chưa có sản phẩm — bấm vào ô phía trên để thêm.</div>';btn.disabled=true;btn.textContent='✓ Trừ kho';return;}
+  const tot=GRAB_CART.reduce((s,x)=>s+x.qty,0);
+  el.innerHTML=GRAB_CART.map((it,i)=>{
+    const ton=Math.round(_grabStock(it.prod)[it.color+'|'+it.size]||0);const warn=it.qty>ton;
+    return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(220,198,170,.35);flex-wrap:wrap">
+      <div style="flex:1;min-width:170px;font-size:12px;color:var(--dark)"><b>${_grabEsc(SALES_PROD_NAMES[it.prod])}</b> · ${_grabEsc(it.color)} · ${_grabEsc(it.size)}
+        <span style="font-size:10.5px;color:${warn?'#c0392b':'#9A8070'}"> (tồn ${ton}${warn?' — không đủ!':''})</span></div>
+      <button class="btn btn-ghost" onclick="grabChange(${i},-1)" style="font-size:12px;padding:3px 10px">−</button>
+      <input type="number" min="1" value="${it.qty}" onchange="grabSetQty(${i},this.value)" style="width:52px;padding:4px;text-align:center;border:1px solid rgba(220,198,170,.6);border-radius:6px;font-size:12px">
+      <button class="btn btn-ghost" onclick="grabChange(${i},1)" style="font-size:12px;padding:3px 10px">＋</button>
+      <button class="btn btn-ghost" onclick="grabChange(${i},-99999)" style="font-size:11px;padding:3px 9px;color:#c0392b">✕</button>
+    </div>`;}).join('')+
+    `<div style="text-align:right;font-size:12px;color:var(--dark);margin-top:8px">Tổng: <b>${tot} sản phẩm</b> · ${GRAB_CART.length} dòng</div>`;
+  btn.disabled=false;btn.textContent=`✓ Trừ kho (${tot} sp)`;
+}
+function _grabOverlay(){
+  let ov=document.getElementById('salesConfirmOverlay');
+  if(!ov){ov=document.createElement('div');ov.id='salesConfirmOverlay';ov.style.cssText='position:fixed;inset:0;background:rgba(42,33,28,.55);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px';ov.addEventListener('click',e=>{if(e.target===ov&&!_salesWriting)closeSalesModal();});document.body.appendChild(ov);}
+  return ov;
+}
+function confirmGrab(){
+  if(_salesWriting)return;
+  if(!GRAB_CART.length){toast('Chưa chọn sản phẩm nào!','err');return;}
+  const dateVal=document.getElementById('htDate').value;
+  if(!dateVal){toast('Chọn ngày!','err');return;}
+  const dstr=dateVal.split('-').reverse().join('/');
+  const tot=GRAB_CART.reduce((s,x)=>s+x.qty,0);
+  let anyNeg=false;
+  const rows=GRAB_CART.map(it=>{
+    const ton=Math.round(_grabStock(it.prod)[it.color+'|'+it.size]||0);const after=ton-it.qty;if(after<0)anyNeg=true;
+    return `<tr><td style="text-align:left;padding:5px 6px">${_grabEsc(SALES_PROD_NAMES[it.prod])} · ${_grabEsc(it.color)} · ${_grabEsc(it.size)}</td>
+      <td style="padding:5px 6px;text-align:center;font-weight:800">−${it.qty}</td>
+      <td style="padding:5px 6px;text-align:center;color:#7a5a40">${ton} → <b style="color:${after<0?'#c0392b':'var(--dark)'}">${after}</b></td></tr>`;}).join('');
+  const ov=_grabOverlay();
+  ov.innerHTML=`<div style="background:#fff;border-radius:16px;max-width:460px;width:100%;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.35)">
+    <div style="background:#00A651;padding:15px 20px;color:#fff;font-family:var(--f-head);font-weight:800;font-size:14px">✎ Xác nhận trừ kho — ${_grabEsc(GRAB_SRC)}?</div>
+    <div style="padding:16px 20px;color:var(--dark);font-size:13px;line-height:1.6">
+      📅 Ngày <b>${dstr}</b> · <b>${tot} sản phẩm</b> (${GRAB_CART.length} dòng)
+      <div style="max-height:260px;overflow:auto;margin-top:10px;border:1px solid rgba(220,198,170,.6);border-radius:8px">
+        <table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:var(--cream)"><th style="text-align:left;padding:6px">Sản phẩm</th><th style="padding:6px">SL</th><th style="padding:6px">Tồn nhà</th></tr></thead><tbody>${rows}</tbody></table>
+      </div>
+      ${anyNeg?'<div style="margin-top:10px;background:#fdecea;border:1px solid #e5b4b4;border-radius:8px;padding:8px 11px;font-size:11.5px;color:#8a2020">⚠️ Có mã <b>không đủ tồn</b> — kiểm lại hàng trước khi xác nhận.</div>':''}
+      <div style="margin-top:10px;background:var(--yel-bg);border:1px solid #e8d9a0;border-radius:8px;padding:8px 11px;font-size:11.5px;color:#8a6f0b">Đơn sẽ ghi vào Đi Đơn (nguồn <b>${_grabEsc(GRAB_SRC)}</b>) và tồn kho nhà tự trừ. Chỉ bấm 1 lần.</div>
+    </div>
+    <div style="display:flex;gap:8px;padding:0 20px 18px">
+      <button onclick="closeSalesModal()" style="flex:1;padding:11px;border-radius:9px;border:1px solid rgba(220,198,170,.7);background:var(--cream);color:var(--brown);font-family:var(--f-head);font-weight:700;font-size:12px;cursor:pointer">Hủy</button>
+      <button onclick="doGrab(this,'${dstr}')" style="flex:1.4;padding:11px;border-radius:9px;border:none;background:#00A651;color:#fff;font-family:var(--f-head);font-weight:800;font-size:12px;cursor:pointer">✓ Xác nhận trừ kho</button>
+    </div></div>`;
+  ov.style.display='flex';
+}
+async function doGrab(btn,dstr){
+  if(_salesWriting)return;_salesWriting=true;
+  if(btn){btn.disabled=true;btn.textContent='Đang ghi…';btn.style.opacity=.7;}
+  const items=GRAB_CART.map(it=>({date:dstr,prod:it.prod,color:it.color,size:it.size,qty:it.qty,platform:GRAB_SRC}));
+  const tot=items.reduce((s,x)=>s+x.qty,0);
+  try{
+    const res=await fetch(`${SB_URL}/rest/v1/sales_log`,{method:'POST',
+      headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(items)});
+    if(!res.ok){let t='';try{t=await res.text();}catch(_){}throw new Error('Supabase '+res.status+(t?' — '+t.slice(0,200):''));}
+    GRAB_LAST_IDS=[];try{const r=await res.json();if(Array.isArray(r))GRAB_LAST_IDS=r.map(x=>x&&x.id).filter(x=>x!=null);}catch(_){}
+    GRAB_CART=[];GRAB_STOCK={};
+    toast(`✓ Đã trừ kho ${tot} sp (${GRAB_SRC})`,'ok');
+    const ov=_grabOverlay();
+    ov.innerHTML=`<div style="background:#fff;border-radius:16px;max-width:390px;width:100%;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.35)">
+      <div style="background:var(--green);padding:15px 20px;color:#fff;font-family:var(--f-head);font-weight:800;font-size:14px">✓ Đã ghi đơn ${_grabEsc(GRAB_SRC)} & trừ kho</div>
+      <div style="padding:18px 20px;color:var(--dark);font-size:13px;line-height:1.75">Đã ghi <b>${items.length} dòng</b> (${tot} sản phẩm) · ${dstr}.
+        ${GRAB_LAST_IDS.length?'<div style="margin-top:8px;color:#7a5a40;font-size:11.5px">Lỡ bấm nhầm? Bấm <b>Hoàn tác</b> để xoá đúng đơn này.</div>':''}</div>
+      <div style="display:flex;gap:8px;padding:0 20px 18px">
+        ${GRAB_LAST_IDS.length?'<button onclick="undoGrab(this)" style="flex:1;padding:11px;border-radius:9px;border:1px solid #c0392b;background:#fdecea;color:#c0392b;font-family:var(--f-head);font-weight:700;font-size:12px;cursor:pointer">↶ Hoàn tác</button>':''}
+        <button onclick="closeSalesModal()" style="flex:1;padding:11px;border-radius:9px;border:none;background:var(--dark);color:var(--tan);font-family:var(--f-head);font-weight:800;font-size:12px;cursor:pointer">Đóng</button>
+      </div></div>`;
+    _salesWriting=false;
+    await _grabRefreshStock();
+    try{if(document.getElementById('page-sales').classList.contains('active'))await loadSales();}catch(_){}
+    renderGrab();
+  }catch(e){
+    toast('Lỗi ghi: '+e.message,'err');
+    if(btn){btn.disabled=false;btn.textContent='✓ Xác nhận trừ kho';btn.style.opacity=1;}
+  }finally{_salesWriting=false;}
+}
+async function undoGrab(btn){
+  if(!GRAB_LAST_IDS.length){closeSalesModal();return;}
+  if(btn){btn.disabled=true;btn.textContent='Đang hoàn tác…';}
+  try{
+    const res=await fetch(`${SB_URL}/rest/v1/sales_log?id=in.(${GRAB_LAST_IDS.join(',')})`,{method:'DELETE',
+      headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Prefer':'return=representation'}});
+    if(!res.ok)throw new Error('Supabase '+res.status);
+    let n=GRAB_LAST_IDS.length;try{const r=await res.json();if(Array.isArray(r))n=r.length;}catch(_){}
+    if(n===0)throw new Error('Supabase không cho xoá (RLS) — cần xoá tay hoặc dùng "Sửa số liệu"');
+    toast(`↶ Đã hoàn tác (${n} dòng)`,'ok');
+    GRAB_LAST_IDS=[];GRAB_STOCK={};closeSalesModal();
+    await _grabRefreshStock();
+    try{if(document.getElementById('page-sales').classList.contains('active'))await loadSales();}catch(_){}
+    renderGrab();
+  }catch(e){toast('Lỗi hoàn tác: '+e.message,'err');if(btn){btn.disabled=false;btn.textContent='↶ Hoàn tác';}}
 }
 
 // ─── Điền đơn đi theo ngày (lưới size × màu) ──────────────────────
